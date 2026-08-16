@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -672,6 +673,32 @@
     }
   }
 
+
+  /* Supabase Auth & Sync Styles */
+  .auth-btn{
+    background: var(--panel); border:1px solid var(--line); border-radius:8px; padding:7px 12px;
+    color: var(--text); font-family:'JetBrains Mono', monospace; font-size:11.5px; cursor:pointer;
+    display:flex; align-items:center; gap:7px; transition:all .2s ease;
+  }
+  .auth-btn:hover{ border-color: var(--gold); color: var(--gold); }
+  .auth-btn.logged-in{ border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
+  .auth-btn.logged-in .dot{ width:7px; height:7px; border-radius:50%; background: var(--green); display:inline-block; }
+  
+  .auth-modal-card{ max-width:380px; }
+  .auth-tabs{ display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:10px; }
+  .auth-tab{ flex:1; padding:8px 0; border:none; background:transparent; color:var(--text-soft); font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; cursor:pointer; border-radius:6px; }
+  .auth-tab.active{ background:var(--panel-2); color:var(--gold); }
+  
+  .auth-field{ margin-bottom:12px; }
+  .auth-field label{ display:block; margin-bottom:5px; font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; color:var(--text-soft); letter-spacing:.06em; }
+  .auth-field input{ width:100%; padding:10px 12px; border-radius:7px; border:1px solid var(--line); background:rgba(0,0,0,0.3); color:var(--text); font-size:13.5px; box-sizing:border-box; }
+  .auth-field input:focus{ outline:none; border-color:var(--gold); }
+  .auth-msg{ font-size:12px; margin:10px 0 0; line-height:1.4; text-align:center; min-height:18px; }
+  .auth-msg.error{ color:var(--red); }
+  .auth-msg.ok{ color:var(--green); }
+  
+  .supabase-config-box{ background:rgba(0,0,0,0.2); border:1px solid var(--line); border-radius:8px; padding:12px; margin-top:12px; }
+
 </style>
 </head>
 <body>
@@ -689,6 +716,10 @@
         <h1 id="heroSubtitle">Resumen financiero</h1>
       </div>
     </div>
+    <button type="button" class="auth-btn" id="authBtn" aria-label="Cuenta Supabase">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7z"/></svg>
+      <span id="authBtnLabel">Conectar cuenta</span>
+    </button>
     <div class="month-nav">
       <span class="cal-icon">
         <svg viewBox="0 0 24 24" width="15" height="15"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -992,6 +1023,70 @@
 </div>
 
 <div class="chart-tooltip" id="chartTooltip"></div>
+
+
+<!-- MODAL SUPABASE AUTH -->
+<div class="modal-overlay hidden" id="authModalOverlay" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+  <div class="modal-card auth-modal-card">
+    <div class="modal-head">
+      <h2 id="authModalTitle">Sincronización en la nube</h2>
+      <button class="modal-close" id="authModalClose" aria-label="Cerrar">&times;</button>
+    </div>
+    
+    <div id="authLoggedOutView">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tabLogin">Iniciar sesión</button>
+        <button type="button" class="auth-tab" id="tabSignup">Crear cuenta</button>
+      </div>
+      
+      <form id="authForm">
+        <div class="auth-field">
+          <label for="authEmail">Correo electrónico</label>
+          <input type="email" id="authEmail" required placeholder="tu@correo.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label for="authPassword">Contraseña</label>
+          <input type="password" id="authPassword" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-submit" id="authSubmitBtn" style="margin-top:10px;">Entrar</button>
+        <div class="auth-msg" id="authMsg"></div>
+      </form>
+      
+      <div style="text-align:center;margin-top:14px;">
+        <button type="button" class="link-btn" id="toggleConfigBtn">Configuración de proyecto Supabase</button>
+      </div>
+    </div>
+    
+    <div id="authLoggedInView" class="hidden">
+      <div style="text-align:center;padding:12px 0;">
+        <div style="font-size:32px;margin-bottom:8px;">☁️</div>
+        <p style="margin:0 0 4px;font-weight:600;font-size:15px;" id="authAccountEmail"></p>
+        <p style="margin:0;font-size:12px;color:var(--green);font-family:'JetBrains Mono',monospace;">● Sincronización en tiempo real activa</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button type="button" class="btn-outline" id="forceSyncBtn" style="flex:1;">Sincronizar ahora</button>
+        <button type="button" class="btn-ghost-sm" id="logoutBtn" style="flex:1;border-color:var(--red);color:var(--red);">Cerrar sesión</button>
+      </div>
+    </div>
+    
+    <!-- Configuración avanzada de credenciales Supabase -->
+    <div id="supabaseConfigView" class="supabase-config-box hidden">
+      <p style="font-size:11.5px;color:var(--text-soft);margin:0 0 8px;">Credenciales de tu proyecto Supabase:</p>
+      <div class="auth-field">
+        <label for="sbUrlInput">Project URL</label>
+        <input type="url" id="sbUrlInput" placeholder="https://xyz.supabase.co">
+      </div>
+      <div class="auth-field">
+        <label for="sbKeyInput">Anon Public Key</label>
+        <input type="text" id="sbKeyInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button type="button" class="btn-outline" id="saveSbConfigBtn" style="flex:1;">Guardar credenciales</button>
+        <button type="button" class="btn-ghost-sm" id="cancelSbConfigBtn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- FAB + modal -->
 <button class="fab" id="fabBtn" aria-label="Nuevo movimiento">
@@ -1838,7 +1933,7 @@ document.getElementById('gearBtn').addEventListener('click', ()=>{
   if(p.classList.contains('hidden')){
     document.getElementById('alertInput').value = alertThreshold || '';
     renderAccountSettings();
-    renderSyncUI();
+    
     renderCatMgmt();
   }
   p.classList.toggle('hidden');
@@ -1918,11 +2013,12 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
   showToast(`Categoría "${name}" creada`);
 });
 
-/* ---------- Sincronización en la nube ---------- */
+/* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
   return { tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, cats: catsData };
 }
 function applyState(data){
+  if(!data || typeof data !== 'object') return;
   if(data.tx){ tx = normalizeTxList(data.tx); saveTx(tx); }
   if(data.goals){ goals = data.goals; saveGoals(goals); }
   if(data.goalHistory){ goalHistory = data.goalHistory; saveGoalHistory(goalHistory); }
@@ -1942,108 +2038,283 @@ function applyState(data){
     saveDefaultAccount(defaultAccountId);
   }
 }
-function setSyncStatus(kind, text){
-  const el = document.getElementById('syncStatus');
-  if(!el) return;
-  el.className = 'sync-status' + (kind ? ' '+kind : '');
-  el.textContent = text || '';
+
+const SB_URL_KEY = 'mcf_sb_url_v2';
+const SB_KEY_KEY = 'mcf_sb_key_v2';
+
+let sbUrl = localStorage.getItem(SB_URL_KEY) || '';
+let sbAnonKey = localStorage.getItem(SB_KEY_KEY) || '';
+
+let sbClient = null;
+let sbUser = null;
+let sbRealtimeChannel = null;
+let isPushingToRemote = false;
+
+function initSupabase(){
+  if(window.supabase && sbUrl && sbAnonKey){
+    try {
+      sbClient = window.supabase.createClient(sbUrl, sbAnonKey);
+      setupAuthListener();
+    } catch(e){
+      console.warn('Error inicializando cliente Supabase:', e);
+    }
+  }
 }
-function renderSyncUI(){
-  const noCode = document.getElementById('syncNoCode');
-  const withCode = document.getElementById('syncWithCode');
-  if(syncId){
-    noCode.classList.add('hidden');
-    withCode.classList.remove('hidden');
-    document.getElementById('syncCodeDisplay').value = syncId;
-    setSyncStatus('', 'Sincronización activa en este dispositivo.');
+
+async function setupAuthListener(){
+  if(!sbClient) return;
+  try {
+    const { data: { session } } = await sbClient.auth.getSession();
+    handleAuthState(session ? session.user : null);
+    
+    if(session && session.user){
+      await pullFromSupabase();
+      subscribeToRealtime();
+    }
+
+    sbClient.auth.onAuthStateChange(async (event, session) => {
+      handleAuthState(session ? session.user : null);
+      if(event === 'SIGNED_IN' && session && session.user){
+        await pullFromSupabase();
+        subscribeToRealtime();
+      } else if(event === 'SIGNED_OUT'){
+        if(sbRealtimeChannel && sbClient){
+          sbClient.removeChannel(sbRealtimeChannel);
+          sbRealtimeChannel = null;
+        }
+      }
+    });
+  } catch(e){
+    console.warn('Error en auth listener:', e);
+  }
+}
+
+function handleAuthState(user){
+  sbUser = user;
+  const authBtn = document.getElementById('authBtn');
+  const authBtnLabel = document.getElementById('authBtnLabel');
+  const loggedInView = document.getElementById('authLoggedInView');
+  const loggedOutView = document.getElementById('authLoggedOutView');
+  const emailEl = document.getElementById('authAccountEmail');
+  
+  if(user){
+    if(authBtn) authBtn.classList.add('logged-in');
+    if(authBtnLabel) authBtnLabel.innerHTML = '<span class="dot"></span> ' + escapeHtml(user.email.split('@')[0]);
+    if(loggedInView) loggedInView.classList.remove('hidden');
+    if(loggedOutView) loggedOutView.classList.add('hidden');
+    if(emailEl) emailEl.textContent = user.email;
   } else {
-    noCode.classList.remove('hidden');
-    withCode.classList.add('hidden');
-    setSyncStatus('', '');
+    if(authBtn) authBtn.classList.remove('logged-in');
+    if(authBtnLabel) authBtnLabel.textContent = 'Conectar cuenta';
+    if(loggedInView) loggedInView.classList.add('hidden');
+    if(loggedOutView) loggedOutView.classList.remove('hidden');
   }
 }
 
-async function syncPush(){
-  if(!syncId) return;
-  try{
-    const res = await fetch(`https://jsonblob.com/api/jsonBlob/${syncId}`, {
-      method:'PUT',
-      headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
-      body: JSON.stringify(collectState())
-    });
-    if(!res.ok) throw new Error('push failed');
-    setSyncStatus('ok', 'Sincronizado ✓ ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
-  }catch(e){
-    setSyncStatus('error', 'No se pudo sincronizar. Revisa tu conexión e inténtalo de nuevo.');
+async function pullFromSupabase(){
+  if(!sbClient || !sbUser) return;
+  try {
+    const { data, error } = await sbClient
+      .from('user_finance')
+      .select('data, updated_at')
+      .eq('user_id', sbUser.id)
+      .maybeSingle();
+      
+    if(error){
+      console.warn('Error al obtener datos de Supabase:', error);
+      return;
+    }
+    
+    if(data && data.data){
+      applyState(data.data);
+      render();
+      showToast('Datos sincronizados con Supabase ✓');
+    } else {
+      await pushToSupabase();
+    }
+  } catch(e){
+    console.warn('Fallo en pullFromSupabase:', e);
   }
 }
-let syncPushTimer = null;
+
+async function pushToSupabase(){
+  if(!sbClient || !sbUser || isPushingToRemote) return;
+  isPushingToRemote = true;
+  try {
+    const currentState = collectState();
+    const { error } = await sbClient
+      .from('user_finance')
+      .upsert({
+        user_id: sbUser.id,
+        data: currentState,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      
+    if(error){
+      console.warn('Error al guardar en Supabase:', error);
+    }
+  } catch(e){
+    console.warn('Fallo en pushToSupabase:', e);
+  } finally {
+    isPushingToRemote = false;
+  }
+}
+
+let supabaseDebounceTimer = null;
 function scheduleSyncPush(){
-  if(!syncId) return;
-  clearTimeout(syncPushTimer);
-  syncPushTimer = setTimeout(syncPush, 900);
+  if(!sbClient || !sbUser) return;
+  clearTimeout(supabaseDebounceTimer);
+  supabaseDebounceTimer = setTimeout(pushToSupabase, 800);
 }
 
-async function syncPull(id){
-  const res = await fetch(`https://jsonblob.com/api/jsonBlob/${id}`, { headers:{ 'Accept':'application/json' } });
-  if(!res.ok) throw new Error('pull failed');
-  const data = await res.json();
-  applyState(data);
+function subscribeToRealtime(){
+  if(!sbClient || !sbUser || sbRealtimeChannel) return;
+  
+  sbRealtimeChannel = sbClient
+    .channel('user_finance_realtime')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'user_finance',
+      filter: `user_id=eq.${sbUser.id}`
+    }, payload => {
+      if(payload.new && payload.new.data && !isPushingToRemote){
+        applyState(payload.new.data);
+        render();
+        showToast('Actualizado en tiempo real ⚡');
+      }
+    })
+    .subscribe();
 }
 
-document.getElementById('createSyncBtn').addEventListener('click', async ()=>{
-  setSyncStatus('', 'Creando código...');
-  try{
-    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
-      body: JSON.stringify(collectState())
-    });
-    const location = res.headers.get('Location') || res.headers.get('location');
-    if(!location) throw new Error('sin id');
-    syncId = location.split('/').pop();
-    localStorage.setItem(SYNC_KEY, syncId);
-    renderSyncUI();
-    setSyncStatus('ok', 'Código creado. Cópialo y pégalo en tu otro dispositivo.');
-  }catch(e){
-    setSyncStatus('error', 'No se pudo crear el código. Revisa tu conexión e inténtalo de nuevo.');
+/* Modales y UI de Auth */
+let authMode = 'login';
+const authModalOverlay = document.getElementById('authModalOverlay');
+const authBtn = document.getElementById('authBtn');
+const authModalClose = document.getElementById('authModalClose');
+const tabLogin = document.getElementById('tabLogin');
+const tabSignup = document.getElementById('tabSignup');
+const authForm = document.getElementById('authForm');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authMsg = document.getElementById('authMsg');
+const toggleConfigBtn = document.getElementById('toggleConfigBtn');
+const supabaseConfigView = document.getElementById('supabaseConfigView');
+const saveSbConfigBtn = document.getElementById('saveSbConfigBtn');
+const cancelSbConfigBtn = document.getElementById('cancelSbConfigBtn');
+const sbUrlInput = document.getElementById('sbUrlInput');
+const sbKeyInput = document.getElementById('sbKeyInput');
+const logoutBtn = document.getElementById('logoutBtn');
+const forceSyncBtn = document.getElementById('forceSyncBtn');
+
+function openAuthModal(){
+  if(sbUrlInput) sbUrlInput.value = sbUrl;
+  if(sbKeyInput) sbKeyInput.value = sbAnonKey;
+  if(!sbUrl || !sbAnonKey){
+    if(supabaseConfigView) supabaseConfigView.classList.remove('hidden');
+  }
+  if(authModalOverlay) authModalOverlay.classList.remove('hidden');
+}
+function closeAuthModal(){
+  if(authModalOverlay) authModalOverlay.classList.add('hidden');
+  if(authMsg) authMsg.textContent = '';
+}
+
+if(authBtn) authBtn.addEventListener('click', openAuthModal);
+if(authModalClose) authModalClose.addEventListener('click', closeAuthModal);
+if(authModalOverlay) authModalOverlay.addEventListener('click', e=>{ if(e.target===authModalOverlay) closeAuthModal(); });
+
+if(tabLogin) tabLogin.addEventListener('click', ()=>{
+  authMode = 'login';
+  tabLogin.classList.add('active');
+  if(tabSignup) tabSignup.classList.remove('active');
+  if(authSubmitBtn) authSubmitBtn.textContent = 'Entrar';
+  if(authMsg) authMsg.textContent = '';
+});
+if(tabSignup) tabSignup.addEventListener('click', ()=>{
+  authMode = 'signup';
+  tabSignup.classList.add('active');
+  if(tabLogin) tabLogin.classList.remove('active');
+  if(authSubmitBtn) authSubmitBtn.textContent = 'Registrarse';
+  if(authMsg) authMsg.textContent = '';
+});
+
+if(toggleConfigBtn) toggleConfigBtn.addEventListener('click', ()=>{
+  if(supabaseConfigView) supabaseConfigView.classList.toggle('hidden');
+});
+if(cancelSbConfigBtn) cancelSbConfigBtn.addEventListener('click', ()=>{
+  if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
+});
+if(saveSbConfigBtn) saveSbConfigBtn.addEventListener('click', ()=>{
+  const newUrl = sbUrlInput.value.trim();
+  const newKey = sbKeyInput.value.trim();
+  if(!newUrl || !newKey){
+    alert('Por favor ingresa tanto la URL como la Anon Key de Supabase');
+    return;
+  }
+  sbUrl = newUrl;
+  sbAnonKey = newKey;
+  localStorage.setItem(SB_URL_KEY, sbUrl);
+  localStorage.setItem(SB_KEY_KEY, sbAnonKey);
+  initSupabase();
+  if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
+  showToast('Credenciales de Supabase guardadas ✓');
+});
+
+if(authForm) authForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  if(!sbClient){
+    authMsg.className = 'auth-msg error';
+    authMsg.textContent = 'Primero debes configurar tus credenciales de Supabase abajo.';
+    if(supabaseConfigView) supabaseConfigView.classList.remove('hidden');
+    return;
+  }
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if(!email || !password) return;
+  
+  authSubmitBtn.disabled = true;
+  authMsg.className = 'auth-msg';
+  authMsg.textContent = 'Procesando...';
+  
+  try {
+    if(authMode === 'login'){
+      const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      authMsg.className = 'auth-msg ok';
+      authMsg.textContent = '¡Sesión iniciada con éxito!';
+      setTimeout(()=> closeAuthModal(), 800);
+    } else {
+      const { data, error } = await sbClient.auth.signUp({ email, password });
+      if(error) throw error;
+      authMsg.className = 'auth-msg ok';
+      authMsg.textContent = '¡Cuenta creada! ' + (data.session ? 'Iniciando sesión...' : 'Revisa tu correo de confirmación.');
+      if(data.session) setTimeout(()=> closeAuthModal(), 800);
+    }
+  } catch(err){
+    authMsg.className = 'auth-msg error';
+    authMsg.textContent = err.message || 'Error de autenticación';
+  } finally {
+    authSubmitBtn.disabled = false;
   }
 });
 
-document.getElementById('joinSyncBtn').addEventListener('click', async ()=>{
-  const code = document.getElementById('syncJoinInput').value.trim();
-  if(!code) return;
-  setSyncStatus('', 'Conectando...');
-  try{
-    await syncPull(code);
-    syncId = code;
-    localStorage.setItem(SYNC_KEY, syncId);
-    renderSyncUI();
-    render();
-    setSyncStatus('ok', 'Conectado. Tus datos se actualizaron con los de ese código.');
-  }catch(e){
-    setSyncStatus('error', 'Ese código no existe o no se pudo conectar.');
+if(logoutBtn) logoutBtn.addEventListener('click', async ()=>{
+  if(sbClient){
+    await sbClient.auth.signOut();
+    handleAuthState(null);
+    closeAuthModal();
+    showToast('Sesión cerrada');
   }
 });
 
-document.getElementById('copySyncBtn').addEventListener('click', ()=>{
-  const input = document.getElementById('syncCodeDisplay');
-  input.select();
-  if(navigator.clipboard){ navigator.clipboard.writeText(syncId).catch(()=>{}); }
-  else document.execCommand('copy');
-  setSyncStatus('ok', 'Código copiado.');
+if(forceSyncBtn) forceSyncBtn.addEventListener('click', async ()=>{
+  await pushToSupabase();
+  await pullFromSupabase();
+  showToast('Sincronización manual completada ✓');
 });
 
-document.getElementById('syncNowBtn').addEventListener('click', ()=>{
-  setSyncStatus('', 'Sincronizando...');
-  syncPush();
-});
-
-document.getElementById('removeSyncBtn').addEventListener('click', ()=>{
-  syncId = null;
-  localStorage.removeItem(SYNC_KEY);
-  renderSyncUI();
-});
+// Inicializar Supabase al cargar
+initSupabase();
 
 document.getElementById('exportBtn').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify({tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, cats:catsData}, null, 2)], {type:'application/json'});
@@ -3640,7 +3911,7 @@ document.getElementById('projectionChart').addEventListener('mousemove', e=>{
 document.getElementById('projectionChart').addEventListener('mouseleave', hideTip);
 
 (async function init(){
-  renderSyncUI();
+  
   if(syncId){
     try{ await syncPull(syncId); }catch(e){ /* si falla, seguimos con los datos locales */ }
   }
