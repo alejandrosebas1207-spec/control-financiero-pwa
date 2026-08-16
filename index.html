@@ -2042,8 +2042,17 @@ function applyState(data){
 const SB_URL_KEY = 'mcf_sb_url_v2';
 const SB_KEY_KEY = 'mcf_sb_key_v2';
 
-let sbUrl = localStorage.getItem(SB_URL_KEY) || '';
-let sbAnonKey = localStorage.getItem(SB_KEY_KEY) || '';
+const DEFAULT_SB_URL = 'https://mddrtrlhhfdtrtaxinxt.supabase.co';
+const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHJ0cmxoaGZkdHJ0YXhpbnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTEzNDEsImV4cCI6MjEwMjQ4NzM0MX0.MuBaGKPkfuPVg4dWwA99vrWvWFAXGAUdLbU-r4UzAZs';
+
+let sbUrl = localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL;
+let sbAnonKey = localStorage.getItem(SB_KEY_KEY) || DEFAULT_SB_KEY;
+
+// Clean base URL if it contains /rest/v1
+function cleanSupabaseUrl(url){
+  return (url || '').trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/$/, '');
+}
+sbUrl = cleanSupabaseUrl(sbUrl);
 
 let sbClient = null;
 let sbUser = null;
@@ -2245,7 +2254,7 @@ if(cancelSbConfigBtn) cancelSbConfigBtn.addEventListener('click', ()=>{
   if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
 });
 if(saveSbConfigBtn) saveSbConfigBtn.addEventListener('click', ()=>{
-  const newUrl = sbUrlInput.value.trim();
+  const newUrl = cleanSupabaseUrl(sbUrlInput.value.trim());
   const newKey = sbKeyInput.value.trim();
   if(!newUrl || !newKey){
     alert('Por favor ingresa tanto la URL como la Anon Key de Supabase');
