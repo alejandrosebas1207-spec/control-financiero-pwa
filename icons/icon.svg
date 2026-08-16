@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A1A1E"/>
+      <stop offset="100%" stop-color="#0E0E10"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="50%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#9A3412"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22C55E"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#F97316" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Fondo redondeado suave -->
+  <rect width="512" height="512" rx="120" fill="url(#bg)" stroke="rgba(249,115,22,0.3)" stroke-width="6"/>
+  
+  <!-- Círculo central brillante -->
+  <circle cx="256" cy="256" r="170" fill="url(#gold)" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="162" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4"/>
+  
+  <!-- Símbolo de dinero / crecimiento -->
+  <path d="M256 120 V392 M180 180 C180 145 220 135 256 135 C310 135 330 165 330 200 C330 260 180 250 180 310 C180 355 215 375 256 375 C310 375 335 345 335 315" 
+        fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+        
+  <!-- Gráfico de barras ascendente en la base -->
+  <rect x="130" y="380" width="40" height="25" rx="6" fill="#22C55E" opacity="0.85"/>
+  <rect x="190" y="360" width="40" height="45" rx="6" fill="#22C55E" opacity="0.95"/>
+  <rect x="250" y="335" width="40" height="70" rx="6" fill="#3B82F6"/>
+  <rect x="310" y="305" width="40" height="100" rx="6" fill="#F97316"/>
+  <rect x="370" y="270" width="40" height="135" rx="6" fill="#22C55E"/>
+</svg>

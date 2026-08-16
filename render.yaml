@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: mi-control-financiero
+    env: static
+    buildCommand: ""
+    staticPublishPath: ./
