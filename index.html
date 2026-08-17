@@ -90,10 +90,12 @@
   .month-nav .cal-icon{ color: var(--gold); display:flex; align-items:center; }
   .month-nav button{
     background: var(--panel); border:1px solid var(--line); color:var(--text);
-    width:28px; height:28px; border-radius:7px; cursor:pointer; transition: all .2s ease;
+    border-radius:7px; cursor:pointer; transition: all .2s ease;
   }
+  .month-nav button:not(.today-btn):not(#gearBtn){ width:28px; height:28px; }
   .month-nav button:hover{ border-color: var(--gold); color: var(--gold); transform: translateY(-1px); }
-  .month-label{ min-width:120px; text-align:center; text-transform:capitalize; }
+  #gearBtn{ padding:5px 8px; font-size:14px; }
+  .month-label{ min-width:0; text-align:center; text-transform:capitalize; white-space:nowrap; }
 
   /* alert + settings */
   .alert-banner{
@@ -588,8 +590,9 @@
   /* header: botón Hoy */
   .today-btn{
     background:var(--panel); border:1px solid var(--gold); color:var(--gold);
+    width:auto !important; height:auto !important;
     padding:5px 12px; border-radius:7px; font-family:'JetBrains Mono',monospace; font-size:11px;
-    cursor:pointer; transition:all .2s ease; flex-shrink:0;
+    cursor:pointer; transition:all .2s ease; flex-shrink:0; white-space:nowrap;
   }
   .today-btn:hover{ background:var(--gold-soft); }
 
@@ -3867,7 +3870,8 @@ function renderInsights(){
 
 /* render principal */
 function render(){
-  document.getElementById('monthLabel').textContent = cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'});
+  const isNarrow = window.innerWidth <= 680;
+  document.getElementById('monthLabel').textContent = cursor.toLocaleDateString('es-ES',{month: isNarrow ? 'short' : 'long', year:'numeric'});
   document.getElementById('heroSubtitle').textContent = 'Resumen financiero de ' + cursor.toLocaleDateString('es-ES',{month:'long'});
 
   const monthTx = tx.filter(t=>monthKey(t.date)===cursorKey()).sort((a,b)=>b.date.localeCompare(a.date));
