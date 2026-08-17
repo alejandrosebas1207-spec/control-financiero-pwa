@@ -711,15 +711,28 @@
       margin: 0 0 10px !important;
       padding: 10px 0 !important;
       gap: 8px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
     }
     h1{ font-size: 17px !important; }
     .eyebrow{ font-size: 9.5px !important; }
+    .brand{ justify-content: space-between !important; width: 100% !important; }
     .brand-mark{ width: 36px !important; height: 36px !important; font-size: 12px !important; }
     .avatar-wrap{ width: 36px !important; height: 36px !important; }
-    .month-nav{ font-size: 11px !important; gap: 6px !important; }
-    .month-label{ min-width: 100px !important; font-size: 11px !important; }
-    .month-nav button{ width: 26px !important; height: 26px !important; font-size: 12px !important; }
-    .today-btn{ padding: 4px 8px !important; font-size: 10px !important; }
+    .month-nav{
+      font-size: 11px !important; gap: 6px !important;
+      justify-content: center !important;
+      width: 100% !important;
+      background: rgba(255,255,255,0.04) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 10px !important;
+      padding: 6px 10px !important;
+    }
+    .month-nav .cal-icon{ display: none !important; }
+    .month-label{ min-width: 0 !important; font-size: 11.5px !important; flex: 1 !important; }
+    .month-nav button:not(.today-btn):not(#gearBtn){ width: 28px !important; height: 28px !important; font-size: 13px !important; }
+    .today-btn{ padding: 5px 12px !important; font-size: 10.5px !important; width: auto !important; height: auto !important; }
+    #gearBtn{ width: auto !important; height: auto !important; padding: 5px 8px !important; font-size: 14px !important; }
 
     /* Hero balance */
     .hero-balance{ padding: 16px !important; }
