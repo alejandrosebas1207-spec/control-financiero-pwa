@@ -2255,10 +2255,22 @@ function collectState(){
 }
 function applyState(data){
   if(!data || typeof data !== 'object') return;
-  if(data.tx){ tx = normalizeTxList(data.tx); saveTx(tx); }
-  if(data.goals){ goals = data.goals; saveGoals(goals); }
-  if(data.goalHistory){ goalHistory = data.goalHistory; saveGoalHistory(goalHistory); }
-  if(data.budgets){ budgets = data.budgets; saveBudgets(budgets); }
+  if(data.tx){
+    const remoteTx = normalizeTxList(data.tx);
+    const remoteIds = new Set(remoteTx.map(t=>t.id));
+    const localNewTx = (tx||[]).filter(t=>!remoteIds.has(t.id));
+    if(localNewTx.length > 0){
+      tx = [...remoteTx, ...localNewTx];
+      localStorage.setItem(TX_KEY, JSON.stringify(tx));
+      scheduleSyncPush();
+    } else {
+      tx = remoteTx;
+      localStorage.setItem(TX_KEY, JSON.stringify(tx));
+    }
+  }
+  if(data.goals){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
+  if(data.goalHistory){ goalHistory = data.goalHistory; localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(goalHistory)); }
+  if(data.budgets){ budgets = data.budgets; localStorage.setItem(BUDGETS_KEY, JSON.stringify(budgets)); }
   if('alertThreshold' in data){ alertThreshold = data.alertThreshold; saveAlert(alertThreshold); }
   if(data.cats) applyCats(data.cats);
   if('accountBalances' in data){
@@ -2422,7 +2434,7 @@ let supabaseDebounceTimer = null;
 function scheduleSyncPush(){
   if(!sbClient || !sbUser) return;
   clearTimeout(supabaseDebounceTimer);
-  supabaseDebounceTimer = setTimeout(pushToSupabase, 800);
+  supabaseDebounceTimer = setTimeout(pushToSupabase, 300);
 }
 
 function subscribeToRealtime(){
