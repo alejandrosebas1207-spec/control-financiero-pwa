@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanzas">
-<meta name="theme-color" content="#111113">
+<meta name="theme-color" content="#0B0407">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -21,20 +21,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
   :root{
-    --deep: #111113;
-    --deep-2: #1A1A1D;
-    --panel: #222225;
-    --panel-2: #2B2B30;
-    --line: rgba(255,255,255,0.10);
-    --text: #F4F4F5;
-    --text-soft: #A1A1AA;
-    --gold: #F97316;
-    --gold-soft: rgba(249,115,22,0.15);
-    --red: #EF4444;
-    --red-soft: rgba(239,68,68,0.14);
-    --green: #22C55E;
-    --green-soft: rgba(34,197,94,0.14);
-    --radius: 14px;
+    --deep: #0B0407;
+    --deep-2: #14070D;
+    --panel: #1A0A12;
+    --panel-2: #240E19;
+    --line: rgba(244,63,94,0.14);
+    --text: #FFF1F2;
+    --text-soft: #A88691;
+    --gold: #F43F5E;
+    --gold-soft: rgba(244,63,94,0.16);
+    --red: #FB7185;
+    --red-soft: rgba(251,113,133,0.15);
+    --green: #10B981;
+    --green-soft: rgba(16,185,129,0.15);
+    --radius: 16px;
+    --radius-sm: 10px;
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; }
@@ -66,10 +67,10 @@
   .avatar-wrap{ position:relative; width:42px; height:42px; flex-shrink:0; }
   .brand-mark{
     width:42px; height:42px; border-radius:50%;
-    background: linear-gradient(135deg, var(--gold), #9A3412);
+    background: linear-gradient(135deg, #F43F5E, #881337);
     display:flex; align-items:center; justify-content:center;
     font-family:'Space Grotesk', sans-serif; font-weight:700; color:#FFF7ED; font-size:14px; letter-spacing:.02em;
-    box-shadow: 0 6px 18px rgba(249,115,22,0.24);
+    box-shadow: 0 6px 18px rgba(244,63,94,0.3);
     transition: transform .25s ease, box-shadow .25s ease;
     cursor:pointer; overflow:hidden; border:none; padding:0;
   }
@@ -445,7 +446,7 @@
   /* FAB + modal */
   .fab{
     position:fixed; right:20px; bottom:20px; z-index:50;
-    background: linear-gradient(135deg, #F97316, #EA580C); color:#FFF; border:none; border-radius:50%;
+    background: linear-gradient(135deg, #F43F5E, #BE123C); color:#FFF; border:none; border-radius:50%;
     width:50px; height:50px; padding:0;
     font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:14px;
     cursor:pointer; box-shadow: 0 6px 20px rgba(249,115,22,0.4);
@@ -643,19 +644,19 @@
      IPHONE 15 & MODERN IOS POLISHED THEME
      ========================================================================== */
   :root{
-    --deep: #09090C;
-    --deep-2: #121216;
-    --panel: #18181E;
-    --panel-2: #212129;
-    --line: rgba(255,255,255,0.08);
-    --text: #F8F8FA;
-    --text-soft: #9E9EA8;
-    --gold: #F97316;
-    --gold-soft: rgba(249,115,22,0.12);
-    --red: #EF4444;
-    --red-soft: rgba(239,68,68,0.12);
-    --green: #22C55E;
-    --green-soft: rgba(34,197,94,0.12);
+    --deep: #0B0407;
+    --deep-2: #14070D;
+    --panel: #1A0A12;
+    --panel-2: #240E19;
+    --line: rgba(244,63,94,0.14);
+    --text: #FFF1F2;
+    --text-soft: #A88691;
+    --gold: #F43F5E;
+    --gold-soft: rgba(244,63,94,0.16);
+    --red: #FB7185;
+    --red-soft: rgba(251,113,133,0.15);
+    --green: #10B981;
+    --green-soft: rgba(16,185,129,0.15);
     --radius: 16px;
     --radius-sm: 10px;
   }
@@ -694,8 +695,8 @@
 
   .hero-balance{
     border-radius: var(--radius);
-    background: linear-gradient(145deg, #1C1C23, #15151B);
-    border: 1px solid rgba(249,115,22,0.35);
+    background: linear-gradient(145deg, #240E19, #17070F);
+    border: 1px solid rgba(244,63,94,0.35);
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
   }
 
@@ -749,33 +750,64 @@
     .today-btn{ padding: 5px 12px !important; font-size: 10.5px !important; width: auto !important; height: auto !important; }
     #gearBtn{ width: auto !important; height: auto !important; padding: 5px 8px !important; font-size: 14px !important; }
 
-    /* Hero balance */
-    .hero-balance{ padding: 16px !important; }
-    .hero-val{ font-size: 28px !important; }
-    .hero-change{ font-size: 11px !important; }
-    .chip{ padding: 12px !important; }
-    .chip .val{ font-size: 18px !important; }
-    .chip .tag{ font-size: 9px !important; }
-    .chip .sub{ font-size: 9px !important; }
+    
+    /* Mobile Organized Card Hierarchy */
+    .hero-row{
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+    .hero-balance{
+      width: 100% !important;
+      padding: 16px 18px !important;
+      box-sizing: border-box !important;
+    }
+    .hero-val{
+      font-size: 32px !important;
+      font-weight: 700 !important;
+    }
+    .hero-chips{
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+    .hero-chips .chip{
+      padding: 12px 14px !important;
+      border-radius: 12px !important;
+    }
+    .hero-chips .chip.saving{
+      grid-column: 1 / -1 !important;
+      text-align: center !important;
+      align-items: center !important;
+    }
+    .hero-chips .chip .val{
+      font-size: 19px !important;
+      margin-top: 4px !important;
+    }
 
-    /* Account cards - 2 columns on mobile */
+    /* Dinero por cuenta mobile layout */
     .account-cards{
       display: grid !important;
-      grid-template-columns: repeat(2, 1fr) !important;
+      grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
       overflow-x: visible !important;
+      width: 100% !important;
     }
     .account-card{
       flex: none !important;
-      padding: 10px 12px !important;
+      padding: 11px 13px !important;
+      border-radius: 12px !important;
     }
-    .account-card-balance{ font-size: 16px !important; margin-top: 8px !important; }
-    .account-card-name{ font-size: 12px !important; }
-    .account-card-flow{ font-size: 9.5px !important; }
-    .account-card-icon{ width: 28px !important; height: 28px !important; border-radius: 8px !important; }
-    .accounts-desc{ font-size: 10.5px !important; }
+    .account-card:nth-child(3){
+      grid-column: 1 / -1 !important;
+    }
+    .account-card-balance{
+      font-size: 17px !important;
+      margin-top: 6px !important;
+    }
 
-    /* Maintenance panel */
+/* Maintenance panel */
     .maintenance-summary{ grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
     .maintenance-item.next{ grid-column: 1 / -1 !important; }
     .maintenance-item{ padding: 10px 12px !important; }
@@ -1033,7 +1065,7 @@
     <div class="accounts-head">
       <div>
         <h2>Dinero por cuenta</h2>
-        <p class="accounts-desc">Saldo actual por cuenta. Puedes partir de un saldo inicial y cada registro nuevo ajustará dónde está tu dinero.</p>
+        
       </div>
       <div class="accounts-total">
         <span class="tag">Total en cuentas</span>
