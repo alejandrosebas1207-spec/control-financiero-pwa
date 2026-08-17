@@ -2149,9 +2149,10 @@ async function pullFromSupabase(){
       return;
     }
     
-    if(data && data.data){
+    if(data && data.data && Object.keys(data.data).length > 0){
       applyState(data.data);
       render();
+      if(typeof renderAccountSettings === 'function') renderAccountSettings();
       showToast('Datos sincronizados con Supabase ✓');
     } else {
       await pushToSupabase();
