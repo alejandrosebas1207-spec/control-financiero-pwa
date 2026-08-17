@@ -2618,43 +2618,7 @@ if(forceSyncBtn) forceSyncBtn.addEventListener('click', async ()=>{
   showToast('Sincronización manual completada ✓');
 });
 
-// Inicializar Supabase al cargar
 
-// Settings Account / Sync Actions
-const settingsSyncNowBtn = document.getElementById('settingsSyncNowBtn');
-const settingsAccountBtn = document.getElementById('settingsAccountBtn');
-const settingsAuthStatus = document.getElementById('settingsAuthStatus');
-const settingsAuthDesc = document.getElementById('settingsAuthDesc');
-
-if(settingsSyncNowBtn){
-  settingsSyncNowBtn.addEventListener('click', async ()=>{
-    await pushToSupabase();
-    await pullFromSupabase();
-    showToast('Sincronización completada ✓');
-  });
-}
-if(settingsAccountBtn){
-  settingsAccountBtn.addEventListener('click', ()=>{
-    document.getElementById('settingsPanel').classList.add('hidden');
-    openAuthModal();
-  });
-}
-
-initSupabase();
-
-// Sincronizar automáticamente cuando el usuario regresa a la pestaña o abre la app
-window.addEventListener('focus', () => { if(sbClient && sbUser) pullFromSupabase(); });
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && sbClient && sbUser) {
-    pullFromSupabase();
-  }
-});
-// Polling de respaldo cada 8 segundos si la app está abierta
-setInterval(() => {
-  if(document.visibilityState === 'visible' && sbClient && sbUser && !isPushingToRemote){
-    pullFromSupabase();
-  }
-}, 8000);
 
 
 document.getElementById('exportBtn').addEventListener('click', ()=>{
