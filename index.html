@@ -2525,12 +2525,14 @@ if(saveSbConfigBtn) saveSbConfigBtn.addEventListener('click', ()=>{
   sbAnonKey = newKey;
   localStorage.setItem(SB_URL_KEY, sbUrl);
   localStorage.setItem(SB_KEY_KEY, sbAnonKey);
-  
+  initSupabase();
+  if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
+  showToast('Credenciales de Supabase guardadas ✓');
+});
+
 // Settings Account / Sync Actions
 const settingsSyncNowBtn = document.getElementById('settingsSyncNowBtn');
 const settingsAccountBtn = document.getElementById('settingsAccountBtn');
-const settingsAuthStatus = document.getElementById('settingsAuthStatus');
-const settingsAuthDesc = document.getElementById('settingsAuthDesc');
 
 if(settingsSyncNowBtn){
   settingsSyncNowBtn.addEventListener('click', async ()=>{
@@ -2546,6 +2548,7 @@ if(settingsAccountBtn){
   });
 }
 
+// Inicializar Supabase inmediatamente al cargar la página
 initSupabase();
 
 // Sincronizar automáticamente cuando el usuario regresa a la pestaña o abre la app
@@ -2555,16 +2558,12 @@ document.addEventListener('visibilitychange', () => {
     pullFromSupabase();
   }
 });
-// Polling de respaldo cada 8 segundos si la app está abierta
+// Polling de respaldo cada 4 segundos si la app está abierta
 setInterval(() => {
   if(document.visibilityState === 'visible' && sbClient && sbUser && !isPushingToRemote){
     pullFromSupabase();
   }
-}, 8000);
-
-  if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
-  showToast('Credenciales de Supabase guardadas ✓');
-});
+}, 4000);
 
 if(authForm) authForm.addEventListener('submit', async e=>{
   e.preventDefault();
