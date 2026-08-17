@@ -192,6 +192,11 @@
   .account-migration-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .account-migration select{ min-width:150px; }
   @media (max-width: 680px){
+    /* Hide charts and desktop-only analytics on mobile */
+    #flowAnalysisSection, #budgetAnalysisSection, .charts-row, .analysis-section, .analysis-row, .balance-panel, .health-card {
+      display: none !important;
+    }
+
     .account-cards{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:4px; }
     .account-card{ flex:0 0 min(260px,82vw); scroll-snap-align:start; }
   }
@@ -702,8 +707,18 @@
   }
 
 
+  
+  /* Hide unwanted clutter and alerts */
+  .maintenance-desc, .maintenance-note, .account-note, #accountNote { display: none !important; }
+  .hero-change, #heroChange, .chip .sub, #chipIncomeSub, #chipExpenseSub, #chipSavingSub { display: none !important; }
+
   /* Native iOS Bottom Sheet Modals on Mobile */
   @media (max-width: 680px){
+    /* Hide charts and desktop-only analytics on mobile */
+    #flowAnalysisSection, #budgetAnalysisSection, .charts-row, .analysis-section, .analysis-row, .balance-panel, .health-card {
+      display: none !important;
+    }
+
     .wrap{
       padding: 12px 14px calc(80px + env(safe-area-inset-bottom, 16px)) !important;
     }
@@ -1033,7 +1048,7 @@
     <div class="maintenance-head">
       <div>
         <h2>Mantenimiento de mi moto</h2>
-        <p class="maintenance-desc">Registra el último mantenimiento y consulta cuándo corresponde el próximo cambio de aceite.</p>
+        
       </div>
       <div class="maintenance-head-actions">
         <span class="maintenance-interval">cada 1.500 km</span>
@@ -1055,7 +1070,7 @@
         <button type="button" class="link-btn" id="clearMotoMaintenanceBtn">Quitar registro</button>
       </div>
     </form>
-    <p class="maintenance-note">El próximo cambio se calcula automáticamente sumando 1.500 km al kilometraje registrado.</p>
+    
   </section>
 
   <section class="panel quick-actions fade-in">
