@@ -1905,17 +1905,19 @@ function resetEntryForm(){
 function openEntryModal(prefill){
   resetEntryForm();
   if(prefill){
-    editingId = prefill.id;
-    type = prefill.type;
-    document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.t===type));
-    document.getElementById('fAmt').value = prefill.amt;
-    document.getElementById('fDate').value = prefill.date;
-    document.getElementById('fNote').value = prefill.note || '';
-    renderAccountOptions(prefill.account);
+    if(prefill.id) editingId = prefill.id;
+    if(prefill.type){
+      type = prefill.type;
+      document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.t===type));
+    }
+    if(prefill.amt !== undefined && prefill.amt !== '') document.getElementById('fAmt').value = prefill.amt;
+    if(prefill.date) document.getElementById('fDate').value = prefill.date;
+    if(prefill.note) document.getElementById('fNote').value = prefill.note || '';
+    if(prefill.account) renderAccountOptions(prefill.account);
     if(prefill.cat) document.getElementById('fCat').value = prefill.cat;
     if(prefill.goalId) document.getElementById('fGoal').value = prefill.goalId;
-    modalTitle.textContent = 'Editar movimiento';
-    modalSubmitBtn.textContent = 'Guardar cambios';
+    modalTitle.textContent = prefill.id ? 'Editar movimiento' : 'Nuevo movimiento';
+    modalSubmitBtn.textContent = prefill.id ? 'Guardar cambios' : 'Guardar movimiento';
     syncTypeVisibility();
   }
   modalOverlay.classList.remove('hidden');
@@ -1932,14 +1934,8 @@ modalOverlay.addEventListener('click', e=>{ if(e.target===modalOverlay) closeEnt
 
 document.querySelectorAll('.quick-action').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    const q = btn.dataset.q;
-    if(q==='income'){ type='income'; }
-    else if(q==='expense'){ type='expense'; }
-    else if(q==='saving'){ type='saving'; }
-    else if(q==='withdrawal'){ type='withdrawal'; }
-    openEntryModal(null);
-    document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.t===type));
-    syncTypeVisibility();
+    const q = btn.dataset.q || 'income';
+    openEntryModal({ type: q });
   });
 });
 
