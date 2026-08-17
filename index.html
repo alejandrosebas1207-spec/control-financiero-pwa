@@ -995,28 +995,13 @@
     </div>
 
     <div class="sync-block">
-      <p class="sync-title">Sincronización entre dispositivos</p>
-      <p class="sync-desc">Usa un código para ver los mismos datos en tu PC y tu iPhone. Se guardan en un servicio externo (jsonblob.com) sin contraseña: cualquiera con el código podría leerlos, así que no lo compartas.</p>
-      <div id="syncNoCode">
-        <div class="sync-row">
-          <button class="btn-submit" id="createSyncBtn" style="margin-top:0;">Crear código en este dispositivo</button>
-        </div>
-        <div class="sync-row">
-          <input id="syncJoinInput" type="text" placeholder="Pegar un código existente...">
-          <button class="btn-outline" id="joinSyncBtn">Conectar</button>
-        </div>
+      <p class="sync-title">Sincronización en la Nube (Supabase)</p>
+      <p class="sync-desc" id="settingsAuthDesc">Conéctate con tu cuenta para sincronizar tus finanzas en tiempo real entre tu iPhone y tu PC.</p>
+      <div id="settingsAuthStatus" class="sync-status" style="margin-bottom:10px;"></div>
+      <div class="sync-row">
+        <button type="button" class="btn-outline" id="settingsAccountBtn">Iniciar sesión / Conectar cuenta</button>
+        <button type="button" class="btn-ghost-sm" id="settingsSyncNowBtn">Sincronizar ahora</button>
       </div>
-      <div id="syncWithCode" class="hidden">
-        <div class="sync-row">
-          <input id="syncCodeDisplay" type="text" readonly>
-          <button class="btn-outline" id="copySyncBtn">Copiar</button>
-        </div>
-        <div class="sync-row">
-          <button class="btn-ghost-sm" id="syncNowBtn">Sincronizar ahora</button>
-          <button class="btn-ghost-sm" id="removeSyncBtn">Quitar sincronización</button>
-        </div>
-      </div>
-      <p class="sync-status" id="syncStatus"></p>
     </div>
 
     <div class="cat-mgmt">
@@ -2356,6 +2341,8 @@ function handleAuthState(user){
   const loggedInView = document.getElementById('authLoggedInView');
   const loggedOutView = document.getElementById('authLoggedOutView');
   const emailEl = document.getElementById('authAccountEmail');
+  const settingsAuthStatus = document.getElementById('settingsAuthStatus');
+  const settingsAccountBtn = document.getElementById('settingsAccountBtn');
   
   if(user){
     if(authBtn) authBtn.classList.add('logged-in');
@@ -2363,11 +2350,21 @@ function handleAuthState(user){
     if(loggedInView) loggedInView.classList.remove('hidden');
     if(loggedOutView) loggedOutView.classList.add('hidden');
     if(emailEl) emailEl.textContent = user.email;
+    if(settingsAuthStatus){
+      settingsAuthStatus.className = 'sync-status ok';
+      settingsAuthStatus.innerHTML = '🟢 Conectado: <b>' + escapeHtml(user.email) + '</b>';
+    }
+    if(settingsAccountBtn) settingsAccountBtn.textContent = 'Gestionar / Cerrar sesión';
   } else {
     if(authBtn) authBtn.classList.remove('logged-in');
     if(authBtnLabel) authBtnLabel.textContent = 'Conectar cuenta';
     if(loggedInView) loggedInView.classList.add('hidden');
     if(loggedOutView) loggedOutView.classList.remove('hidden');
+    if(settingsAuthStatus){
+      settingsAuthStatus.className = 'sync-status error';
+      settingsAuthStatus.textContent = '🔴 No has iniciado sesión en este dispositivo.';
+    }
+    if(settingsAccountBtn) settingsAccountBtn.textContent = 'Iniciar sesión / Conectar cuenta';
   }
 }
 
