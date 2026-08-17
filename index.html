@@ -1464,7 +1464,7 @@ let motorcycleMaintenance = loadMotorcycleMaintenance();
 const SYNC_KEY = 'mcf_sync_id_v1';
 let syncId = localStorage.getItem(SYNC_KEY) || null;
 
-const fmt = n => '$' + n.toLocaleString('es-ES',{minimumFractionDigits:0, maximumFractionDigits:2});
+const fmt = n => '$' + n.toLocaleString('es-ES',{minimumFractionDigits:2, maximumFractionDigits:2});
 function dateKey(date=new Date()){
   const y = date.getFullYear();
   const m = String(date.getMonth()+1).padStart(2,'0');
