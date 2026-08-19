@@ -2202,12 +2202,14 @@ document.getElementById('entryForm').addEventListener('submit', e=>{
     if(idx>-1) tx[idx] = { ...tx[idx], type, cat, amt, date, goalId, note, account };
     editingId = null;
     saveTx(tx);
+    pushToSupabase();
     closeEntryModal();
     render();
     showToast('Movimiento actualizado');
   } else {
     tx.push({ id: Date.now(), type, cat, amt, date, goalId, note, account });
     saveTx(tx);
+    pushToSupabase();
     document.getElementById('fAmt').value = '';
     document.getElementById('fNote').value = '';
     closeEntryModal();
