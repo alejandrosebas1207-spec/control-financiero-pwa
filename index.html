@@ -1796,7 +1796,11 @@ function normalizeCreditCard(raw){
 function loadCreditCard(){
   try{
     const stored = localStorage.getItem(CREDIT_CARD_KEY);
-    if(stored) return normalizeCreditCard(JSON.parse(stored));
+    if(stored){
+      const parsed = normalizeCreditCard(JSON.parse(stored));
+      if(parsed.baselineDebt === 14.23) parsed.baselineDebt = 0.00;
+      return parsed;
+    }
     if(SEED_DATA && SEED_DATA.creditCard){
       const parsed = normalizeCreditCard(SEED_DATA.creditCard);
       localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(parsed));
@@ -2341,7 +2345,7 @@ function renderAccountSettings(){
     if(accountBalances && accountBalances.balances && accountBalances.balances[account.id] !== undefined){
       val = Math.abs(accountBalances.balances[account.id]);
     } else if(account.id === 'tc'){
-      val = 14.23;
+      val = 0.00;
     }
     const labelExtra = account.id === 'tc' ? ' (Deuda inicial)' : '';
     return `<div class="account-opening-item">
@@ -2364,7 +2368,7 @@ function renderAccountSettings(){
     openingFields.querySelectorAll('.opening-balance-input').forEach(input=>{
       const value = parseFloat(input.value);
       if(input.dataset.account === 'tc'){
-        balances[input.dataset.account] = Number.isFinite(value) ? -Math.abs(value) : -14.23;
+        balances[input.dataset.account] = Number.isFinite(value) ? -Math.abs(value) : 0.00;
       } else {
         balances[input.dataset.account] = Number.isFinite(value) && value>=0 ? value : 0;
       }
