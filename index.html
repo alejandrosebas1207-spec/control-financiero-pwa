@@ -155,7 +155,7 @@
   .accounts-total{ text-align:right; flex-shrink:0; }
   .accounts-total .tag{ display:block; font-family:'JetBrains Mono',monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--text-soft); }
   .accounts-total .val{ font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:700; color:var(--gold); margin-top:4px; }
-  .account-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .account-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .account-card{ background:var(--panel-2); border:1px solid var(--line); border-radius:11px; padding:13px 14px; min-width:0; transition:transform .2s ease, border-color .2s ease; }
   .account-card:hover{ transform:translateY(-2px); border-color:rgba(249,115,22,.4); }
   .account-card-top{ display:flex; align-items:center; gap:9px; min-width:0; }
@@ -822,9 +822,7 @@
       padding: 11px 13px !important;
       border-radius: 12px !important;
     }
-    .account-card:nth-child(3){
-      grid-column: 1 / -1 !important;
-    }
+    /* 2x2 accounts grid */
     .account-card-balance{
       font-size: 17px !important;
       margin-top: 6px !important;
@@ -1445,8 +1443,8 @@ const OIL_CHANGE_INTERVAL = 1500;
 const ACCOUNT_DEFS = [
   { id:'peigo', name:'PeiGo', color:'#39C49A', icon:'peigo' },
   { id:'deuna', name:'Deuna!', color:'#F2B84B', icon:'deuna' },
-  { id:'cash', name:'Efectivo', color:'#6EA8FE', icon:'cash' },
-  { id:'tc', name:'Tarjeta de Crédito', color:'#F43F5E', icon:'card' }
+  { id:'tc', name:'Tarjeta de Crédito', color:'#F43F5E', icon:'card' },
+  { id:'cash', name:'Efectivo', color:'#6EA8FE', icon:'cash' }
 ];
 const UNASSIGNED_ACCOUNT = { id:'unassigned', name:'Sin asignar', color:'#A6989C', icon:'unassigned' };
 const ACCOUNT_BY_ID = Object.fromEntries(ACCOUNT_DEFS.map(account=>[account.id, account]));
