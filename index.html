@@ -1620,6 +1620,16 @@ function loadGoals(){
 }
 
 let tx = loadTx();
+
+const DELETED_TX_KEY = 'mcf_deleted_tx_ids_v1';
+let deletedTxIds = new Set();
+try {
+  const _sDel = localStorage.getItem(DELETED_TX_KEY);
+  if(_sDel) deletedTxIds = new Set(JSON.parse(_sDel));
+} catch(e){}
+
+let lastLocalMutationTime = 0;
+
 let budgets = loadBudgets();
 let goals = loadGoals();
 let goalHistory = loadGoalHistory();
@@ -2199,6 +2209,7 @@ document.getElementById('entryForm').addEventListener('submit', e=>{
   const note = (type==='income' || (type==='expense' && cat==='Otros')) ? document.getElementById('fNote').value.trim() || null : null;
   if(editingId !== null){
     const idx = tx.findIndex(t=>t.id===editingId);
+    lastLocalMutationTime = Date.now();
     if(idx>-1) tx[idx] = { ...tx[idx], type, cat, amt, date, goalId, note, account };
     editingId = null;
     saveTx(tx);
@@ -2207,6 +2218,7 @@ document.getElementById('entryForm').addEventListener('submit', e=>{
     render();
     showToast('Movimiento actualizado');
   } else {
+    lastLocalMutationTime = Date.now();
     tx.push({ id: Date.now(), type, cat, amt, date, goalId, note, account });
     saveTx(tx);
     pushToSupabase();
@@ -2222,12 +2234,18 @@ function deleteTx(id){
   const idx = tx.findIndex(t=>t.id===id);
   if(idx===-1) return;
   const removed = tx[idx];
+  deletedTxIds.add(id);
+  try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(deletedTxIds))); } catch(e){}
+  lastLocalMutationTime = Date.now();
   tx.splice(idx,1);
   localStorage.setItem(TX_KEY, JSON.stringify(normalizeTxList(tx)));
   render();
   renderAllList();
   pushToSupabase();
   showToast('Movimiento eliminado', 'Deshacer', ()=>{
+    deletedTxIds.delete(id);
+    try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(deletedTxIds))); } catch(e){}
+    lastLocalMutationTime = Date.now();
     removed.id = Date.now();
     tx.push(removed);
     saveTx(tx);
@@ -2498,12 +2516,31 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
-  return { tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, creditCard: creditCardConfig, cats: catsData };
+  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, creditCard: creditCardConfig, cats: catsData };
 }
 function applyState(data){
   if(!data || typeof data !== 'object') return;
+  if(data.deletedTxIds && Array.isArray(data.deletedTxIds)){
+    data.deletedTxIds.forEach(id => deletedTxIds.add(id));
+    try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(deletedTxIds))); } catch(e){}
+  }
   if(data.tx){
-    tx = normalizeTxList(data.tx);
+    const remoteTx = normalizeTxList(data.tx);
+    const mergedMap = new Map();
+    
+    // 1. Add remote items not deleted
+    remoteTx.forEach(t => {
+      if(!deletedTxIds.has(t.id)) mergedMap.set(t.id, t);
+    });
+    
+    // 2. Add local items not deleted (preserves recently added items even if remote hasn't received them yet)
+    (tx||[]).forEach(t => {
+      if(!deletedTxIds.has(t.id) && !mergedMap.has(t.id)){
+        mergedMap.set(t.id, t);
+      }
+    });
+    
+    tx = Array.from(mergedMap.values());
     localStorage.setItem(TX_KEY, JSON.stringify(tx));
   }
   if(data.goals){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
@@ -2624,6 +2661,8 @@ function handleAuthState(user){
 
 async function pullFromSupabase(){
   if(!sbClient || !sbUser) return;
+  // If user just made a local change in the last 2.5 seconds, wait for push to complete
+  if(Date.now() - lastLocalMutationTime < 2500) return;
   try {
     const { data, error } = await sbClient
       .from('user_finance')
