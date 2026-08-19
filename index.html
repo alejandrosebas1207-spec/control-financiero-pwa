@@ -1788,7 +1788,7 @@ const DEFAULT_CREDIT_CARD = {
 function normalizeCreditCard(raw){
   if(!raw || typeof raw!=='object') return DEFAULT_CREDIT_CARD;
   const cutOffDay = parseInt(raw.cutOffDay, 10) || 5;
-  const baselineDebt = Number.isFinite(Number(raw.baselineDebt)) ? Number(raw.baselineDebt) : 14.23;
+  const baselineDebt = Number.isFinite(Number(raw.baselineDebt)) ? Number(raw.baselineDebt) : 0.00;
   const baselineDate = (raw.baselineDate && /^\d{4}-\d{2}-\d{2}$/.test(raw.baselineDate)) ? raw.baselineDate : '2026-08-19';
   return { cutOffDay, baselineDebt, baselineDate, name: raw.name || 'Tarjeta de Crédito' };
 }
@@ -1813,6 +1813,24 @@ function saveCreditCard(val){
 }
 
 let creditCardConfig = loadCreditCard();
+
+// Auto-sanitize old 14.23 credit card cache to 0.00
+try {
+  const _sCc = localStorage.getItem(CREDIT_CARD_KEY);
+  if(_sCc && Math.abs(JSON.parse(_sCc).baselineDebt - 14.23) < 0.01){
+    saveCreditCard({ cutOffDay: 5, baselineDate: '2026-08-19', baselineDebt: 0.00, name: 'Tarjeta de Crédito' });
+  }
+  const _sBal = localStorage.getItem(ACCOUNT_BALANCES_KEY);
+  if(_sBal){
+    const _b = JSON.parse(_sBal);
+    if(_b && _b.balances && Math.abs(Math.abs(_b.balances.tc) - 14.23) < 0.01){
+      _b.balances.tc = 0;
+      localStorage.setItem(ACCOUNT_BALANCES_KEY, JSON.stringify(_b));
+      if(typeof accountBalances !== 'undefined' && accountBalances) accountBalances.balances.tc = 0;
+    }
+  }
+} catch(e){}
+
 
 function getNextCutOffDate(cutOffDay){
   const now = new Date();
