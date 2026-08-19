@@ -2191,13 +2191,15 @@ function deleteTx(id){
   if(idx===-1) return;
   const removed = tx[idx];
   tx.splice(idx,1);
-  saveTx(tx);
+  localStorage.setItem(TX_KEY, JSON.stringify(normalizeTxList(tx)));
   render();
   renderAllList();
+  pushToSupabase();
   showToast('Movimiento eliminado', 'Deshacer', ()=>{
     removed.id = Date.now();
     tx.push(removed);
     saveTx(tx);
+    pushToSupabase();
     render();
     renderAllList();
   });
@@ -2459,17 +2461,8 @@ function collectState(){
 function applyState(data){
   if(!data || typeof data !== 'object') return;
   if(data.tx){
-    const remoteTx = normalizeTxList(data.tx);
-    const remoteIds = new Set(remoteTx.map(t=>t.id));
-    const localNewTx = (tx||[]).filter(t=>!remoteIds.has(t.id));
-    if(localNewTx.length > 0){
-      tx = [...remoteTx, ...localNewTx];
-      localStorage.setItem(TX_KEY, JSON.stringify(tx));
-      scheduleSyncPush();
-    } else {
-      tx = remoteTx;
-      localStorage.setItem(TX_KEY, JSON.stringify(tx));
-    }
+    tx = normalizeTxList(data.tx);
+    localStorage.setItem(TX_KEY, JSON.stringify(tx));
   }
   if(data.goals){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
   if(data.goalHistory){ goalHistory = data.goalHistory; localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(goalHistory)); }
