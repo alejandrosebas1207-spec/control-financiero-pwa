@@ -617,6 +617,18 @@
 
   
   
+  
+  .account-card.tc-card{
+    border-color: rgba(244, 63, 94, 0.3);
+    background: linear-gradient(145deg, #180911, #10040A);
+  }
+  .account-card.tc-card .tc-val.tc-has-debt{
+    color: #FDA4AF;
+  }
+  .account-card.tc-card .tc-val.tc-zero{
+    color: var(--text);
+  }
+
   /* === CREDIT CARD PANEL === */
   .credit-card-panel{ order:22; margin-bottom:16px; border: 1px solid rgba(244,63,94,0.22); background: linear-gradient(145deg, #180A12, #12060C); }
   .credit-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
@@ -1495,6 +1507,7 @@ const DEFAULT_CATS = [
   { name:'Moto', color:'#EF4444' },
   { name:'Cuidado personal', color:'#A78BFA' },
   { name:'Deudas universidad', color:'#94A3B8' },
+  { name:'Pago Tarjeta', color:'#F43F5E' },
   { name:'Otros', color:'#64748B' }
 ];
 const CATS_KEY = 'mcf_cats_v2';
@@ -1508,8 +1521,16 @@ function loadCats(){
 let catsData = loadCats();
 let CATS = catsData.map(c=>c.name);
 let CAT_COLOR = {};
+
+if(!CATS.includes('Pago Tarjeta')){
+  CATS.push('Pago Tarjeta');
+  CAT_COLOR['Pago Tarjeta'] = '#F43F5E';
+  catsData.push({ name:'Pago Tarjeta', color:'#F43F5E' });
+  saveCats();
+}
+
 catsData.forEach(c=>{ CAT_COLOR[c.name]=c.color; });
-const CAT_ICON_KEY = { 'Comida':'comida', 'Moto':'moto', 'Cuidado personal':'cuidado', 'Deudas universidad':'deudas', 'Otros':'otros' };
+const CAT_ICON_KEY = { 'Comida':'comida', 'Moto':'moto', 'Cuidado personal':'cuidado', 'Deudas universidad':'deudas', 'Pago Tarjeta':'card', 'Otros':'otros' };
 function saveCats(){
   catsData = CATS.map(name=>({ name, color: CAT_COLOR[name] || '#A6989C' }));
   localStorage.setItem(CATS_KEY, JSON.stringify(catsData));
@@ -1746,11 +1767,32 @@ function renderAccounts(){
   const totals = getCurrentAccountTotals();
   const monthTotals = getAccountTotals(tx.filter(t=>monthKey(t.date)===cursorKey()), accountBalances ? accountBalances.baselineDate : null);
   const accountIds = getAccountOptions(Object.prototype.hasOwnProperty.call(totals,'unassigned')).map(account=>account.id);
-  const total = Object.values(totals).reduce((sum, account)=>sum+account.balance, 0);
+  
+  // Total en cuentas líquidas (PeiGo, Deuna!, Efectivo) - NO resta la tarjeta de crédito
+  const liquidAccountIds = ['peigo', 'deuna', 'cash'];
+  const liquidTotal = liquidAccountIds.reduce((sum, id) => sum + (totals[id] ? totals[id].balance : 0), 0);
   const flowLabel = cursor.toLocaleDateString('es-ES',{month:'short'});
-  animateNumber('accountsTotal', total);
+  animateNumber('accountsTotal', liquidTotal);
+  
+  const tcDebt = calculateCreditCardDebt();
+  
   cards.innerHTML = accountIds.map(id=>{
     const meta = getAccountMeta(id);
+    
+    // Tarjeta de Crédito: muestra la deuda acumulada por pagar de forma limpia (sin saldo negativo)
+    if(id === 'tc'){
+      const tcHasDebt = tcDebt > 0.005;
+      const tcClass = tcHasDebt ? 'tc-has-debt' : 'tc-zero';
+      return `<div class="account-card tc-card">
+        <div class="account-card-top">
+          <div class="account-card-icon" style="--account-color:${meta.color}">${icon(meta.icon,22,true)}</div>
+          <span class="account-card-name">${escapeHtml(meta.name)}</span>
+        </div>
+        <div class="account-card-balance tc-val ${tcClass}">${fmt(tcDebt)}</div>
+        <div class="account-card-flow">Deuda por pagar · Corte día ${creditCardConfig.cutOffDay}</div>
+      </div>`;
+    }
+    
     const current = totals[id] || { balance:0 };
     const month = monthTotals[id] || { balance:0 };
     const monthFlow = month.balance;
@@ -1863,11 +1905,16 @@ function calculateCreditCardDebt(){
   const baseline = cfg.baselineDebt || 0;
   const bDate = cfg.baselineDate || '2026-08-19';
   
-  // Sum of all expenses with account == 'tc' since baselineDate
+  // 1. All expenses charged to TC since baselineDate
   const tcExpenses = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'expense' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
-  const tcPayments = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'income' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
   
-  const totalDebt = Math.max(0, baseline + tcExpenses - tcPayments);
+  // 2. Direct income/payments into TC
+  const directPayments = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'income' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  
+  // 3. Payments made from debit/cash accounts with category 'Pago Tarjeta' or 'Pago Tarjeta de Crédito'
+  const catPayments = (tx||[]).filter(t => t.type === 'expense' && (t.cat === 'Pago Tarjeta' || t.cat === 'Pago Tarjeta de Crédito') && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  
+  const totalDebt = Math.max(0, baseline + tcExpenses - (directPayments + catPayments));
   return totalDebt;
 }
 
