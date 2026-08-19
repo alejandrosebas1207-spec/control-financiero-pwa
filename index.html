@@ -616,6 +616,29 @@
 
 
   
+  
+  /* === CREDIT CARD PANEL === */
+  .credit-card-panel{ order:22; margin-bottom:16px; border: 1px solid rgba(244,63,94,0.22); background: linear-gradient(145deg, #180A12, #12060C); }
+  .credit-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .credit-card-head > div:first-child{ flex:1; min-width:0; }
+  .credit-card-head h2{ margin:0 0 4px; font-size:14.5px; }
+  .credit-card-head-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .credit-card-interval{ padding:4px 10px; border:1px solid rgba(244,63,94,0.4); border-radius:6px; color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; white-space:nowrap; }
+  .credit-card-summary{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .credit-card-item{ background:rgba(0,0,0,0.28); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .credit-card-item .tag{ display:block; font-family:'JetBrains Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-soft); }
+  .credit-card-item strong{ display:block; margin-top:6px; font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .credit-card-item.debt{ border-color:rgba(244,63,94,0.4); background:rgba(244,63,94,0.08); }
+  .credit-card-item.debt strong{ color:#FB7185; }
+  .credit-card-item.coverage strong{ color:#34D399; font-size:13.5px; }
+  .credit-card-form{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; border-top:1px solid var(--line); margin-top:14px; padding-top:14px; }
+  .credit-card-form.hidden{ display:none; }
+  .credit-card-form label{ display:block; margin-bottom:5px; font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; color:var(--text-soft); letter-spacing:.06em; }
+  .credit-card-form input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:rgba(0,0,0,0.3); color:var(--text); font-size:14px; box-sizing:border-box; }
+  .credit-card-form input:focus{ outline:none; border-color:var(--gold); }
+  .credit-card-actions{ display:flex; align-items:center; gap:10px; grid-column:1/-1; margin-top:2px; }
+  .credit-card-actions .btn-submit{ flex:0 0 auto; width:auto; padding:10px 20px; margin:0; }
+
   /* === MAINTENANCE PANEL === */
   .maintenance-panel{ order:25; margin-bottom:16px; }
   .maintenance-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
@@ -807,7 +830,17 @@
       margin-top: 6px !important;
     }
 
-/* Maintenance panel */
+
+    /* Credit Card panel on mobile */
+    .credit-card-summary{ grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+    .credit-card-item.coverage{ grid-column: 1 / -1 !important; }
+    .credit-card-item{ padding: 10px 12px !important; }
+    .credit-card-item .tag{ font-size: 8.5px !important; }
+    .credit-card-item strong{ font-size: 13.5px !important; }
+    .credit-card-form{ grid-template-columns: 1fr !important; }
+    .credit-card-head h2{ font-size: 13px !important; }
+
+    /* Maintenance panel */
     .maintenance-summary{ grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
     .maintenance-item.next{ grid-column: 1 / -1 !important; }
     .maintenance-item{ padding: 10px 12px !important; }
@@ -1059,6 +1092,33 @@
     </div>
     <div class="account-cards" id="accountCards"></div>
     <p class="account-note hidden" id="accountNote"></p>
+  </section>
+
+    <section class="panel credit-card-panel fade-in">
+    <div class="credit-card-head">
+      <div>
+        <h2>Deuda Tarjeta de Crédito</h2>
+      </div>
+      <div class="credit-card-head-actions">
+        <span class="credit-card-interval" id="tcCutOffBadge">corte: día 5</span>
+        <button type="button" class="link-btn" id="toggleTcBtn">Editar</button>
+      </div>
+    </div>
+    <div class="credit-card-summary" id="tcSummary"></div>
+    <form class="credit-card-form hidden" id="tcForm">
+      <div>
+        <label for="tcCutOffDay">Día de corte mensual</label>
+        <input id="tcCutOffDay" type="number" min="1" max="31" step="1" placeholder="5" value="5" required>
+      </div>
+      <div>
+        <label for="tcBaselineDebt">Deuda inicial acumulada</label>
+        <input id="tcBaselineDebt" type="number" min="0" step="0.01" placeholder="14.23" value="14.23" required>
+      </div>
+      <div class="credit-card-actions">
+        <button type="submit" class="btn-submit">Guardar configuración</button>
+        <button type="button" class="link-btn" id="cancelTcBtn">Cancelar</button>
+      </div>
+    </form>
   </section>
 
   <section class="panel maintenance-panel fade-in">
@@ -1385,7 +1445,8 @@ const OIL_CHANGE_INTERVAL = 1500;
 const ACCOUNT_DEFS = [
   { id:'peigo', name:'PeiGo', color:'#39C49A', icon:'peigo' },
   { id:'deuna', name:'Deuna!', color:'#F2B84B', icon:'deuna' },
-  { id:'cash', name:'Efectivo', color:'#6EA8FE', icon:'cash' }
+  { id:'cash', name:'Efectivo', color:'#6EA8FE', icon:'cash' },
+  { id:'tc', name:'Tarjeta de Crédito', color:'#F43F5E', icon:'card' }
 ];
 const UNASSIGNED_ACCOUNT = { id:'unassigned', name:'Sin asignar', color:'#A6989C', icon:'unassigned' };
 const ACCOUNT_BY_ID = Object.fromEntries(ACCOUNT_DEFS.map(account=>[account.id, account]));
@@ -1477,6 +1538,7 @@ const ICON_PATHS = {
   peigo: '<path d="M6 20V4h7a4.5 4.5 0 0 1 0 9H6M10 8h3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   deuna: '<path d="M6 4h5.5a8 8 0 0 1 0 16H6V4Z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M17.5 8.5v.01M17.5 12v.01M17.5 15.5v.01" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>',
   cash: '<path d="M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H3V7Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M3 7V5a2 2 0 0 1 2-2h13M15 13h.01" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="15" cy="13" r="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/>',
+  card: '<rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.6"/><circle cx="6" cy="15" r="1.2" fill="currentColor"/>',
   unassigned: '<path d="M12 3a9 9 0 1 0 9 9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   withdrawal: '<path d="M5 8h14M5 16h14M8 5l-3 3 3 3M16 13l3 3-3 3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
 };
@@ -1705,6 +1767,145 @@ function renderAccounts(){
   }
 }
 
+
+/* ---------- Tarjeta de Crédito (Deuda & Fechas de Corte) ---------- */
+const CREDIT_CARD_KEY = 'mcf_credit_card_v1';
+const DEFAULT_CREDIT_CARD = {
+  cutOffDay: 5,
+  baselineDate: '2026-08-19',
+  baselineDebt: 14.23,
+  name: 'Tarjeta de Crédito'
+};
+
+function normalizeCreditCard(raw){
+  if(!raw || typeof raw!=='object') return DEFAULT_CREDIT_CARD;
+  const cutOffDay = parseInt(raw.cutOffDay, 10) || 5;
+  const baselineDebt = Number.isFinite(Number(raw.baselineDebt)) ? Number(raw.baselineDebt) : 14.23;
+  const baselineDate = (raw.baselineDate && /^\d{4}-\d{2}-\d{2}$/.test(raw.baselineDate)) ? raw.baselineDate : '2026-08-19';
+  return { cutOffDay, baselineDebt, baselineDate, name: raw.name || 'Tarjeta de Crédito' };
+}
+
+function loadCreditCard(){
+  try{
+    const stored = localStorage.getItem(CREDIT_CARD_KEY);
+    if(stored) return normalizeCreditCard(JSON.parse(stored));
+    if(SEED_DATA && SEED_DATA.creditCard){
+      const parsed = normalizeCreditCard(SEED_DATA.creditCard);
+      localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(parsed));
+      return parsed;
+    }
+  }catch(e){}
+  return DEFAULT_CREDIT_CARD;
+}
+
+function saveCreditCard(val){
+  creditCardConfig = normalizeCreditCard(val);
+  localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(creditCardConfig));
+  scheduleSyncPush();
+}
+
+let creditCardConfig = loadCreditCard();
+
+function getNextCutOffDate(cutOffDay){
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  if(day < cutOffDay){
+    return new Date(year, month, cutOffDay);
+  } else {
+    return new Date(year, month + 1, cutOffDay);
+  }
+}
+
+function calculateCreditCardDebt(){
+  const cfg = creditCardConfig || DEFAULT_CREDIT_CARD;
+  const baseline = cfg.baselineDebt || 0;
+  const bDate = cfg.baselineDate || '2026-08-19';
+  
+  // Sum of all expenses with account == 'tc' since baselineDate
+  const tcExpenses = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'expense' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  const tcPayments = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'income' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  
+  const totalDebt = Math.max(0, baseline + tcExpenses - tcPayments);
+  return totalDebt;
+}
+
+function renderCreditCardPanel(){
+  const summary = document.getElementById('tcSummary');
+  const badge = document.getElementById('tcCutOffBadge');
+  const form = document.getElementById('tcForm');
+  if(!summary || !badge || !form) return;
+  
+  const cfg = creditCardConfig || DEFAULT_CREDIT_CARD;
+  badge.textContent = `corte: día ${cfg.cutOffDay}`;
+  
+  const debt = calculateCreditCardDebt();
+  const nextCut = getNextCutOffDate(cfg.cutOffDay);
+  const nextCutLabel = nextCut.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+  
+  // Calculate total liquid cash in PeiGo, Deuna, and Cash
+  const totals = getCurrentAccountTotals();
+  const liquidCash = (totals.peigo ? totals.peigo.balance : 0) + (totals.deuna ? totals.deuna.balance : 0) + (totals.cash ? totals.cash.balance : 0);
+  const isCovered = liquidCash >= debt;
+  const coverageText = isCovered ? `${fmt(liquidCash)} (100% cubierto ✓)` : `${fmt(liquidCash)} (Faltan ${fmt(debt - liquidCash)})`;
+  const coverageClass = isCovered ? 'coverage' : 'coverage warn';
+  
+  summary.innerHTML = `
+    <div class="credit-card-item debt">
+      <span class="tag">Deuda próximo corte</span>
+      <strong>${fmt(debt)}</strong>
+    </div>
+    <div class="credit-card-item">
+      <span class="tag">Próxima fecha de corte</span>
+      <strong>${nextCutLabel}</strong>
+    </div>
+    <div class="credit-card-item ${coverageClass}">
+      <span class="tag">Liquidez disponible en cuentas</span>
+      <strong>${coverageText}</strong>
+    </div>
+  `;
+}
+
+function setupCreditCardEventListeners(){
+  const toggleBtn = document.getElementById('toggleTcBtn');
+  const cancelBtn = document.getElementById('cancelTcBtn');
+  const form = document.getElementById('tcForm');
+  if(toggleBtn && form){
+    toggleBtn.onclick = () => {
+      const isHidden = form.classList.toggle('hidden');
+      toggleBtn.textContent = isHidden ? 'Editar' : 'Cerrar';
+      if(!isHidden){
+        document.getElementById('tcCutOffDay').value = creditCardConfig.cutOffDay;
+        document.getElementById('tcBaselineDebt').value = creditCardConfig.baselineDebt;
+      }
+    };
+  }
+  if(cancelBtn && form){
+    cancelBtn.onclick = () => {
+      form.classList.add('hidden');
+      if(toggleBtn) toggleBtn.textContent = 'Editar';
+    };
+  }
+  if(form){
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const cutOffDay = parseInt(document.getElementById('tcCutOffDay').value, 10) || 5;
+      const baselineDebt = parseFloat(document.getElementById('tcBaselineDebt').value) || 0;
+      saveCreditCard({
+        cutOffDay,
+        baselineDebt,
+        baselineDate: dateKey(),
+        name: 'Tarjeta de Crédito'
+      });
+      form.classList.add('hidden');
+      if(toggleBtn) toggleBtn.textContent = 'Editar';
+      render();
+      showToast('Configuración de tarjeta guardada ✓');
+    };
+  }
+}
+
 function renderMotorcycleMaintenance(){
   const summary = document.getElementById('motoMaintenanceSummary');
   const dateInput = document.getElementById('motoLastDate');
@@ -1753,6 +1954,7 @@ document.getElementById('motoMaintenanceForm').addEventListener('submit', e=>{
   motorcycleMaintenance = { lastDate, lastMileage };
   saveMotorcycleMaintenance(motorcycleMaintenance);
   document.getElementById('motoMaintenanceForm').classList.add('hidden');
+  renderCreditCardPanel();
   renderMotorcycleMaintenance();
   scheduleSyncPush();
   showToast('Mantenimiento de la moto guardado');
@@ -1760,6 +1962,7 @@ document.getElementById('motoMaintenanceForm').addEventListener('submit', e=>{
 document.getElementById('clearMotoMaintenanceBtn').addEventListener('click', ()=>{
   motorcycleMaintenance = null;
   saveMotorcycleMaintenance(null);
+  renderCreditCardPanel();
   renderMotorcycleMaintenance();
   scheduleSyncPush();
   showToast('Registro de mantenimiento eliminado');
@@ -2251,7 +2454,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
-  return { tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, cats: catsData };
+  return { tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, creditCard: creditCardConfig, cats: catsData };
 }
 function applyState(data){
   if(!data || typeof data !== 'object') return;
@@ -2280,6 +2483,10 @@ function applyState(data){
   if('motorcycleMaintenance' in data){
     motorcycleMaintenance = normalizeMotorcycleMaintenance(data.motorcycleMaintenance);
     saveMotorcycleMaintenance(motorcycleMaintenance);
+  }
+  if('creditCard' in data){
+    creditCardConfig = normalizeCreditCard(data.creditCard);
+    localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(creditCardConfig));
   }
   if('defaultAccountId' in data && isKnownAccountId(data.defaultAccountId)){
     defaultAccountId = data.defaultAccountId;
@@ -3909,6 +4116,7 @@ function render(){
   const free = income-expense-saved;
 
   renderAccounts();
+  renderCreditCardPanel();
   renderMotorcycleMaintenance();
 
   animateNumber('chipIncome', income);
