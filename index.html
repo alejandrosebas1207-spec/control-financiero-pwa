@@ -2636,8 +2636,9 @@ sbUrl = cleanSupabaseUrl(sbUrl);
 
 // Global sbClient, sbUser, sbRealtimeChannel initialized at top of script
 
+var initSupabaseRetries = 0;
 function initSupabase(){
-  if(window.supabase && sbUrl && sbAnonKey){
+  if(typeof window !== 'undefined' && window.supabase && sbUrl && sbAnonKey){
     try {
       sbClient = window.supabase.createClient(sbUrl, sbAnonKey, {
         auth: {
@@ -2650,9 +2651,9 @@ function initSupabase(){
     } catch(e){
       console.warn('Error inicializando cliente Supabase:', e);
     }
-  } else if(!window.supabase){
-    // Retry if Supabase CDN script is loading asynchronously
-    setTimeout(initSupabase, 400);
+  } else if(typeof window !== 'undefined' && !window.supabase && initSupabaseRetries < 6){
+    initSupabaseRetries++;
+    setTimeout(initSupabase, 500);
   }
 }
 
@@ -2770,7 +2771,7 @@ async function pushToSupabase(){
   }
 }
 
-let supabaseDebounceTimer = null;
+// supabaseDebounceTimer declared at top of script
 function scheduleSyncPush(){
   if(typeof sbClient === 'undefined' || !sbClient || typeof sbUser === 'undefined' || !sbUser) return;
   clearTimeout(supabaseDebounceTimer);
