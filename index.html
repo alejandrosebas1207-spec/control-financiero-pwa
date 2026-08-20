@@ -4138,17 +4138,9 @@ function drawProjectionChart(){
 function animateNumber(id, target){
   const el = document.getElementById(id);
   if(!el) return;
-  const from = parseFloat(el.dataset.raw || '0');
-  const duration = 550;
-  const t0 = performance.now();
-  function step(now){
-    const p = Math.min(1, (now-t0)/duration);
-    const eased = 1 - Math.pow(1-p, 3);
-    const val = from + (target-from)*eased;
-    el.textContent = fmt(val);
-    if(p<1) requestAnimationFrame(step); else el.dataset.raw = String(target);
-  }
-  requestAnimationFrame(step);
+  const num = Number.isFinite(Number(target)) ? Number(target) : 0;
+  el.textContent = fmt(num);
+  el.dataset.raw = String(num);
 }
 
 /* análisis del mes */
@@ -4248,6 +4240,17 @@ function render(){
   renderAccounts();
   renderCreditCardPanel();
   renderMotorcycleMaintenance();
+
+  // El balance principal del Hero refleja tu dinero líquido total disponible en cuentas
+  const currentTotals = getCurrentAccountTotals();
+  const liquidCashTotal = ['peigo', 'deuna', 'cash'].reduce((sum, id) => sum + (currentTotals[id] ? currentTotals[id].balance : 0), 0);
+  animateNumber('heroBalance', liquidCashTotal);
+  
+  const heroChange = document.getElementById('heroChange');
+  if(heroChange){
+    const sign = free > 0.005 ? '+' : (free < -0.005 ? '−' : '');
+    heroChange.innerHTML = `Flujo del mes: <span class="${free>=0?'pos':'neg'}">${sign}${fmt(Math.abs(free))}</span>`;
+  }
 
   animateNumber('chipIncome', income);
   animateNumber('chipExpense', expense);
