@@ -4269,22 +4269,20 @@ function render(){
   
   const heroChange = document.getElementById('heroChange');
   if(heroChange){
-    const sign = free > 0.005 ? '+' : (free < -0.005 ? '−' : '');
-    
-    // Carry-over de meses anteriores
+    // Cantidad que sobró del mes anterior
     const prevMonthDate = new Date(cursor);
     prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
     const prevMkKey = monthKeyFromDate(prevMonthDate);
     const prevSeries = getMonthlySeries();
     const prevEntry = prevSeries.find(s => s.mk === prevMkKey);
     const prevAcc = prevEntry ? prevEntry.acc : 0;
-    const prevMonthName = prevMonthDate.toLocaleDateString('es-ES', { month: 'short' });
+    const prevMonthName = prevMonthDate.toLocaleDateString('es-ES', { month: 'long' });
     
     if(Math.abs(prevAcc) > 0.005){
       const pSign = prevAcc > 0 ? '+' : '−';
-      heroChange.innerHTML = `Flujo de este mes: <span class="${free>=0?'pos':'neg'}">${sign}${fmt(Math.abs(free))}</span> <span style="opacity:0.82; font-size:11.5px; margin-left:4px;">(${pSign}${fmt(Math.abs(prevAcc))} de ${prevMonthName})</span>`;
+      heroChange.innerHTML = `<span class="pos">${pSign}${fmt(Math.abs(prevAcc))}</span> <span style="opacity:0.85;">del mes anterior (${prevMonthName})</span>`;
     } else {
-      heroChange.innerHTML = `Flujo de este mes: <span class="${free>=0?'pos':'neg'}">${sign}${fmt(Math.abs(free))}</span>`;
+      heroChange.innerHTML = `<span style="opacity:0.75;">Sin saldo del mes anterior</span>`;
     }
   }
 
