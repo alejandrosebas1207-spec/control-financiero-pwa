@@ -3811,7 +3811,7 @@ function getMonthlySeries(){
   return months.map(mk=>{
     const mtx = tx.filter(t=>monthKey(t.date)===mk);
     const income = mtx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-    const expense = mtx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
+    const expense = mtx.filter(t=>t.type==='expense' && normalizeAccountId(t.account)!=='tc').reduce((s,t)=>s+t.amt,0);
     const saved = mtx.filter(t=>t.type==='saving').reduce((s,t)=>s+t.amt,0);
     const net = income - expense - saved;
     acc += net;
@@ -3896,7 +3896,7 @@ function getFlowSeries(){
   return months.map(mk=>{
     const mtx = tx.filter(t=>monthKey(t.date)===mk);
     const income = mtx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-    const expense = mtx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
+    const expense = mtx.filter(t=>t.type==='expense' && normalizeAccountId(t.account)!=='tc').reduce((s,t)=>s+t.amt,0);
     return { mk, income, expense };
   });
 }
@@ -4243,7 +4243,7 @@ function render(){
 
   const monthTx = tx.filter(t=>monthKey(t.date)===cursorKey()).sort((a,b)=>b.date.localeCompare(a.date));
   const income = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-  const expense = monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
+  const expense = monthTx.filter(t=>t.type==='expense' && normalizeAccountId(t.account)!=='tc').reduce((s,t)=>s+t.amt,0);
   const saved = monthTx.filter(t=>t.type==='saving').reduce((s,t)=>s+t.amt,0);
   const free = income-expense-saved;
 
