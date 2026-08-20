@@ -4259,7 +4259,22 @@ function render(){
   const heroChange = document.getElementById('heroChange');
   if(heroChange){
     const sign = free > 0.005 ? '+' : (free < -0.005 ? '−' : '');
-    heroChange.innerHTML = `Flujo del mes: <span class="${free>=0?'pos':'neg'}">${sign}${fmt(Math.abs(free))}</span>`;
+    
+    // Carry-over de meses anteriores
+    const prevMonthDate = new Date(cursor);
+    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+    const prevMkKey = monthKeyFromDate(prevMonthDate);
+    const prevSeries = getMonthlySeries();
+    const prevEntry = prevSeries.find(s => s.mk === prevMkKey);
+    const prevAcc = prevEntry ? prevEntry.acc : 0;
+    const prevMonthName = prevMonthDate.toLocaleDateString('es-ES', { month: 'short' });
+    
+    if(Math.abs(prevAcc) > 0.005){
+      const pSign = prevAcc > 0 ? '+' : '−';
+      heroChange.innerHTML = `Flujo de este mes: <span class="${free>=0?'pos':'neg'}">${sign}${fmt(Math.abs(free))}</span> <span style="opacity:0.82; font-size:11.5px; margin-left:4px;">(${pSign}${fmt(Math.abs(prevAcc))} de ${prevMonthName})</span>`;
+    } else {
+      heroChange.innerHTML = `Flujo de este mes: <span class="${free>=0?'pos':'neg'}">${sign}${fmt(Math.abs(free))}</span>`;
+    }
   }
 
   animateNumber('chipIncome', income);
