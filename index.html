@@ -746,7 +746,18 @@
   
   /* Hide unwanted clutter and alerts */
   .maintenance-desc, .maintenance-note, .account-note, #accountNote { display: none !important; }
-  .hero-change, #heroChange, .chip .sub, #chipIncomeSub, #chipExpenseSub, #chipSavingSub { display: none !important; }
+  /* Subtítulo visible con explicación matemática de balance */
+  .hero-change, #heroChange {
+    display: block !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    margin-top: 6px;
+    color: var(--text-soft);
+    letter-spacing: 0.02em;
+  }
+  .hero-change .pos { color: var(--green); font-weight: 600; }
+  .hero-change .neg { color: var(--red); font-weight: 600; }
+  .chip .sub, #chipIncomeSub, #chipExpenseSub, #chipSavingSub { display: none !important; }
 
   /* Native iOS Bottom Sheet Modals on Mobile */
   @media (max-width: 680px){
