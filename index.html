@@ -1655,7 +1655,7 @@ try {
   if(_sDel) deletedTxIds = new Set(JSON.parse(_sDel));
 } catch(e){}
 
-let lastLocalMutationTime = 0;
+// lastLocalMutationTime declared at top
 
 let budgets = loadBudgets();
 let goals = loadGoals();
