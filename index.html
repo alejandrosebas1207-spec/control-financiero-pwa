@@ -636,14 +636,15 @@
   .credit-card-head h2{ margin:0 0 4px; font-size:14.5px; }
   .credit-card-head-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
   .credit-card-interval{ padding:4px 10px; border:1px solid rgba(244,63,94,0.4); border-radius:6px; color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; white-space:nowrap; }
-  .credit-card-summary{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .credit-card-summary{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
   .credit-card-item{ background:rgba(0,0,0,0.28); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
   .credit-card-item .tag{ display:block; font-family:'JetBrains Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-soft); }
   .credit-card-item strong{ display:block; margin-top:6px; font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .credit-card-item.debt{ border-color:rgba(244,63,94,0.4); background:rgba(244,63,94,0.08); }
   .credit-card-item.debt strong{ color:#FB7185; }
   .credit-card-item.coverage strong{ color:#34D399; font-size:13.5px; }
-  .credit-card-form{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; border-top:1px solid var(--line); margin-top:14px; padding-top:14px; }
+  .credit-card-form{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; align-items:end; border-top:1px solid var(--line); margin-top:14px; padding-top:14px; }
+  @media (max-width: 680px){ .credit-card-form{ grid-template-columns:1fr !important; } }
   .credit-card-form.hidden{ display:none; }
   .credit-card-form label{ display:block; margin-bottom:5px; font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; color:var(--text-soft); letter-spacing:.06em; }
   .credit-card-form input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:rgba(0,0,0,0.3); color:var(--text); font-size:14px; box-sizing:border-box; }
@@ -1121,7 +1122,7 @@
         <h2>Deuda Tarjeta de Crédito</h2>
       </div>
       <div class="credit-card-head-actions">
-        <span class="credit-card-interval" id="tcCutOffBadge">corte: día 5</span>
+        <span class="credit-card-interval" id="tcCutOffBadge">corte: día 24 · pago: día 8</span>
         <button type="button" class="link-btn" id="toggleTcBtn">Editar</button>
       </div>
     </div>
@@ -1129,7 +1130,11 @@
     <form class="credit-card-form hidden" id="tcForm">
       <div>
         <label for="tcCutOffDay">Día de corte mensual</label>
-        <input id="tcCutOffDay" type="number" min="1" max="31" step="1" placeholder="5" value="5" required>
+        <input id="tcCutOffDay" type="number" min="1" max="31" step="1" placeholder="24" value="24" required>
+      </div>
+      <div>
+        <label for="tcPaymentDueDay">Día máximo de pago</label>
+        <input id="tcPaymentDueDay" type="number" min="1" max="31" step="1" placeholder="8" value="8" required>
       </div>
       <div>
         <label for="tcBaselineDebt">Deuda inicial acumulada</label>
@@ -1806,7 +1811,7 @@ function renderAccounts(){
           <span class="account-card-name">${escapeHtml(meta.name)}</span>
         </div>
         <div class="account-card-balance tc-val ${tcClass}">${fmt(tcDebt)}</div>
-        <div class="account-card-flow">Deuda por pagar · Corte día ${creditCardConfig.cutOffDay}</div>
+        <div class="account-card-flow">Corte día ${creditCardConfig.cutOffDay} · Pago día ${creditCardConfig.paymentDueDay || 8}</div>
       </div>`;
     }
     
@@ -1845,10 +1850,11 @@ function renderAccounts(){
 }
 
 
-/* ---------- Tarjeta de Crédito (Deuda & Fechas de Corte) ---------- */
+/* ---------- Tarjeta de Crédito (Deuda & Fechas de Corte y Pago) ---------- */
 const CREDIT_CARD_KEY = 'mcf_credit_card_v1';
 const DEFAULT_CREDIT_CARD = {
-  cutOffDay: 5,
+  cutOffDay: 24,
+  paymentDueDay: 8,
   baselineDate: '2026-08-19',
   baselineDebt: 0.00,
   name: 'Tarjeta de Crédito'
@@ -1856,10 +1862,11 @@ const DEFAULT_CREDIT_CARD = {
 
 function normalizeCreditCard(raw){
   if(!raw || typeof raw!=='object') return DEFAULT_CREDIT_CARD;
-  const cutOffDay = parseInt(raw.cutOffDay, 10) || 5;
+  const cutOffDay = parseInt(raw.cutOffDay, 10) || 24;
+  const paymentDueDay = parseInt(raw.paymentDueDay, 10) || 8;
   const baselineDebt = Number.isFinite(Number(raw.baselineDebt)) ? Number(raw.baselineDebt) : 0.00;
   const baselineDate = (raw.baselineDate && /^\d{4}-\d{2}-\d{2}$/.test(raw.baselineDate)) ? raw.baselineDate : '2026-08-19';
-  return { cutOffDay, baselineDebt, baselineDate, name: raw.name || 'Tarjeta de Crédito' };
+  return { cutOffDay, paymentDueDay, baselineDebt, baselineDate, name: raw.name || 'Tarjeta de Crédito' };
 }
 
 function loadCreditCard(){
@@ -1890,8 +1897,11 @@ let creditCardConfig = loadCreditCard();
 // Auto-sanitize old 14.23 credit card cache to 0.00
 try {
   const _sCc = localStorage.getItem(CREDIT_CARD_KEY);
-  if(_sCc && Math.abs(JSON.parse(_sCc).baselineDebt - 14.23) < 0.01){
-    saveCreditCard({ cutOffDay: 5, baselineDate: '2026-08-19', baselineDebt: 0.00, name: 'Tarjeta de Crédito' });
+  if(_sCc){
+    const _p = JSON.parse(_sCc);
+    if(_p.cutOffDay === 5 || !_p.paymentDueDay){
+      saveCreditCard({ cutOffDay: 24, paymentDueDay: 8, baselineDate: '2026-08-19', baselineDebt: 0.00, name: 'Tarjeta de Crédito' });
+    }
   }
   const _sBal = localStorage.getItem(ACCOUNT_BALANCES_KEY);
   if(_sBal){
@@ -1910,10 +1920,27 @@ function getNextCutOffDate(cutOffDay){
   const year = now.getFullYear();
   const month = now.getMonth();
   const day = now.getDate();
-  if(day < cutOffDay){
+  if(day <= cutOffDay){
     return new Date(year, month, cutOffDay);
   } else {
     return new Date(year, month + 1, cutOffDay);
+  }
+}
+
+function getNextPaymentDueDate(cutOffDay, paymentDueDay){
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const day = now.getDate();
+  
+  if(day > cutOffDay){
+    return new Date(year, month + 1, paymentDueDay);
+  } else {
+    if(day <= paymentDueDay){
+      return new Date(year, month, paymentDueDay);
+    } else {
+      return new Date(year, month + 1, paymentDueDay);
+    }
   }
 }
 
@@ -1942,30 +1969,37 @@ function renderCreditCardPanel(){
   if(!summary || !badge || !form) return;
   
   const cfg = creditCardConfig || DEFAULT_CREDIT_CARD;
-  badge.textContent = `corte: día ${cfg.cutOffDay}`;
+  const pDay = cfg.paymentDueDay || 8;
+  badge.textContent = `corte: día ${cfg.cutOffDay} · pago: día ${pDay}`;
   
   const debt = calculateCreditCardDebt();
   const nextCut = getNextCutOffDate(cfg.cutOffDay);
-  const nextCutLabel = nextCut.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+  const nextCutLabel = nextCut.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
+  const nextPay = getNextPaymentDueDate(cfg.cutOffDay, pDay);
+  const nextPayLabel = nextPay.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
   
   // Calculate total liquid cash in PeiGo, Deuna, and Cash
   const totals = getCurrentAccountTotals();
   const liquidCash = (totals.peigo ? totals.peigo.balance : 0) + (totals.deuna ? totals.deuna.balance : 0) + (totals.cash ? totals.cash.balance : 0);
   const isCovered = liquidCash >= debt;
-  const coverageText = isCovered ? `${fmt(liquidCash)} (100% cubierto ✓)` : `${fmt(liquidCash)} (Faltan ${fmt(debt - liquidCash)})`;
+  const coverageText = isCovered ? `${fmt(liquidCash)} (100% ✓)` : `${fmt(liquidCash)} (Faltan ${fmt(debt - liquidCash)})`;
   const coverageClass = isCovered ? 'coverage' : 'coverage warn';
   
   summary.innerHTML = `
     <div class="credit-card-item debt">
-      <span class="tag">Deuda próximo corte</span>
+      <span class="tag">Deuda actual</span>
       <strong>${fmt(debt)}</strong>
     </div>
     <div class="credit-card-item">
-      <span class="tag">Próxima fecha de corte</span>
+      <span class="tag">Próximo corte</span>
       <strong>${nextCutLabel}</strong>
     </div>
+    <div class="credit-card-item">
+      <span class="tag">Máximo pago</span>
+      <strong>${nextPayLabel}</strong>
+    </div>
     <div class="credit-card-item ${coverageClass}">
-      <span class="tag">Liquidez disponible en cuentas</span>
+      <span class="tag">Liquidez disponible</span>
       <strong>${coverageText}</strong>
     </div>
   `;
@@ -1980,8 +2014,10 @@ function setupCreditCardEventListeners(){
       const isHidden = form.classList.toggle('hidden');
       toggleBtn.textContent = isHidden ? 'Editar' : 'Cerrar';
       if(!isHidden){
-        document.getElementById('tcCutOffDay').value = creditCardConfig.cutOffDay;
-        document.getElementById('tcBaselineDebt').value = creditCardConfig.baselineDebt;
+        document.getElementById('tcCutOffDay').value = creditCardConfig.cutOffDay || 24;
+        const pInput = document.getElementById('tcPaymentDueDay');
+        if(pInput) pInput.value = creditCardConfig.paymentDueDay || 8;
+        document.getElementById('tcBaselineDebt').value = creditCardConfig.baselineDebt || 0;
       }
     };
   }
@@ -1994,10 +2030,12 @@ function setupCreditCardEventListeners(){
   if(form){
     form.onsubmit = (e) => {
       e.preventDefault();
-      const cutOffDay = parseInt(document.getElementById('tcCutOffDay').value, 10) || 5;
+      const cutOffDay = parseInt(document.getElementById('tcCutOffDay').value, 10) || 24;
+      const paymentDueDay = parseInt(document.getElementById('tcPaymentDueDay').value, 10) || 8;
       const baselineDebt = parseFloat(document.getElementById('tcBaselineDebt').value) || 0;
       saveCreditCard({
         cutOffDay,
+        paymentDueDay,
         baselineDebt,
         baselineDate: dateKey(),
         name: 'Tarjeta de Crédito'
