@@ -3275,7 +3275,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
-  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, motorcycle: motorcycleConfig, tasks: tasksList, exams: examsList, creditCard: creditCardConfig, cats: catsData };
+  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, motorcycle: motorcycleMaintenance, tasks: tasksList, exams: examsList, creditCard: creditCardConfig, cats: catsData };
 }
 function applyState(data){
   if(!data || typeof data !== 'object') return;
@@ -5269,7 +5269,715 @@ document.getElementById('projectionChart').addEventListener('mousemove', e=>{
 });
 document.getElementById('projectionChart').addEventListener('mouseleave', hideTip);
 
+
+/* ==========================================================================
+   LIFE OS: TAB NAVIGATION, MOTO, TASKS & UNIVERSIDAD
+   ========================================================================== */
+
+var currentActiveTab = 'finance';
+var TASKS_KEY = 'mcf_life_tasks_v1';
+var EXAMS_KEY = 'mcf_life_exams_v1';
+
+var tasksList = [];
+var examsList = [];
+var currentTaskFilter = 'all';
+var editingTaskId = null;
+var editingExamId = null;
+
+function loadLifeOsData(){
+  try {
+    var sTasks = localStorage.getItem(TASKS_KEY);
+    if(sTasks) tasksList = JSON.parse(sTasks);
+    else if(typeof SEED_DATA !== 'undefined' && SEED_DATA && SEED_DATA.tasks) tasksList = SEED_DATA.tasks;
+  } catch(e){ tasksList = []; }
+
+  try {
+    var sExams = localStorage.getItem(EXAMS_KEY);
+    if(sExams) examsList = JSON.parse(sExams);
+    else if(typeof SEED_DATA !== 'undefined' && SEED_DATA && SEED_DATA.exams) examsList = SEED_DATA.exams;
+  } catch(e){ examsList = []; }
+}
+
+function saveTasksList(){
+  try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasksList)); } catch(e){}
+  updateBadges();
+  scheduleSyncPush();
+}
+
+function saveExamsList(){
+  try { localStorage.setItem(EXAMS_KEY, JSON.stringify(examsList)); } catch(e){}
+  updateBadges();
+  scheduleSyncPush();
+}
+
+function updateBadges(){
+  var pendingTasks = (tasksList||[]).filter(function(t){ return !t.done; }).length;
+  var taskBadge = document.getElementById('taskBadge');
+  var taskBadgeMobile = document.getElementById('taskBadgeMobile');
+  if(taskBadge){
+    taskBadge.textContent = pendingTasks;
+    taskBadge.classList.toggle('hidden', pendingTasks === 0);
+  }
+  if(taskBadgeMobile){
+    taskBadgeMobile.textContent = pendingTasks;
+    taskBadgeMobile.classList.toggle('hidden', pendingTasks === 0);
+  }
+
+  var upcomingExams = (examsList||[]).filter(function(e){ return !e.completed; }).length;
+  var examBadge = document.getElementById('examBadge');
+  var examBadgeMobile = document.getElementById('examBadgeMobile');
+  if(examBadge){
+    examBadge.textContent = upcomingExams;
+    examBadge.classList.toggle('hidden', upcomingExams === 0);
+  }
+  if(examBadgeMobile){
+    examBadgeMobile.textContent = upcomingExams;
+    examBadgeMobile.classList.toggle('hidden', upcomingExams === 0);
+  }
+}
+
+window.switchTab = function(tabName){
+  currentActiveTab = tabName;
+  
+  // Update desktop nav tabs
+  document.querySelectorAll('.nav-tab').forEach(function(btn){
+    var target = btn.getAttribute('data-tab');
+    btn.classList.toggle('active', target === tabName);
+  });
+
+  // Update mobile bottom tabs
+  document.querySelectorAll('.bottom-tab').forEach(function(btn){
+    var target = btn.getAttribute('data-tab');
+    btn.classList.toggle('active', target === tabName);
+  });
+
+  // Switch visible tab view
+  document.querySelectorAll('.tab-view').forEach(function(view){
+    view.classList.remove('active');
+  });
+
+  var targetId = tabName === 'finance' ? 'tabViewFinance' :
+                 tabName === 'moto' ? 'tabViewMoto' :
+                 tabName === 'tasks' ? 'tabViewTasks' : 'tabViewUni';
+  var targetView = document.getElementById(targetId);
+  if(targetView){
+    targetView.classList.add('active');
+  }
+
+  // Render specific tab content
+  if(tabName === 'finance'){
+    render();
+  } else if(tabName === 'moto'){
+    renderMotoDashboard();
+  } else if(tabName === 'tasks'){
+    renderTasksList(currentTaskFilter);
+  } else if(tabName === 'uni'){
+    renderExamsList();
+  }
+
+  updateBadges();
+  try { window.scrollTo(0, 0); } catch(e){}
+};
+
+// Global FAB context handler
+function setupFabHandler(){
+  var fab = document.getElementById('fabBtn');
+  if(fab){
+    fab.onclick = function(e){
+      if(e) e.stopPropagation();
+      if(currentActiveTab === 'finance'){
+        openEntryModal(null);
+      } else if(currentActiveTab === 'moto'){
+        openFuelModal();
+      } else if(currentActiveTab === 'tasks'){
+        openTaskModal(null);
+      } else if(currentActiveTab === 'uni'){
+        openExamModal(null);
+      }
+    };
+  }
+}
+
+/* ---------- MOTO DASHBOARD ---------- */
+function renderMotoDashboard(){
+  renderMotorcycleMaintenance();
+  renderMotoFuelStats();
+  renderMotoFuelList();
+  renderMotoServiceList();
+}
+
+function renderMotoFuelStats(){
+  var container = document.getElementById('motoFuelStats');
+  if(!container) return;
+  var cfg = motorcycleMaintenance || { lastDate:'2026-08-16', lastMileage:21953, fuelLogs:[], serviceHistory:[] };
+  var fuelLogs = cfg.fuelLogs || [];
+
+  var totalSpent = fuelLogs.reduce(function(s,f){ return s + (parseFloat(f.cost)||0); }, 0);
+  var totalEntries = fuelLogs.length;
+  var latestFuel = fuelLogs[0] || null;
+  var latestKm = latestFuel ? (latestFuel.mileage.toLocaleString('es-ES') + ' km') : 'Sin registros';
+
+  container.innerHTML = `
+    <div class="moto-fuel-item">
+      <span class="tag">Total invertido en gasolina</span>
+      <strong class="gold">${fmt(totalSpent)}</strong>
+    </div>
+    <div class="moto-fuel-item">
+      <span class="tag">Última tanqueada</span>
+      <strong>${latestKm}</strong>
+    </div>
+    <div class="moto-fuel-item">
+      <span class="tag">Tanqueadas registradas</span>
+      <strong class="green">${totalEntries}</strong>
+    </div>
+  `;
+}
+
+function renderMotoFuelList(){
+  var list = document.getElementById('motoFuelList');
+  if(!list) return;
+  var cfg = motorcycleMaintenance || { lastDate:'2026-08-16', lastMileage:21953, fuelLogs:[], serviceHistory:[] };
+  var fuelLogs = cfg.fuelLogs || [];
+
+  if(fuelLogs.length === 0){
+    list.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-soft); font-size:12.5px;">No hay tanqueadas registradas aún. Toca "+ Tanqueada" para añadir una.</div>`;
+    return;
+  }
+
+  list.innerHTML = fuelLogs.map(function(f, idx){
+    var dStr = new Date(f.date + 'T00:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+    var prevKm = fuelLogs[idx + 1] ? (f.mileage - fuelLogs[idx + 1].mileage) : null;
+    var diffLabel = prevKm !== null && prevKm > 0 ? `· +${prevKm} km recorridos` : '';
+    return `
+      <div class="fuel-log-row">
+        <div class="left">
+          <span class="fkm">⛽ ${f.mileage.toLocaleString('es-ES')} km <span style="font-size:11px; color:var(--text-soft); font-family:'JetBrains Mono';">${diffLabel}</span></span>
+          <span class="fdate">${dStr} ${f.note ? `· ${escapeHtml(f.note)}` : ''}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="fcost">${fmt(f.cost)}</span>
+          <button class="del-x" onclick="deleteFuelLog(${f.id})" title="Eliminar">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMotoServiceList(){
+  var list = document.getElementById('motoServiceList');
+  if(!list) return;
+  var cfg = motorcycleMaintenance || { lastDate:'2026-08-16', lastMileage:21953, fuelLogs:[], serviceHistory:[] };
+  var services = cfg.serviceHistory || [];
+
+  if(services.length === 0){
+    list.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-soft); font-size:12.5px;">No hay otros servicios registrados. Toca "+ Mantenimiento" para registrar frenos, cadena, llantas, etc.</div>`;
+    return;
+  }
+
+  list.innerHTML = services.map(function(s){
+    var dStr = new Date(s.date + 'T00:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+    return `
+      <div class="fuel-log-row">
+        <div class="left">
+          <span class="fkm">🛠️ ${escapeHtml(s.type)} ${s.mileage ? `(${s.mileage.toLocaleString('es-ES')} km)` : ''}</span>
+          <span class="fdate">${dStr} ${s.note ? `· ${escapeHtml(s.note)}` : ''}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="fcost">${s.cost ? fmt(s.cost) : 'Preventivo'}</span>
+          <button class="del-x" onclick="deleteMotoService(${s.id})" title="Eliminar">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openFuelModal(){
+  var overlay = document.getElementById('fuelModalOverlay');
+  if(!overlay) return;
+  document.getElementById('fuelDate').value = dateKey();
+  document.getElementById('fuelMileage').value = (motorcycleMaintenance && motorcycleMaintenance.lastMileage) || '';
+  document.getElementById('fuelCost').value = '';
+  document.getElementById('fuelNote').value = 'Extra';
+  overlay.classList.remove('hidden');
+}
+function closeFuelModal(){
+  var overlay = document.getElementById('fuelModalOverlay');
+  if(overlay) overlay.classList.add('hidden');
+}
+window.deleteFuelLog = function(id){
+  if(!motorcycleMaintenance || !motorcycleMaintenance.fuelLogs) return;
+  motorcycleMaintenance.fuelLogs = motorcycleMaintenance.fuelLogs.filter(function(f){ return f.id !== id; });
+  saveMotorcycleMaintenance(motorcycleMaintenance);
+  renderMotoDashboard();
+  showToast('Registro de tanqueada eliminado');
+};
+
+function openServiceModal(){
+  var overlay = document.getElementById('serviceModalOverlay');
+  if(!overlay) return;
+  document.getElementById('serviceDate').value = dateKey();
+  document.getElementById('serviceType').value = '';
+  document.getElementById('serviceMileage').value = (motorcycleMaintenance && motorcycleMaintenance.lastMileage) || '';
+  document.getElementById('serviceCost').value = '';
+  document.getElementById('serviceNote').value = '';
+  overlay.classList.remove('hidden');
+}
+function closeServiceModal(){
+  var overlay = document.getElementById('serviceModalOverlay');
+  if(overlay) overlay.classList.add('hidden');
+}
+window.deleteMotoService = function(id){
+  if(!motorcycleMaintenance || !motorcycleMaintenance.serviceHistory) return;
+  motorcycleMaintenance.serviceHistory = motorcycleMaintenance.serviceHistory.filter(function(s){ return s.id !== id; });
+  saveMotorcycleMaintenance(motorcycleMaintenance);
+  renderMotoDashboard();
+  showToast('Servicio eliminado');
+};
+
+/* ---------- TASKS MODULE ---------- */
+function renderTasksList(filter){
+  if(!filter) filter = 'all';
+  currentTaskFilter = filter;
+  var container = document.getElementById('taskListContainer');
+  var subtitle = document.getElementById('taskSubtitle');
+  if(!container) return;
+
+  document.querySelectorAll('.task-filter-btn').forEach(function(btn){
+    btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+  });
+
+  var total = tasksList.length;
+  var doneCount = tasksList.filter(function(t){ return t.done; }).length;
+  var pendingCount = total - doneCount;
+
+  if(subtitle){
+    subtitle.textContent = pendingCount + ' pendiente' + (pendingCount!==1?'s':'') + ' · ' + doneCount + ' completada' + (doneCount!==1?'s':'');
+  }
+
+  var filtered = tasksList;
+  if(filter === 'pending') filtered = tasksList.filter(function(t){ return !t.done; });
+  if(filter === 'done') filtered = tasksList.filter(function(t){ return t.done; });
+
+  if(filtered.length === 0){
+    container.innerHTML = `<div style="text-align:center; padding:28px 12px; color:var(--text-soft); font-size:13px;">
+      ${filter==='done' ? 'No tienes tareas completadas aún.' : (filter==='pending' ? '🎉 ¡Estás al día! No tienes tareas pendientes.' : 'No tienes tareas creadas. Escribe una arriba o toca el botón +.')}
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(function(t){
+    var isDue = t.dueDate ? new Date(t.dueDate + 'T00:00:00') : null;
+    var dueClass = '';
+    var dueLabel = '';
+    if(isDue){
+      var today = new Date(); today.setHours(0,0,0,0);
+      var dueDays = Math.round((isDue - today) / (1000 * 60 * 60 * 24));
+      if(dueDays < 0){ dueClass = 'overdue'; dueLabel = '⚠️ Vencida hace ' + Math.abs(dueDays) + 'd'; }
+      else if(dueDays === 0){ dueClass = 'today'; dueLabel = '⏰ Hoy'; }
+      else if(dueDays === 1){ dueClass = 'today'; dueLabel = 'Mañana'; }
+      else { dueLabel = '📅 ' + isDue.toLocaleDateString('es-ES', { day:'2-digit', month:'short' }); }
+    }
+
+    var prioClass = t.priority || 'normal';
+
+    return `
+      <div class="task-card ${t.done ? 'done' : ''}" data-id="${t.id}">
+        <button class="task-check" onclick="toggleTaskDone(${t.id})" title="${t.done?'Marcar como pendiente':'Marcar como completada'}">
+          ${t.done ? '✓' : ''}
+        </button>
+        <div class="task-content" onclick="toggleTaskDone(${t.id})" style="cursor:pointer;">
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          <div class="task-meta">
+            <span class="task-priority-dot ${prioClass}"></span>
+            ${dueLabel ? `<span class="task-due ${dueClass}">${dueLabel}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="link-btn" onclick="openTaskModal(${t.id})" style="font-size:11px;">Editar</button>
+          <button class="del-x" onclick="deleteTask(${t.id})" title="Eliminar">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.toggleTaskDone = function(id){
+  var t = tasksList.find(function(x){ return x.id === id; });
+  if(!t) return;
+  t.done = !t.done;
+  saveTasksList();
+  renderTasksList(currentTaskFilter);
+};
+
+window.deleteTask = function(id){
+  var idx = tasksList.findIndex(function(x){ return x.id === id; });
+  if(idx === -1) return;
+  var removed = tasksList[idx];
+  tasksList.splice(idx, 1);
+  saveTasksList();
+  renderTasksList(currentTaskFilter);
+  showToast('Tarea eliminada', 'Deshacer', function(){
+    tasksList.push(removed);
+    saveTasksList();
+    renderTasksList(currentTaskFilter);
+  });
+};
+
+window.openTaskModal = function(idOrNull){
+  var overlay = document.getElementById('taskModalOverlay');
+  var titleEl = document.getElementById('taskModalTitle');
+  if(!overlay) return;
+
+  if(idOrNull !== null && idOrNull !== undefined){
+    var t = tasksList.find(function(x){ return x.id === idOrNull; });
+    if(t){
+      editingTaskId = t.id;
+      if(titleEl) titleEl.textContent = 'Editar Tarea';
+      document.getElementById('taskInputTitle').value = t.title;
+      document.getElementById('taskInputDueDate').value = t.dueDate || '';
+      document.getElementById('taskInputPriority').value = t.priority || 'normal';
+    }
+  } else {
+    editingTaskId = null;
+    if(titleEl) titleEl.textContent = '📋 Nueva Tarea';
+    document.getElementById('taskInputTitle').value = '';
+    document.getElementById('taskInputDueDate').value = '';
+    document.getElementById('taskInputPriority').value = 'normal';
+  }
+  overlay.classList.remove('hidden');
+  document.getElementById('taskInputTitle').focus();
+};
+
+function closeTaskModal(){
+  var overlay = document.getElementById('taskModalOverlay');
+  if(overlay) overlay.classList.add('hidden');
+  editingTaskId = null;
+}
+
+/* ---------- UNIVERSIDAD / EXAMS MODULE ---------- */
+function renderExamsList(){
+  var container = document.getElementById('examGridContainer');
+  var subtitle = document.getElementById('uniSubtitle');
+  if(!container) return;
+
+  var total = examsList.length;
+  var upcoming = examsList.filter(function(e){ return !e.completed; }).length;
+  if(subtitle){
+    subtitle.textContent = upcoming + ' evaluación' + (upcoming!==1?'es':'') + ' próxima' + (upcoming!==1?'s':'');
+  }
+
+  if(examsList.length === 0){
+    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:36px 12px; color:var(--text-soft); font-size:13px;">
+      No tienes exámenes ni tareas registradas. Toca "+ Nuevo examen o entrega" para comenzar.
+    </div>`;
+    return;
+  }
+
+  var sorted = examsList.slice().sort(function(a,b){
+    if(a.completed !== b.completed) return a.completed ? 1 : -1;
+    return a.date.localeCompare(b.date);
+  });
+
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  container.innerHTML = sorted.map(function(e){
+    var examDate = new Date(e.date + 'T00:00:00');
+    var diffDays = Math.round((examDate - today) / (1000 * 60 * 60 * 24));
+    
+    var countdownLabel = '';
+    var countdownClass = 'normal';
+    var cardUrgentClass = '';
+
+    if(e.completed){
+      countdownLabel = e.grade ? ('✓ Nota: ' + e.grade) : '✓ Rendido';
+      countdownClass = 'completed';
+    } else if(diffDays < 0){
+      countdownLabel = '⚠️ Pasado';
+      countdownClass = 'urgent';
+    } else if(diffDays === 0){
+      countdownLabel = '🔥 ¡HOY!';
+      countdownClass = 'urgent';
+      cardUrgentClass = 'urgent';
+    } else if(diffDays === 1){
+      countdownLabel = '⚡ ¡MAÑANA!';
+      countdownClass = 'urgent';
+      cardUrgentClass = 'urgent';
+    } else if(diffDays <= 4){
+      countdownLabel = '⏳ En ' + diffDays + ' días';
+      countdownClass = 'soon';
+    } else {
+      countdownLabel = '📅 En ' + diffDays + ' días';
+      countdownClass = 'normal';
+    }
+
+    var dStr = examDate.toLocaleDateString('es-ES', { weekday:'short', day:'2-digit', month:'short' });
+
+    return `
+      <div class="exam-card ${cardUrgentClass}">
+        <div class="exam-card-head">
+          <span class="exam-subject">${escapeHtml(e.subject)} · ${escapeHtml(e.type || 'Evaluación')}</span>
+          <span class="exam-countdown ${countdownClass}">${countdownLabel}</span>
+        </div>
+        <h3 class="exam-title">${escapeHtml(e.title)}</h3>
+        <div class="exam-info-row">
+          <span>📅 ${dStr}</span>
+          ${e.time ? `<span>⏰ ${e.time}</span>` : ''}
+        </div>
+        ${e.note ? `<div class="exam-note">${escapeHtml(e.note)}</div>` : ''}
+        <div class="exam-actions">
+          <button class="btn-ghost-sm" onclick="toggleExamComplete(${e.id})">
+            ${e.completed ? 'Desmarcar' : '✓ Marcar como rendido'}
+          </button>
+          <div style="display:flex; gap:8px;">
+            <button class="link-btn" onclick="openExamModal(${e.id})">Editar</button>
+            <button class="del-x" onclick="deleteExam(${e.id})" title="Eliminar">&times;</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.toggleExamComplete = function(id){
+  var e = examsList.find(function(x){ return x.id === id; });
+  if(!e) return;
+  e.completed = !e.completed;
+  if(e.completed && !e.grade){
+    var grade = prompt('¿Qué nota obtuviste? (Opcional, ej. 9.5/10):');
+    if(grade) e.grade = grade.trim();
+  }
+  saveExamsList();
+  renderExamsList();
+};
+
+window.deleteExam = function(id){
+  var idx = examsList.findIndex(function(x){ return x.id === id; });
+  if(idx === -1) return;
+  var removed = examsList[idx];
+  examsList.splice(idx, 1);
+  saveExamsList();
+  renderExamsList();
+  showToast('Evaluación eliminada', 'Deshacer', function(){
+    examsList.push(removed);
+    saveExamsList();
+    renderExamsList();
+  });
+};
+
+window.openExamModal = function(idOrNull){
+  var overlay = document.getElementById('examModalOverlay');
+  var titleEl = document.getElementById('examModalTitle');
+  if(!overlay) return;
+
+  if(idOrNull !== null && idOrNull !== undefined){
+    var e = examsList.find(function(x){ return x.id === idOrNull; });
+    if(e){
+      editingExamId = e.id;
+      if(titleEl) titleEl.textContent = 'Editar Evaluación';
+      document.getElementById('examSubject').value = e.subject;
+      document.getElementById('examType').value = e.type || 'Examen';
+      document.getElementById('examTitleInput').value = e.title;
+      document.getElementById('examDate').value = e.date;
+      document.getElementById('examTime').value = e.time || '08:00';
+      document.getElementById('examNote').value = e.note || '';
+    }
+  } else {
+    editingExamId = null;
+    if(titleEl) titleEl.textContent = '🎓 Nuevo Examen o Entrega';
+    document.getElementById('examSubject').value = '';
+    document.getElementById('examType').value = 'Examen';
+    document.getElementById('examTitleInput').value = '';
+    document.getElementById('examDate').value = dateKey();
+    document.getElementById('examTime').value = '08:00';
+    document.getElementById('examNote').value = '';
+  }
+  overlay.classList.remove('hidden');
+};
+
+function closeExamModal(){
+  var overlay = document.getElementById('examModalOverlay');
+  if(overlay) overlay.classList.add('hidden');
+  editingExamId = null;
+}
+
+function setupLifeOsEventListeners(){
+  // Fuel modal
+  document.getElementById('fuelModalClose')?.addEventListener('click', closeFuelModal);
+  document.getElementById('fuelModalCancel')?.addEventListener('click', closeFuelModal);
+  document.getElementById('openFuelModalBtn')?.addEventListener('click', openFuelModal);
+  document.getElementById('quickFuelBtn')?.addEventListener('click', openFuelModal);
+
+  document.getElementById('fuelForm')?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var date = document.getElementById('fuelDate').value;
+    var mileage = parseInt(document.getElementById('fuelMileage').value, 10);
+    var cost = parseFloat(document.getElementById('fuelCost').value);
+    var note = document.getElementById('fuelNote').value.trim();
+    var syncExpense = document.getElementById('fuelSyncExpense').checked;
+
+    if(!date || isNaN(mileage) || isNaN(cost)) return;
+
+    if(!motorcycleMaintenance.fuelLogs) motorcycleMaintenance.fuelLogs = [];
+    motorcycleMaintenance.fuelLogs.unshift({ id: Date.now(), date: date, mileage: mileage, cost: cost, note: note });
+
+    if(mileage > (motorcycleMaintenance.lastMileage||0)){
+      motorcycleMaintenance.lastMileage = mileage;
+      motorcycleMaintenance.lastDate = date;
+    }
+    saveMotorcycleMaintenance(motorcycleMaintenance);
+
+    if(syncExpense){
+      tx.push({
+        id: Date.now() + 1,
+        type: 'expense',
+        cat: 'Moto',
+        amt: cost,
+        date: date,
+        note: note ? ('Gasolina · ' + note) : 'Gasolina',
+        account: 'deuna',
+        goalId: null
+      });
+      saveTx(tx);
+    }
+
+    closeFuelModal();
+    renderMotoDashboard();
+    showToast('Tanqueada registrada con éxito ✓');
+  });
+
+  // Service modal
+  document.getElementById('serviceModalClose')?.addEventListener('click', closeServiceModal);
+  document.getElementById('serviceModalCancel')?.addEventListener('click', closeServiceModal);
+  document.getElementById('openServiceModalBtn')?.addEventListener('click', openServiceModal);
+  document.getElementById('quickServiceBtn')?.addEventListener('click', openServiceModal);
+
+  document.getElementById('serviceForm')?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var date = document.getElementById('serviceDate').value;
+    var type = document.getElementById('serviceType').value.trim();
+    var mileage = parseInt(document.getElementById('serviceMileage').value, 10) || null;
+    var cost = parseFloat(document.getElementById('serviceCost').value) || 0;
+    var note = document.getElementById('serviceNote').value.trim();
+
+    if(!date || !type) return;
+
+    if(!motorcycleMaintenance.serviceHistory) motorcycleMaintenance.serviceHistory = [];
+    motorcycleMaintenance.serviceHistory.unshift({ id: Date.now(), date: date, type: type, mileage: mileage, cost: cost, note: note });
+    saveMotorcycleMaintenance(motorcycleMaintenance);
+
+    closeServiceModal();
+    renderMotoDashboard();
+    showToast('Servicio registrado ✓');
+  });
+
+  // Task events
+  document.getElementById('taskModalClose')?.addEventListener('click', closeTaskModal);
+  document.getElementById('taskModalCancel')?.addEventListener('click', closeTaskModal);
+
+  document.getElementById('taskForm')?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var title = document.getElementById('taskInputTitle').value.trim();
+    var dueDate = document.getElementById('taskInputDueDate').value || null;
+    var priority = document.getElementById('taskInputPriority').value;
+
+    if(!title) return;
+
+    if(editingTaskId !== null){
+      var idx = tasksList.findIndex(function(t){ return t.id === editingTaskId; });
+      if(idx > -1){
+        tasksList[idx] = Object.assign({}, tasksList[idx], { title: title, dueDate: dueDate, priority: priority });
+      }
+      editingTaskId = null;
+    } else {
+      tasksList.unshift({
+        id: Date.now(),
+        title: title,
+        dueDate: dueDate,
+        priority: priority,
+        done: false,
+        createdAt: dateKey()
+      });
+    }
+    saveTasksList();
+    closeTaskModal();
+    renderTasksList(currentTaskFilter);
+    showToast('Tarea guardada ✓');
+  });
+
+  document.getElementById('taskQuickAddForm')?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var input = document.getElementById('taskQuickTitle');
+    var title = input.value.trim();
+    if(!title) return;
+    tasksList.unshift({
+      id: Date.now(),
+      title: title,
+      dueDate: null,
+      priority: 'normal',
+      done: false,
+      createdAt: dateKey()
+    });
+    input.value = '';
+    saveTasksList();
+    renderTasksList(currentTaskFilter);
+    showToast('Tarea añadida ✓');
+  });
+
+  document.querySelectorAll('.task-filter-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      renderTasksList(btn.getAttribute('data-filter'));
+    });
+  });
+
+  // Exam events
+  document.getElementById('examModalClose')?.addEventListener('click', closeExamModal);
+  document.getElementById('examModalCancel')?.addEventListener('click', closeExamModal);
+  document.getElementById('openExamModalBtn')?.addEventListener('click', function(){ openExamModal(null); });
+
+  document.getElementById('examForm')?.addEventListener('submit', function(e){
+    e.preventDefault();
+    var subject = document.getElementById('examSubject').value.trim();
+    var type = document.getElementById('examType').value;
+    var title = document.getElementById('examTitleInput').value.trim();
+    var date = document.getElementById('examDate').value;
+    var time = document.getElementById('examTime').value || null;
+    var note = document.getElementById('examNote').value.trim() || null;
+
+    if(!subject || !title || !date) return;
+
+    if(editingExamId !== null){
+      var idx = examsList.findIndex(function(x){ return x.id === editingExamId; });
+      if(idx > -1){
+        examsList[idx] = Object.assign({}, examsList[idx], { subject: subject, type: type, title: title, date: date, time: time, note: note });
+      }
+      editingExamId = null;
+    } else {
+      examsList.unshift({
+        id: Date.now(),
+        subject: subject,
+        type: type,
+        title: title,
+        date: date,
+        time: time,
+        note: note,
+        completed: false,
+        grade: null
+      });
+    }
+    saveExamsList();
+    closeExamModal();
+    renderExamsList();
+    showToast('Evaluación guardada ✓');
+  });
+
+  setupFabHandler();
+}
+
+
 (async function init(){
+  loadLifeOsData();
+  setupLifeOsEventListeners();
+
   
   if(syncId){
     try{ await syncPull(syncId); }catch(e){ /* si falla, seguimos con los datos locales */ }
