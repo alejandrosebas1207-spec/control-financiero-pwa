@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="apple-mobile-web-app-title" content="Life OS">
 <meta name="theme-color" content="#0B0407">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png?v=2">
-<title>Panel Financiero</title>
+<title>Life OS · Alejandro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1140,6 +1140,86 @@
   }
 
   
+  
+  /* ==========================================================================
+     ADVANCED AESTHETICS: SQUIRCLES, SPRING BOUNCE, PULSE GLOW & TASK TRANSITIONS
+     ========================================================================== */
+
+  /* Icon Squircles */
+  .squircle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 16px;
+    background: rgba(244, 63, 94, 0.1);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    flex-shrink: 0;
+  }
+  .squircle-icon.orange { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.25); }
+  .squircle-icon.blue { background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.25); }
+  .squircle-icon.purple { background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.25); }
+  .squircle-icon.green { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.25); }
+
+  /* Spring Bounce & Tab Glow */
+  .bottom-tab.active .b-icon {
+    transform: translateY(-2px) scale(1.15) !important;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 2px 10px rgba(244, 63, 94, 0.7)) !important;
+  }
+  .nav-tab.active {
+    animation: tabPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes tabPop {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  /* Pulsing Urgency Badges */
+  .exam-card.urgent {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  }
+  .exam-countdown.urgent {
+    animation: pulseGlow 2s infinite ease-in-out;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.7); }
+  }
+
+  /* Task Checkbox & Strikethrough Smooth Transition */
+  .task-card {
+    transition: transform 0.2s ease, opacity 0.25s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .task-card:active { transform: scale(0.98); }
+  .task-check {
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .task-card.done .task-check {
+    transform: scale(1.1);
+    background: #10B981 !important;
+    border-color: #10B981 !important;
+  }
+  .task-title {
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+  }
+  
+  /* Task Group Headers */
+  .task-group-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    margin: 12px 0 6px 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   /* Centered Layout Containers for Clean Aesthetics */
   .tab-container-centered {
     max-width: 680px;
@@ -1516,6 +1596,16 @@
         <input type="color" id="newCatColor" value="#F97316" title="Color de la categoría">
         <button class="btn-outline" id="addCatBtn">Añadir</button>
       </div>
+    </div>
+
+    <div class="sync-block" style="border-top:1px solid var(--line); padding-top:14px; margin-top:14px;">
+      <p class="sync-title">🔔 Recordatorios & Notificaciones</p>
+      <p class="sync-desc">Recibe alertas en tu iPhone/PC para exámenes próximos, tareas de hoy y fecha máxima de pago de tarjeta de crédito.</p>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button type="button" class="btn-outline" id="enableNotificationsBtn" style="flex:1;">🔔 Activar notificaciones</button>
+        <button type="button" class="btn-ghost-sm" id="testNotificationBtn">Probar</button>
+      </div>
+      <p class="sync-status" id="notificationsStatus" style="margin-top:6px; font-size:11px;"></p>
     </div>
 
     <div class="backup-block">
@@ -5386,6 +5476,15 @@ function updateBadges(){
 window.switchTab = function(tabName){
   currentActiveTab = tabName;
   
+  // Update header dynamic title
+  var heroSubtitle = document.getElementById('heroSubtitle');
+  if(heroSubtitle){
+    if(tabName === 'finance') heroSubtitle.textContent = 'Resumen financiero';
+    else if(tabName === 'moto') heroSubtitle.textContent = 'Mi Garaje & Moto';
+    else if(tabName === 'tasks') heroSubtitle.textContent = 'Centro de Tareas';
+    else if(tabName === 'uni') heroSubtitle.textContent = 'Control Académico';
+  }
+
   // Update desktop nav tabs
   document.querySelectorAll('.nav-tab').forEach(function(btn){
     var target = btn.getAttribute('data-tab');
@@ -5582,6 +5681,41 @@ window.deleteMotoService = function(id){
 };
 
 /* ---------- TASKS MODULE ---------- */
+function renderTaskCard(t){
+  var isDue = t.dueDate ? new Date(t.dueDate + 'T00:00:00') : null;
+  var dueClass = '';
+  var dueLabel = '';
+  if(isDue){
+    var today = new Date(); today.setHours(0,0,0,0);
+    var dueDays = Math.round((isDue - today) / (1000 * 60 * 60 * 24));
+    if(dueDays < 0){ dueClass = 'overdue'; dueLabel = '⚠️ Vencida hace ' + Math.abs(dueDays) + 'd'; }
+    else if(dueDays === 0){ dueClass = 'today'; dueLabel = '⏰ Hoy'; }
+    else if(dueDays === 1){ dueClass = 'today'; dueLabel = 'Mañana'; }
+    else { dueLabel = '📅 ' + isDue.toLocaleDateString('es-ES', { day:'2-digit', month:'short' }); }
+  }
+
+  var prioClass = t.priority || 'normal';
+
+  return `
+    <div class="task-card ${t.done ? 'done' : ''}" data-id="${t.id}">
+      <button class="task-check" onclick="toggleTaskDone(${t.id})" title="${t.done?'Marcar como pendiente':'Marcar como completada'}">
+        ${t.done ? '✓' : ''}
+      </button>
+      <div class="task-content" onclick="toggleTaskDone(${t.id})" style="cursor:pointer;">
+        <div class="task-title">${escapeHtml(t.title)}</div>
+        <div class="task-meta">
+          <span class="task-priority-dot ${prioClass}"></span>
+          ${dueLabel ? `<span class="task-due ${dueClass}">${dueLabel}</span>` : ''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="link-btn" onclick="openTaskModal(${t.id})" style="font-size:11px;">Editar</button>
+        <button class="del-x" onclick="deleteTask(${t.id})" title="Eliminar">&times;</button>
+      </div>
+    </div>
+  `;
+}
+
 function renderTasksList(filter){
   if(!filter) filter = 'all';
   currentTaskFilter = filter;
@@ -5598,7 +5732,7 @@ function renderTasksList(filter){
   var pendingCount = total - doneCount;
 
   if(subtitle){
-    subtitle.textContent = pendingCount + ' pendiente' + (pendingCount!==1?'s':'') + ' · ' + doneCount + ' completada' + (doneCount!==1?'s':'');
+    subtitle.textContent = pendingCount + ' pendiente' + (pendingCount!==1?'s':'');
   }
 
   var filtered = tasksList;
@@ -5612,40 +5746,26 @@ function renderTasksList(filter){
     return;
   }
 
-  container.innerHTML = filtered.map(function(t){
-    var isDue = t.dueDate ? new Date(t.dueDate + 'T00:00:00') : null;
-    var dueClass = '';
-    var dueLabel = '';
-    if(isDue){
-      var today = new Date(); today.setHours(0,0,0,0);
-      var dueDays = Math.round((isDue - today) / (1000 * 60 * 60 * 24));
-      if(dueDays < 0){ dueClass = 'overdue'; dueLabel = '⚠️ Vencida hace ' + Math.abs(dueDays) + 'd'; }
-      else if(dueDays === 0){ dueClass = 'today'; dueLabel = '⏰ Hoy'; }
-      else if(dueDays === 1){ dueClass = 'today'; dueLabel = 'Mañana'; }
-      else { dueLabel = '📅 ' + isDue.toLocaleDateString('es-ES', { day:'2-digit', month:'short' }); }
+  if(filter === 'all'){
+    var todayKey = dateKey();
+    var urgentTasks = filtered.filter(function(t){ return !t.done && (t.dueDate === todayKey || t.priority === 'high'); });
+    var normalTasks = filtered.filter(function(t){ return !t.done && t.dueDate !== todayKey && t.priority !== 'high'; });
+    var completedTasks = filtered.filter(function(t){ return t.done; });
+
+    var htmlParts = [];
+    if(urgentTasks.length > 0){
+      htmlParts.push('<div class="task-group-title">🔥 Hoy / Prioritarias</div>' + urgentTasks.map(renderTaskCard).join(''));
     }
-
-    var prioClass = t.priority || 'normal';
-
-    return `
-      <div class="task-card ${t.done ? 'done' : ''}" data-id="${t.id}">
-        <button class="task-check" onclick="toggleTaskDone(${t.id})" title="${t.done?'Marcar como pendiente':'Marcar como completada'}">
-          ${t.done ? '✓' : ''}
-        </button>
-        <div class="task-content" onclick="toggleTaskDone(${t.id})" style="cursor:pointer;">
-          <div class="task-title">${escapeHtml(t.title)}</div>
-          <div class="task-meta">
-            <span class="task-priority-dot ${prioClass}"></span>
-            ${dueLabel ? `<span class="task-due ${dueClass}">${dueLabel}</span>` : ''}
-          </div>
-        </div>
-        <div class="task-actions">
-          <button class="link-btn" onclick="openTaskModal(${t.id})" style="font-size:11px;">Editar</button>
-          <button class="del-x" onclick="deleteTask(${t.id})" title="Eliminar">&times;</button>
-        </div>
-      </div>
-    `;
-  }).join('');
+    if(normalTasks.length > 0){
+      htmlParts.push('<div class="task-group-title">📋 Próximas</div>' + normalTasks.map(renderTaskCard).join(''));
+    }
+    if(completedTasks.length > 0){
+      htmlParts.push('<div class="task-group-title">✓ Completadas</div>' + completedTasks.map(renderTaskCard).join(''));
+    }
+    container.innerHTML = htmlParts.join('');
+  } else {
+    container.innerHTML = filtered.map(renderTaskCard).join('');
+  }
 }
 
 window.toggleTaskDone = function(id){
@@ -5847,7 +5967,109 @@ function closeExamModal(){
   editingExamId = null;
 }
 
+
+/* ---------- WEB NOTIFICATIONS & REMINDERS ---------- */
+function setupNotifications(){
+  var btn = document.getElementById('enableNotificationsBtn');
+  var testBtn = document.getElementById('testNotificationBtn');
+  var statusEl = document.getElementById('notificationsStatus');
+
+  function updateStatus(){
+    if(!('Notification' in window)){
+      if(statusEl) statusEl.textContent = 'Tu navegador no soporta notificaciones web.';
+      if(btn) btn.disabled = true;
+      return;
+    }
+    if(Notification.permission === 'granted'){
+      if(statusEl){ statusEl.textContent = '● Notificaciones activadas ✓'; statusEl.style.color = 'var(--green)'; }
+      if(btn){ btn.textContent = '🔔 Notificaciones activas'; btn.classList.add('active'); }
+    } else if(Notification.permission === 'denied'){
+      if(statusEl){ statusEl.textContent = 'Notificaciones bloqueadas en el navegador.'; statusEl.style.color = 'var(--red)'; }
+      if(btn){ btn.textContent = 'Notificaciones bloqueadas'; }
+    } else {
+      if(statusEl){ statusEl.textContent = 'Permiso no solicitado aún.'; statusEl.style.color = 'var(--text-soft)'; }
+      if(btn){ btn.textContent = '🔔 Activar notificaciones'; }
+    }
+  }
+
+  updateStatus();
+
+  btn?.addEventListener('click', function(){
+    if('Notification' in window){
+      Notification.requestPermission().then(function(p){
+        updateStatus();
+        if(p === 'granted'){
+          showToast('Notificaciones activadas con éxito ✓');
+          checkAndSendReminders(true);
+        }
+      });
+    }
+  });
+
+  testBtn?.addEventListener('click', function(){
+    if('Notification' in window && Notification.permission === 'granted'){
+      new Notification('Life OS · Alejandro', {
+        body: '¡Las notificaciones están funcionando perfectamente!',
+        icon: './icons/icon-192.png?v=3'
+      });
+      showToast('Notificación enviada');
+    } else {
+      showToast('Primero activa las notificaciones');
+    }
+  });
+}
+
+function checkAndSendReminders(isTest){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  var lastCheckKey = 'mcf_last_notif_check';
+  var lastCheck = localStorage.getItem(lastCheckKey);
+  var todayKey = dateKey();
+  if(!isTest && lastCheck === todayKey) return; // Only notify once per day
+
+  var alerts = [];
+
+  // 1. Check Exams
+  var today = new Date(); today.setHours(0,0,0,0);
+  (examsList||[]).forEach(function(e){
+    if(e.completed) return;
+    var eDate = new Date(e.date + 'T00:00:00');
+    var diff = Math.round((eDate - today) / (1000 * 60 * 60 * 24));
+    if(diff === 0) alerts.push(`🎓 ¡HOY tienes evaluación!: ${e.subject} - ${e.title}`);
+    else if(diff === 1) alerts.push(`🎓 Mañana tienes evaluación: ${e.subject} - ${e.title}`);
+  });
+
+  // 2. Check Tasks Due Today
+  var pendingToday = (tasksList||[]).filter(function(t){ return !t.done && t.dueDate === todayKey; });
+  if(pendingToday.length > 0){
+    alerts.push(`📋 Tienes ${pendingToday.length} tarea${pendingToday.length!==1?'s':''} para hoy.`);
+  }
+
+  // 3. Check Credit Card payment due (day 8)
+  var currDay = new Date().getDate();
+  var cutOff = (creditCardConfig && creditCardConfig.cutOffDay) || 24;
+  var dueDay = (creditCardConfig && creditCardConfig.paymentDueDay) || 8;
+  var debt = calculateCreditCardDebt();
+  if(currDay >= 1 && currDay <= dueDay && debt > 0.005){
+    alerts.push(`💳 Recordatorio TC: Pago máximo el día ${dueDay} (${fmt(debt)})`);
+  }
+
+  if(alerts.length > 0){
+    alerts.forEach(function(msg, idx){
+      setTimeout(function(){
+        new Notification('Life OS', {
+          body: msg,
+          icon: './icons/icon-192.png?v=3'
+        });
+      }, idx * 1500);
+    });
+    localStorage.setItem(lastCheckKey, todayKey);
+  }
+}
+
 function setupLifeOsEventListeners(){
+  setupNotifications();
+  checkAndSendReminders(false);
   // Add overlay backdrop click to close for all life os modals
   ['fuelModalOverlay', 'serviceModalOverlay', 'taskModalOverlay', 'examModalOverlay'].forEach(function(id){
     var el = document.getElementById(id);
