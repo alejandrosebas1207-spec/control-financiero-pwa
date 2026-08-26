@@ -3420,27 +3420,12 @@ function applyState(data){
     data.deletedTxIds.forEach(id => deletedTxIds.add(id));
     try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(deletedTxIds))); } catch(e){}
   }
-  if(data.tx){
-    const remoteTx = normalizeTxList(data.tx);
-    const mergedMap = new Map();
-    
-    // 1. Add remote items not deleted
-    remoteTx.forEach(t => {
-      if(!deletedTxIds.has(t.id)) mergedMap.set(t.id, t);
-    });
-    
-    // 2. Add local items not deleted (preserves recently added items even if remote hasn't received them yet)
-    (tx||[]).forEach(t => {
-      if(!deletedTxIds.has(t.id) && !mergedMap.has(t.id)){
-        mergedMap.set(t.id, t);
-      }
-    });
-    
-    tx = Array.from(mergedMap.values());
+  if(data.tx && Array.isArray(data.tx)){
+    tx = normalizeTxList(data.tx).filter(t => !deletedTxIds.has(t.id));
     localStorage.setItem(TX_KEY, JSON.stringify(tx));
   }
-  if(data.goals){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
-  if(data.goalHistory){ goalHistory = data.goalHistory; localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(goalHistory)); }
+  if(data.goals && Array.isArray(data.goals)){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
+  if(data.goalHistory && Array.isArray(data.goalHistory)){ goalHistory = data.goalHistory; localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(goalHistory)); }
   if(data.budgets){ budgets = data.budgets; localStorage.setItem(BUDGETS_KEY, JSON.stringify(budgets)); }
   if('alertThreshold' in data){ alertThreshold = data.alertThreshold; saveAlert(alertThreshold); }
   if(data.cats) applyCats(data.cats);
@@ -3456,10 +3441,19 @@ function applyState(data){
     creditCardConfig = normalizeCreditCard(data.creditCard);
     localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(creditCardConfig));
   }
+  if('tasks' in data && Array.isArray(data.tasks)){
+    tasksList = data.tasks;
+    try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasksList)); } catch(e){}
+  }
+  if('exams' in data && Array.isArray(data.exams)){
+    examsList = data.exams;
+    try { localStorage.setItem(EXAMS_KEY, JSON.stringify(examsList)); } catch(e){}
+  }
   if('defaultAccountId' in data && isKnownAccountId(data.defaultAccountId)){
     defaultAccountId = data.defaultAccountId;
     saveDefaultAccount(defaultAccountId);
   }
+  updateBadges();
 }
 
 const SB_URL_KEY = 'mcf_sb_url_v2';
