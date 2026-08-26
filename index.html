@@ -1139,6 +1139,40 @@
     min-height: calc(85vh - 100px);
   }
 
+  
+  /* Centered Layout Containers for Clean Aesthetics */
+  .tab-container-centered {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .life-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .life-header-actions { display: flex; align-items: center; gap: 8px; }
+  .life-counter-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-top: 3px;
+    font-weight: 500;
+  }
+  .panel-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .panel-head-row h2 { margin: 0; font-size: 15px; font-weight: 700; }
+
   /* Life OS Card Headers & Sections */
   .life-header {
     display: flex;
@@ -1567,7 +1601,7 @@
   <section class="panel quick-actions fade-in">
     <div class="quick-actions-head">
       <h2>Registrar movimiento</h2>
-      <span>elige el tipo</span>
+      
     </div>
     <div class="quick-action-grid">
       <button class="quick-action income" data-q="income">↑ Ingreso</button>
@@ -1702,103 +1736,103 @@
 
   <!-- ==================== TAB 2: MOTO ==================== -->
   <div class="tab-view" id="tabViewMoto">
-    <div class="life-header">
-      <div>
-        <h2 class="life-title">🏍️ Mantenimiento & Gasolina de mi Moto</h2>
-        <div class="life-subtitle" id="motoSubtitle">Registro de odómetro, tanqueadas y cambios de aceite</div>
+    <div class="tab-container-centered">
+      <div class="life-header">
+        <h2 class="life-title">🏍️ Mi Moto</h2>
+        <div class="life-header-actions">
+          <button class="btn-outline" id="openFuelModalBtn">+ Tanqueada</button>
+          <button class="btn-outline" id="openServiceModalBtn">+ Servicio</button>
+        </div>
       </div>
-      <div>
-        <button class="btn-outline" id="openFuelModalBtn">+ Tanqueada</button>
-        <button class="btn-outline" id="openServiceModalBtn" style="margin-left:6px;">+ Mantenimiento</button>
-      </div>
-    </div>
 
-    <!-- Resumen Aceite & Odómetro -->
-    <section class="panel maintenance-panel fade-in" style="margin-bottom:16px;">
-      <div class="maintenance-head">
-        <div>
+      <!-- Resumen Aceite & Odómetro -->
+      <section class="panel maintenance-panel fade-in">
+        <div class="maintenance-head">
           <h2>Aceite & Odómetro</h2>
-          <p class="maintenance-desc">Intervalo preventivo programado cada 1.500 km</p>
+          <div class="maintenance-head-actions">
+            <span class="maintenance-interval">cada 1.500 km</span>
+            <button type="button" class="link-btn" id="toggleMotoMaintenanceBtn">Editar</button>
+          </div>
         </div>
-        <div class="maintenance-head-actions">
-          <span class="maintenance-interval">cada 1.500 km</span>
-          <button type="button" class="link-btn" id="toggleMotoMaintenanceBtn">Editar</button>
-        </div>
-      </div>
-      <div class="maintenance-summary" id="motoMaintenanceSummary"></div>
-      <form class="maintenance-form hidden" id="motoMaintenanceForm">
-        <div>
-          <label for="motoLastDate">Fecha del último mantenimiento</label>
-          <input id="motoLastDate" type="date" required>
-        </div>
-        <div>
-          <label for="motoLastMileage">Kilometraje registrado (km)</label>
-          <input id="motoLastMileage" type="number" min="0" step="1" placeholder="Ej. 21953" required>
-        </div>
-        <div class="maintenance-actions">
-          <button type="submit" class="btn-submit">Guardar mantenimiento</button>
-          <button type="button" class="link-btn" id="cancelMotoMaintenanceBtn">Cancelar</button>
-        </div>
-      </form>
-    </section>
+        <div class="maintenance-summary" id="motoMaintenanceSummary"></div>
+        <form class="maintenance-form hidden" id="motoMaintenanceForm">
+          <div>
+            <label for="motoLastDate">Fecha del último cambio</label>
+            <input id="motoLastDate" type="date" required>
+          </div>
+          <div>
+            <label for="motoLastMileage">Kilometraje registrado (km)</label>
+            <input id="motoLastMileage" type="number" min="0" step="1" placeholder="Ej. 21953" required>
+          </div>
+          <div class="maintenance-actions">
+            <button type="submit" class="btn-submit">Guardar</button>
+            <button type="button" class="link-btn" id="cancelMotoMaintenanceBtn">Cancelar</button>
+          </div>
+        </form>
+      </section>
 
-    <!-- Resumen Gasolina -->
-    <section class="panel fade-in" style="margin-bottom:16px;">
-      <div class="panel-head-row">
-        <h2>⛽ Registro de Tanqueadas & Rendimiento</h2>
-        <button class="link-btn" id="quickFuelBtn">+ Registrar tanqueada</button>
-      </div>
-      <div class="moto-fuel-grid" id="motoFuelStats"></div>
-      <div class="mini-h" style="margin-bottom:10px;">Historial de Gasolina</div>
-      <div class="fuel-log-list" id="motoFuelList"></div>
-    </section>
+      <!-- Resumen Gasolina -->
+      <section class="panel fade-in">
+        <div class="panel-head-row">
+          <h2>⛽ Gasolina</h2>
+          <button class="link-btn" id="quickFuelBtn">+ Tanqueada</button>
+        </div>
+        <div class="moto-fuel-grid" id="motoFuelStats"></div>
+        <div class="mini-h" style="margin-bottom:10px;">Historial</div>
+        <div class="fuel-log-list" id="motoFuelList"></div>
+      </section>
 
-    <!-- Historial de Servicios & Repuestos -->
-    <section class="panel fade-in" style="margin-bottom:16px;">
-      <div class="panel-head-row">
-        <h2>🛠️ Historial de Servicios & Repuestos</h2>
-        <button class="link-btn" id="quickServiceBtn">+ Añadir servicio</button>
-      </div>
-      <div class="fuel-log-list" id="motoServiceList"></div>
-    </section>
+      <!-- Historial de Servicios & Repuestos -->
+      <section class="panel fade-in">
+        <div class="panel-head-row">
+          <h2>🛠️ Servicios & Repuestos</h2>
+          <button class="link-btn" id="quickServiceBtn">+ Añadir</button>
+        </div>
+        <div class="fuel-log-list" id="motoServiceList"></div>
+      </section>
+    </div>
   </div> <!-- end #tabViewMoto -->
 
   <!-- ==================== TAB 3: TAREAS ==================== -->
   <div class="tab-view" id="tabViewTasks">
-    <div class="life-header">
-      <div>
-        <h2 class="life-title">📋 Mis Tareas & Pendientes</h2>
-        <div class="life-subtitle" id="taskSubtitle">Organiza tu día y mantén tus proyectos al día</div>
+    <div class="tab-container-centered">
+      <div class="life-header">
+        <div>
+          <h2 class="life-title">📋 Tareas</h2>
+          <div class="life-counter-badge" id="taskSubtitle">0 pendientes</div>
+        </div>
+        <div class="tasks-filter-row">
+          <button class="task-filter-btn active" data-filter="all">Todas</button>
+          <button class="task-filter-btn" data-filter="pending">Pendientes</button>
+          <button class="task-filter-btn" data-filter="done">Hechas</button>
+        </div>
       </div>
-      <div class="tasks-filter-row">
-        <button class="task-filter-btn active" data-filter="all">Todas</button>
-        <button class="task-filter-btn" data-filter="pending">Pendientes</button>
-        <button class="task-filter-btn" data-filter="done">Completadas</button>
-      </div>
-    </div>
 
-    <section class="panel fade-in" style="margin-bottom:16px;">
-      <form class="task-quick-add" id="taskQuickAddForm">
-        <input type="text" id="taskQuickTitle" placeholder="Añadir una tarea rápida..." required>
-        <button type="submit">+ Añadir</button>
-      </form>
-      <div class="task-list" id="taskListContainer"></div>
-    </section>
+      <section class="panel fade-in">
+        <form class="task-quick-add" id="taskQuickAddForm">
+          <input type="text" id="taskQuickTitle" placeholder="Escribe una tarea rápida..." required>
+          <button type="submit">+ Añadir</button>
+        </form>
+        <div class="task-list" id="taskListContainer"></div>
+      </section>
+    </div>
   </div> <!-- end #tabViewTasks -->
 
   <!-- ==================== TAB 4: UNIVERSIDAD ==================== -->
   <div class="tab-view" id="tabViewUni">
-    <div class="life-header">
-      <div>
-        <h2 class="life-title">🎓 Universidad: Exámenes & Entregas</h2>
-        <div class="life-subtitle" id="uniSubtitle">Fechas clave, cuenta regresiva y control académico</div>
+    <div class="tab-container-centered">
+      <div class="life-header">
+        <div>
+          <h2 class="life-title">🎓 Universidad</h2>
+          <div class="life-counter-badge" id="uniSubtitle">0 evaluaciones</div>
+        </div>
+        <div>
+          <button class="btn-outline" id="openExamModalBtn">+ Evaluación</button>
+        </div>
       </div>
-      <div>
-        <button class="btn-outline" id="openExamModalBtn">+ Nuevo examen o entrega</button>
-      </div>
-    </div>
 
-    <div class="uni-grid" id="examGridContainer"></div>
+      <div class="uni-grid" id="examGridContainer"></div>
+    </div>
   </div> <!-- end #tabViewUni -->
 
   <footer class="note">Life OS · Tus datos viven en este dispositivo y están sincronizados con la nube.</footer>
