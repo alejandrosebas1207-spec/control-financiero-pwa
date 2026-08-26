@@ -480,15 +480,21 @@
   .fab:active{ transform:scale(0.92); }
 
   .modal-overlay{
-    position:fixed; inset:0; background: rgba(4,10,22,0.72); backdrop-filter: blur(3px);
-    display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;
+    position:fixed; inset:0; background: rgba(4,10,22,0.78); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display:flex; align-items:center; justify-content:center; z-index:2000 !important; padding:20px;
+    touch-action: pan-y;
   }
-  .modal-overlay.hidden{ display:none; }
+  .modal-overlay.hidden{ display:none !important; }
   .modal-card{
     background: var(--panel-2); border:1px solid var(--line); border-radius: var(--radius);
-    padding:20px; width:100%; max-width:380px; max-height:85vh; overflow-y:auto;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    padding:20px; width:100%; max-width:400px; max-height:88vh; overflow-y:auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.7);
     animation: fadeUp .25s ease both;
+    position: relative;
+    z-index: 2001;
   }
   .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
   .modal-head h2{ margin:0; font-family:'Space Grotesk', sans-serif; font-size:16px; font-weight:600; }
@@ -930,21 +936,27 @@
     .modal-overlay{
       align-items: flex-end !important;
       padding: 0 !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 2000 !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      touch-action: pan-y !important;
     }
     .modal-card{
       width: 100% !important;
       max-width: 100% !important;
-      border-radius: 20px 20px 0 0 !important;
-      padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 12px)) !important;
-      max-height: 70vh !important;
+      border-radius: 22px 22px 0 0 !important;
+      padding: 20px 18px calc(40px + env(safe-area-inset-bottom, 24px)) !important;
+      max-height: 86vh !important;
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch !important;
-      box-shadow: 0 -8px 30px rgba(0,0,0,0.6) !important;
+      touch-action: pan-y !important;
+      overscroll-behavior: contain !important;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.8) !important;
       border: 1px solid var(--line) !important;
       border-bottom: none !important;
       animation: slideUpModal .3s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+      position: relative !important;
+      z-index: 2001 !important;
     }
     @keyframes slideUpModal {
       from { transform: translateY(100%); }
@@ -5830,6 +5842,15 @@ function closeExamModal(){
 }
 
 function setupLifeOsEventListeners(){
+  // Add overlay backdrop click to close for all life os modals
+  ['fuelModalOverlay', 'serviceModalOverlay', 'taskModalOverlay', 'examModalOverlay'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){
+      el.addEventListener('click', function(e){
+        if(e.target === el) el.classList.add('hidden');
+      });
+    }
+  });
   // Fuel modal
   document.getElementById('fuelModalClose')?.addEventListener('click', closeFuelModal);
   document.getElementById('fuelModalCancel')?.addEventListener('click', closeFuelModal);
