@@ -6046,7 +6046,10 @@ function setupLifeOsEventListeners(){
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Service Worker PWA registrado con éxito:', reg.scope))
+      .then(reg => {
+        console.log('Service Worker PWA activo:', reg.scope);
+        reg.update();
+      })
       .catch(err => console.log('Service Worker info:', err));
   });
 }
