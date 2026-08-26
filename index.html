@@ -893,12 +893,13 @@
     .health-card{ padding: 12px 14px !important; }
     .health-msg{ font-size: 11.5px !important; }
 
-    /* FAB compact circle */
+    /* FAB compact circle lifted above bottom tab bar */
     .fab{
-      width: 46px !important; height: 46px !important;
-      right: 16px !important;
-      bottom: calc(16px + env(safe-area-inset-bottom, 12px)) !important;
-      box-shadow: 0 4px 16px rgba(249,115,22,0.4) !important;
+      width: 48px !important; height: 48px !important;
+      right: 18px !important;
+      bottom: calc(75px + env(safe-area-inset-bottom, 16px)) !important;
+      z-index: 950 !important;
+      box-shadow: 0 6px 20px rgba(244,63,94,0.45) !important;
     }
 
     /* Modal bottom sheet */
@@ -1037,14 +1038,15 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 90;
-    background: rgba(17, 7, 13, 0.88);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
+    background: rgba(17, 7, 13, 0.95);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     border-top: 1px solid var(--line);
-    padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 12px));
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 16px));
     justify-content: space-around;
     align-items: center;
+    box-shadow: 0 -4px 25px rgba(0,0,0,0.6);
   }
   .bottom-tab {
     background: transparent;
@@ -1054,19 +1056,24 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    padding: 4px 10px;
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
+    gap: 3px;
+    padding: 6px 12px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10.5px;
     font-weight: 600;
     cursor: pointer;
     position: relative;
-    transition: color 0.2s ease;
-    min-width: 60px;
+    transition: all 0.2s ease;
+    min-width: 65px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
-  .bottom-tab .b-icon { font-size: 19px; line-height: 1.1; }
-  .bottom-tab.active { color: var(--gold); }
-  .bottom-tab.active .b-icon { transform: scale(1.1); transition: transform 0.2s ease; }
+  .bottom-tab * { pointer-events: none; }
+  .bottom-tab .b-icon { font-size: 20px; line-height: 1.1; display: block; }
+  .bottom-tab.active { color: #FFF; }
+  .bottom-tab.active .b-icon { transform: translateY(-2px); filter: drop-shadow(0 2px 8px rgba(244,63,94,0.6)); }
+  .bottom-tab.active .b-label { color: var(--gold); font-weight: 700; }
   .bottom-badge {
     position: absolute;
     top: 2px;
@@ -1074,7 +1081,7 @@
     background: #EF4444;
     color: #FFF;
     font-size: 9px;
-    padding: 1px 4px;
+    padding: 1px 5px;
     border-radius: 10px;
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
@@ -1356,10 +1363,10 @@
       </div>
     </div>
     <nav class="nav-tabs" id="navTabs">
-      <button class="nav-tab active" data-tab="finance"><span class="nav-icon">💰</span> Finanzas</button>
-      <button class="nav-tab" data-tab="moto"><span class="nav-icon">🏍️</span> Moto</button>
-      <button class="nav-tab" data-tab="tasks"><span class="nav-icon">📋</span> Tareas <span class="tab-badge hidden" id="taskBadge">0</span></button>
-      <button class="nav-tab" data-tab="uni"><span class="nav-icon">🎓</span> Universidad <span class="tab-badge hidden" id="examBadge">0</span></button>
+      <button class="nav-tab active" data-tab="finance" onclick="switchTab('finance')"><span class="nav-icon">💰</span> Finanzas</button>
+      <button class="nav-tab" data-tab="moto" onclick="switchTab('moto')"><span class="nav-icon">🏍️</span> Moto</button>
+      <button class="nav-tab" data-tab="tasks" onclick="switchTab('tasks')"><span class="nav-icon">📋</span> Tareas <span class="tab-badge hidden" id="taskBadge">0</span></button>
+      <button class="nav-tab" data-tab="uni" onclick="switchTab('uni')"><span class="nav-icon">🎓</span> Universidad <span class="tab-badge hidden" id="examBadge">0</span></button>
     </nav>
     <div class="month-nav">
       <span class="cal-icon">
@@ -5128,20 +5135,20 @@ if ('serviceWorker' in navigator) {
 
   <!-- Bottom Mobile Tab Bar -->
   <nav class="bottom-tab-bar" id="bottomTabBar">
-    <button class="bottom-tab active" data-tab="finance">
+    <button class="bottom-tab active" data-tab="finance" onclick="switchTab('finance')">
       <span class="b-icon">💰</span>
       <span class="b-label">Finanzas</span>
     </button>
-    <button class="bottom-tab" data-tab="moto">
+    <button class="bottom-tab" data-tab="moto" onclick="switchTab('moto')">
       <span class="b-icon">🏍️</span>
       <span class="b-label">Moto</span>
     </button>
-    <button class="bottom-tab" data-tab="tasks">
+    <button class="bottom-tab" data-tab="tasks" onclick="switchTab('tasks')">
       <span class="b-icon">📋</span>
       <span class="b-label">Tareas</span>
       <span class="bottom-badge hidden" id="taskBadgeMobile">0</span>
     </button>
-    <button class="bottom-tab" data-tab="uni">
+    <button class="bottom-tab" data-tab="uni" onclick="switchTab('uni')">
       <span class="b-icon">🎓</span>
       <span class="b-label">Universidad</span>
       <span class="bottom-badge hidden" id="examBadgeMobile">0</span>
