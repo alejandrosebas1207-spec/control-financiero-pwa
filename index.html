@@ -978,6 +978,366 @@
   
   .supabase-config-box{ background:rgba(0,0,0,0.2); border:1px solid var(--line); border-radius:8px; padding:12px; margin-top:12px; }
 
+
+  /* ==========================================================================
+     LIFE OS: TABS, TASKS, EXAMS & MOTORCYCLE DASHBOARD
+     ========================================================================== */
+  
+  /* Desktop Top Tab Navigation */
+  .nav-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(26, 10, 18, 0.7);
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    padding: 4px 6px;
+    backdrop-filter: blur(10px);
+  }
+  .nav-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-soft);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .nav-tab:hover {
+    color: var(--text);
+    background: rgba(244, 63, 94, 0.08);
+  }
+  .nav-tab.active {
+    background: linear-gradient(135deg, #F43F5E, #BE123C);
+    color: #FFF;
+    box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35);
+  }
+  .tab-badge {
+    background: #EF4444;
+    color: #FFF;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .tab-badge.hidden { display: none; }
+
+  /* Mobile Bottom Navigation Bar (iOS Native Style) */
+  .bottom-tab-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    background: rgba(17, 7, 13, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--line);
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 12px));
+    justify-content: space-around;
+    align-items: center;
+  }
+  .bottom-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+    min-width: 60px;
+  }
+  .bottom-tab .b-icon { font-size: 19px; line-height: 1.1; }
+  .bottom-tab.active { color: var(--gold); }
+  .bottom-tab.active .b-icon { transform: scale(1.1); transition: transform 0.2s ease; }
+  .bottom-badge {
+    position: absolute;
+    top: 2px;
+    right: 12px;
+    background: #EF4444;
+    color: #FFF;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .bottom-badge.hidden { display: none; }
+
+  @media (max-width: 680px) {
+    .nav-tabs { display: none; }
+    .bottom-tab-bar { display: flex; }
+    .wrap { padding-bottom: calc(100px + env(safe-area-inset-bottom, 20px)) !important; }
+  }
+
+  /* Tab View containers */
+  .tab-view { display: none; width: 100%; }
+  .tab-view.active { display: block; animation: fadeUp .3s ease both; }
+
+  /* Life OS Card Headers & Sections */
+  .life-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .life-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .life-subtitle {
+    font-size: 12px;
+    color: var(--text-soft);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+  }
+
+  /* TASKS STYLES */
+  .tasks-container { display: flex; flex-direction: column; gap: 14px; }
+  .tasks-filter-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .task-filter-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .task-filter-btn.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-soft);
+  }
+  .task-quick-add {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .task-quick-add input {
+    flex: 1;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,0.3);
+    color: var(--text);
+    font-size: 13.5px;
+  }
+  .task-quick-add input:focus { outline: none; border-color: var(--gold); }
+  .task-quick-add button {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    background: var(--gold);
+    color: #FFF;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .task-list { display: flex; flex-direction: column; gap: 8px; }
+  .task-card {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+  }
+  .task-card:hover { border-color: rgba(244,63,94,0.3); transform: translateY(-1px); }
+  .task-card.done { opacity: 0.55; background: rgba(0,0,0,0.2); }
+  .task-card.done .task-title { text-decoration: line-through; color: var(--text-soft); }
+
+  .task-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    color: transparent;
+  }
+  .task-check:hover { border-color: var(--gold); }
+  .task-card.done .task-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: #FFF;
+  }
+  .task-content { flex: 1; min-width: 0; }
+  .task-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+    word-break: break-word;
+  }
+  .task-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-soft);
+    flex-wrap: wrap;
+  }
+  .task-due { display: inline-flex; align-items: center; gap: 3px; }
+  .task-due.today { color: #FBBF24; font-weight: 600; }
+  .task-due.overdue { color: #EF4444; font-weight: 600; }
+  .task-priority-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .task-priority-dot.high { background: #EF4444; }
+  .task-priority-dot.normal { background: #FBBF24; }
+  .task-priority-dot.low { background: #10B981; }
+  .task-actions { display: flex; gap: 6px; align-items: center; }
+
+  /* EXAMS / UNI STYLES */
+  .uni-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  @media (max-width: 600px){ .uni-grid { grid-template-columns: 1fr; } }
+  .exam-card {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .exam-card:hover { border-color: rgba(244,63,94,0.35); transform: translateY(-2px); }
+  .exam-card.urgent { border-color: rgba(239,68,68,0.5); background: linear-gradient(145deg, #1C0910, #14050B); }
+  .exam-card.urgent::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #EF4444;
+  }
+  .exam-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .exam-subject {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .exam-countdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+  .exam-countdown.urgent { background: rgba(239,68,68,0.18); color: #FDA4AF; border: 1px solid rgba(239,68,68,0.4); }
+  .exam-countdown.soon { background: rgba(245,158,11,0.18); color: #FCD34D; border: 1px solid rgba(245,158,11,0.4); }
+  .exam-countdown.normal { background: rgba(16,185,129,0.15); color: #6EE7B7; border: 1px solid rgba(16,185,129,0.3); }
+  .exam-countdown.completed { background: rgba(255,255,255,0.06); color: var(--text-soft); }
+
+  .exam-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 2px 0 0;
+  }
+  .exam-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11.5px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-soft);
+  }
+  .exam-note {
+    font-size: 11.5px;
+    color: var(--text-soft);
+    line-height: 1.4;
+    background: rgba(0,0,0,0.22);
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .exam-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+
+  /* MOTORCYCLE EXPANDED STYLES */
+  .moto-fuel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 600px){ .moto-fuel-grid { grid-template-columns: 1fr 1fr; } }
+  .moto-fuel-item {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .moto-fuel-item .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .moto-fuel-item strong {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .moto-fuel-item strong.gold { color: var(--gold); }
+  .moto-fuel-item strong.green { color: var(--green); }
+
+  .fuel-log-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+  .fuel-log-row {
+    background: rgba(0,0,0,0.22);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .fuel-log-row .left { display: flex; flex-direction: column; gap: 2px; }
+  .fuel-log-row .fdate { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-soft); }
+  .fuel-log-row .fkm { font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; font-weight: 600; }
+  .fuel-log-row .fcost { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; font-weight: 700; color: var(--gold); }
+
 </style>
 </head>
 <body>
@@ -995,6 +1355,12 @@
         <h1 id="heroSubtitle">Resumen financiero</h1>
       </div>
     </div>
+    <nav class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-tab="finance"><span class="nav-icon">💰</span> Finanzas</button>
+      <button class="nav-tab" data-tab="moto"><span class="nav-icon">🏍️</span> Moto</button>
+      <button class="nav-tab" data-tab="tasks"><span class="nav-icon">📋</span> Tareas <span class="tab-badge hidden" id="taskBadge">0</span></button>
+      <button class="nav-tab" data-tab="uni"><span class="nav-icon">🎓</span> Universidad <span class="tab-badge hidden" id="examBadge">0</span></button>
+    </nav>
     <div class="month-nav">
       <span class="cal-icon">
         <svg viewBox="0 0 24 24" width="15" height="15"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -1088,6 +1454,8 @@
   </div>
 
   <!-- HERO -->
+  <!-- ==================== TAB 1: FINANZAS ==================== -->
+  <div class="tab-view active" id="tabViewFinance">
   <section class="hero-row fade-in">
     <div class="hero-balance">
       <span class="tag">Balance actual</span>
@@ -1310,7 +1678,110 @@
   </section>
   </details>
 
-  <footer class="note">Tus datos viven solo en este navegador. Exporta un respaldo de vez en cuando.</footer>
+  </div> <!-- end #tabViewFinance -->
+
+  <!-- ==================== TAB 2: MOTO ==================== -->
+  <div class="tab-view" id="tabViewMoto">
+    <div class="life-header">
+      <div>
+        <h2 class="life-title">🏍️ Mantenimiento & Gasolina de mi Moto</h2>
+        <div class="life-subtitle" id="motoSubtitle">Registro de odómetro, tanqueadas y cambios de aceite</div>
+      </div>
+      <div>
+        <button class="btn-outline" id="openFuelModalBtn">+ Tanqueada</button>
+        <button class="btn-outline" id="openServiceModalBtn" style="margin-left:6px;">+ Mantenimiento</button>
+      </div>
+    </div>
+
+    <!-- Resumen Aceite & Odómetro -->
+    <section class="panel maintenance-panel fade-in" style="margin-bottom:16px;">
+      <div class="maintenance-head">
+        <div>
+          <h2>Aceite & Odómetro</h2>
+          <p class="maintenance-desc">Intervalo preventivo programado cada 1.500 km</p>
+        </div>
+        <div class="maintenance-head-actions">
+          <span class="maintenance-interval">cada 1.500 km</span>
+          <button type="button" class="link-btn" id="toggleMotoMaintenanceBtn">Editar</button>
+        </div>
+      </div>
+      <div class="maintenance-summary" id="motoMaintenanceSummary"></div>
+      <form class="maintenance-form hidden" id="motoMaintenanceForm">
+        <div>
+          <label for="motoLastDate">Fecha del último mantenimiento</label>
+          <input id="motoLastDate" type="date" required>
+        </div>
+        <div>
+          <label for="motoLastMileage">Kilometraje registrado (km)</label>
+          <input id="motoLastMileage" type="number" min="0" step="1" placeholder="Ej. 21953" required>
+        </div>
+        <div class="maintenance-actions">
+          <button type="submit" class="btn-submit">Guardar mantenimiento</button>
+          <button type="button" class="link-btn" id="cancelMotoMaintenanceBtn">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Resumen Gasolina -->
+    <section class="panel fade-in" style="margin-bottom:16px;">
+      <div class="panel-head-row">
+        <h2>⛽ Registro de Tanqueadas & Rendimiento</h2>
+        <button class="link-btn" id="quickFuelBtn">+ Registrar tanqueada</button>
+      </div>
+      <div class="moto-fuel-grid" id="motoFuelStats"></div>
+      <div class="mini-h" style="margin-bottom:10px;">Historial de Gasolina</div>
+      <div class="fuel-log-list" id="motoFuelList"></div>
+    </section>
+
+    <!-- Historial de Servicios & Repuestos -->
+    <section class="panel fade-in" style="margin-bottom:16px;">
+      <div class="panel-head-row">
+        <h2>🛠️ Historial de Servicios & Repuestos</h2>
+        <button class="link-btn" id="quickServiceBtn">+ Añadir servicio</button>
+      </div>
+      <div class="fuel-log-list" id="motoServiceList"></div>
+    </section>
+  </div> <!-- end #tabViewMoto -->
+
+  <!-- ==================== TAB 3: TAREAS ==================== -->
+  <div class="tab-view" id="tabViewTasks">
+    <div class="life-header">
+      <div>
+        <h2 class="life-title">📋 Mis Tareas & Pendientes</h2>
+        <div class="life-subtitle" id="taskSubtitle">Organiza tu día y mantén tus proyectos al día</div>
+      </div>
+      <div class="tasks-filter-row">
+        <button class="task-filter-btn active" data-filter="all">Todas</button>
+        <button class="task-filter-btn" data-filter="pending">Pendientes</button>
+        <button class="task-filter-btn" data-filter="done">Completadas</button>
+      </div>
+    </div>
+
+    <section class="panel fade-in" style="margin-bottom:16px;">
+      <form class="task-quick-add" id="taskQuickAddForm">
+        <input type="text" id="taskQuickTitle" placeholder="Añadir una tarea rápida..." required>
+        <button type="submit">+ Añadir</button>
+      </form>
+      <div class="task-list" id="taskListContainer"></div>
+    </section>
+  </div> <!-- end #tabViewTasks -->
+
+  <!-- ==================== TAB 4: UNIVERSIDAD ==================== -->
+  <div class="tab-view" id="tabViewUni">
+    <div class="life-header">
+      <div>
+        <h2 class="life-title">🎓 Universidad: Exámenes & Entregas</h2>
+        <div class="life-subtitle" id="uniSubtitle">Fechas clave, cuenta regresiva y control académico</div>
+      </div>
+      <div>
+        <button class="btn-outline" id="openExamModalBtn">+ Nuevo examen o entrega</button>
+      </div>
+    </div>
+
+    <div class="uni-grid" id="examGridContainer"></div>
+  </div> <!-- end #tabViewUni -->
+
+  <footer class="note">Life OS · Tus datos viven en este dispositivo y están sincronizados con la nube.</footer>
 </div>
 
 <div class="chart-tooltip" id="chartTooltip"></div>
@@ -1453,7 +1924,7 @@ var sbRealtimeChannel = null;
 var isPushingToRemote = false;
 var supabaseDebounceTimer = null;
 var lastLocalMutationTime = 0;
-const SEED_DATA = {"tx": [{"id": 1784774000000, "amt": 3.3, "cat": "Otros", "date": "2026-07-03", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774100000, "amt": 25, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774200000, "amt": 1.17, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774300000, "amt": 5, "cat": "Comida", "date": "2026-07-24", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774400000, "amt": 3.03, "cat": "Otros", "date": "2026-07-24", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774500000, "amt": 7.25, "cat": null, "date": "2026-07-24", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774600000, "amt": 5, "cat": "Cuidado personal", "date": "2026-07-25", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774700000, "amt": 2.85, "cat": null, "date": "2026-07-25", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774800000, "amt": 17.02, "cat": "Otros", "date": "2026-07-25", "note": "Regalo Elizabeth", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774900000, "amt": 20, "cat": null, "date": "2026-07-27", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775000000, "amt": 19.49, "cat": "Otros", "date": "2026-07-27", "note": "Comida, Pastel", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775100000, "amt": 2.85, "cat": "Otros", "date": "2026-07-27", "note": "Impresiones", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775200000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775300000, "amt": 5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775400000, "amt": 5, "cat": null, "date": "2026-07-30", "note": "Hermana", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775500000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775600000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775700000, "amt": 1.5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775800000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775900000, "amt": 2.25, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776000000, "amt": 3.8, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776100000, "amt": 1, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776200000, "amt": 1.2, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776300000, "amt": 250, "cat": null, "date": "2026-08-03", "note": "Sueldo", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776400000, "amt": 8.93, "cat": null, "date": "2026-08-03", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776500000, "amt": 8, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776600000, "amt": 80, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776700000, "amt": 50, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776800000, "amt": 5, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776900000, "amt": 9.5, "cat": "Comida", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777000000, "amt": 3.43, "cat": "Otros", "date": "2026-08-03", "note": "COD", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777100000, "amt": 10.35, "cat": "Comida", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777200000, "amt": 3.3, "cat": "Otros", "date": "2026-08-04", "note": "Spotify", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777300000, "amt": 0.55, "cat": "Otros", "date": "2026-08-04", "note": "RE", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777500000, "amt": 3.5, "cat": "Otros", "date": "2026-08-04", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777600000, "amt": 0.25, "cat": "Moto", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777700000, "amt": 24.4, "cat": "Comida", "date": "2026-08-06", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777800000, "amt": 2.06, "cat": "Otros", "date": "2026-08-06", "note": "Pinche Banco", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777900000, "amt": 6.5, "cat": "Comida", "date": "2026-08-11", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778000000, "amt": 5.74, "cat": "Otros", "date": "2026-08-13", "note": "Antigravity", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778100000, "amt": 8.75, "cat": "Comida", "date": "2026-08-16", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1784778200000, "amt": 3.73, "cat": "Otros", "date": "2026-08-16", "note": "Cod", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1786930758953, "amt": 1, "cat": null, "date": "2026-08-16", "note": null, "type": "income", "goalId": null, "account": "cash"}, {"id": 1787142686360, "amt": 10.31, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787144277476, "amt": 8, "cat": null, "date": "2026-08-19", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787161900000, "amt": 14.23, "cat": "Otros", "date": "2026-08-19", "note": "Gasolina / TC", "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787169733316, "amt": 1.05, "cat": "Otros", "date": "2026-08-19", "note": "Recarga", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1787178947217, "amt": 4.25, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787178964443, "amt": 0.5, "cat": null, "date": "2026-08-19", "note": "De una", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787182317637, "amt": 5, "cat": "Cuidado personal", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787193690597, "amt": 15, "cat": null, "date": "2026-08-19", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "deuna"}], "cats": [{"name": "Comida", "color": "#FBBF24"}, {"name": "Moto", "color": "#EF4444"}, {"name": "Cuidado personal", "color": "#A78BFA"}, {"name": "Deudas universidad", "color": "#94A3B8"}, {"name": "Otros", "color": "#64748B"}], "goals": [{"id": "g1785873709486", "name": "1er", "target": 100, "createdDate": "2026-08-04"}], "budgets": {"2026-07": {"Moto": 5, "Comida": 15, "Cuidado personal": 5}, "2026-08": {"Moto": 20, "Cuidado personal": 10, "Deudas universidad": 150}, "_default": {"Moto": 15, "Otros": 50, "Cuidado personal": 10, "Deudas universidad": 100}}, "creditCard": {"name": "Tarjeta de Crédito", "cutOffDay": 5, "baselineDate": "2026-08-19", "baselineDebt": 0}, "goalHistory": [], "deletedTxIds": [1787193319565, 1786931501127, 1784777400000], "alertThreshold": null, "accountBalances": {"balances": {"tc": 0, "cash": 0, "deuna": 40.95, "peigo": 18.47}, "baselineDate": "2026-08-07"}, "defaultAccountId": "peigo", "motorcycleMaintenance": {"lastDate": "2026-08-16", "lastMileage": 21953}};
+const SEED_DATA = {"tx": [{"id": 1784774000000, "amt": 3.3, "cat": "Otros", "date": "2026-07-03", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774100000, "amt": 25, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774200000, "amt": 1.17, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774300000, "amt": 5, "cat": "Comida", "date": "2026-07-24", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774400000, "amt": 3.03, "cat": "Otros", "date": "2026-07-24", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774500000, "amt": 7.25, "cat": null, "date": "2026-07-24", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774600000, "amt": 5, "cat": "Cuidado personal", "date": "2026-07-25", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774700000, "amt": 2.85, "cat": null, "date": "2026-07-25", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774800000, "amt": 17.02, "cat": "Otros", "date": "2026-07-25", "note": "Regalo Elizabeth", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774900000, "amt": 20, "cat": null, "date": "2026-07-27", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775000000, "amt": 19.49, "cat": "Otros", "date": "2026-07-27", "note": "Comida, Pastel", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775100000, "amt": 2.85, "cat": "Otros", "date": "2026-07-27", "note": "Impresiones", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775200000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775300000, "amt": 5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775400000, "amt": 5, "cat": null, "date": "2026-07-30", "note": "Hermana", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775500000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775600000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775700000, "amt": 1.5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775800000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775900000, "amt": 2.25, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776000000, "amt": 3.8, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776100000, "amt": 1, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776200000, "amt": 1.2, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776300000, "amt": 250, "cat": null, "date": "2026-08-03", "note": "Sueldo", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776400000, "amt": 8.93, "cat": null, "date": "2026-08-03", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776500000, "amt": 8, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776600000, "amt": 80, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776700000, "amt": 50, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776800000, "amt": 5, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776900000, "amt": 9.5, "cat": "Comida", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777000000, "amt": 3.43, "cat": "Otros", "date": "2026-08-03", "note": "COD", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777100000, "amt": 10.35, "cat": "Comida", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777200000, "amt": 3.3, "cat": "Otros", "date": "2026-08-04", "note": "Spotify", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777300000, "amt": 0.55, "cat": "Otros", "date": "2026-08-04", "note": "RE", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777500000, "amt": 3.5, "cat": "Otros", "date": "2026-08-04", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777600000, "amt": 0.25, "cat": "Moto", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777700000, "amt": 24.4, "cat": "Comida", "date": "2026-08-06", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777800000, "amt": 2.06, "cat": "Otros", "date": "2026-08-06", "note": "Pinche Banco", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777900000, "amt": 6.5, "cat": "Comida", "date": "2026-08-11", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778000000, "amt": 5.74, "cat": "Otros", "date": "2026-08-13", "note": "Antigravity", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778100000, "amt": 8.75, "cat": "Comida", "date": "2026-08-16", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1784778200000, "amt": 3.73, "cat": "Otros", "date": "2026-08-16", "note": "Cod", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1786930758953, "amt": 1, "cat": null, "date": "2026-08-16", "note": null, "type": "income", "goalId": null, "account": "cash"}, {"id": 1787142686360, "amt": 10.31, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787144277476, "amt": 8, "cat": null, "date": "2026-08-19", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787161900000, "amt": 14.23, "cat": "Otros", "date": "2026-08-19", "note": "Gasolina / TC", "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787169733316, "amt": 1.05, "cat": "Otros", "date": "2026-08-19", "note": "Recarga", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1787178947217, "amt": 4.25, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787178964443, "amt": 0.5, "cat": null, "date": "2026-08-19", "note": "De una", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787182317637, "amt": 5, "cat": "Cuidado personal", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787193690597, "amt": 15, "cat": null, "date": "2026-08-19", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "deuna"}], "cats": [{"name": "Comida", "color": "#FBBF24"}, {"name": "Moto", "color": "#EF4444"}, {"name": "Cuidado personal", "color": "#A78BFA"}, {"name": "Deudas universidad", "color": "#94A3B8"}, {"name": "Otros", "color": "#64748B"}], "goals": [{"id": "g1785873709486", "name": "1er", "target": 100, "createdDate": "2026-08-04"}], "budgets": {"2026-07": {"Moto": 5, "Comida": 15, "Cuidado personal": 5}, "2026-08": {"Moto": 20, "Cuidado personal": 10, "Deudas universidad": 150}, "_default": {"Moto": 15, "Otros": 50, "Cuidado personal": 10, "Deudas universidad": 100}}, "creditCard": {"name": "Tarjeta de Crédito", "cutOffDay": 5, "baselineDate": "2026-08-19", "baselineDebt": 0}, "goalHistory": [], "deletedTxIds": [1787193319565, 1786931501127, 1784777400000], "alertThreshold": null, "accountBalances": {"balances": {"tc": 0, "cash": 0, "deuna": 40.95, "peigo": 18.47}, "baselineDate": "2026-08-07"}, "defaultAccountId": "peigo", "motorcycleMaintenance": {"lastDate": "2026-08-16", "lastMileage": 21953}, "motorcycle": {"lastDate": "2026-08-16", "lastMileage": 21953, "intervalKm": 1500, "fuelLogs": [{"id": 1787161900000, "date": "2026-08-19", "mileage": 21953, "cost": 14.23, "note": "Gasolina / TC"}], "serviceHistory": [{"id": 1786930000000, "date": "2026-08-16", "mileage": 21953, "type": "Cambio de aceite", "cost": 0, "note": "Mantenimiento preventivo"}]}, "tasks": [{"id": 1787200000001, "title": "Revisar apuntes de la universidad", "done": false, "dueDate": "2026-08-28", "priority": "normal", "createdAt": "2026-08-26"}, {"id": 1787200000002, "title": "Tanquear la moto", "done": true, "dueDate": "2026-08-19", "priority": "high", "createdAt": "2026-08-19"}], "exams": [{"id": 1787200000010, "subject": "Universidad", "type": "Examen", "title": "Primer Parcial", "date": "2026-09-05", "time": "08:00", "note": "Capítulos 1 al 4", "completed": false, "grade": null}]};
 
 function getStoredOrSeed(key, seedValue){
   try {
@@ -2642,7 +3113,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
-  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, creditCard: creditCardConfig, cats: catsData };
+  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, motorcycle: motorcycleConfig, tasks: tasksList, exams: examsList, creditCard: creditCardConfig, cats: catsData };
 }
 function applyState(data){
   if(!data || typeof data !== 'object') return;
@@ -4654,6 +5125,161 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+  <!-- Bottom Mobile Tab Bar -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <button class="bottom-tab active" data-tab="finance">
+      <span class="b-icon">💰</span>
+      <span class="b-label">Finanzas</span>
+    </button>
+    <button class="bottom-tab" data-tab="moto">
+      <span class="b-icon">🏍️</span>
+      <span class="b-label">Moto</span>
+    </button>
+    <button class="bottom-tab" data-tab="tasks">
+      <span class="b-icon">📋</span>
+      <span class="b-label">Tareas</span>
+      <span class="bottom-badge hidden" id="taskBadgeMobile">0</span>
+    </button>
+    <button class="bottom-tab" data-tab="uni">
+      <span class="b-icon">🎓</span>
+      <span class="b-label">Universidad</span>
+      <span class="bottom-badge hidden" id="examBadgeMobile">0</span>
+    </button>
+  </nav>
+
+  <!-- Modal: Registrar Tanqueada de Moto -->
+  <div class="modal-overlay hidden" id="fuelModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>⛽ Registrar Tanqueada</h2>
+        <button class="modal-close" id="fuelModalClose">&times;</button>
+      </div>
+      <form class="entry" id="fuelForm">
+        <label for="fuelDate">Fecha</label>
+        <input id="fuelDate" type="date" required>
+        
+        <label for="fuelMileage">Kilometraje actual (km)</label>
+        <input id="fuelMileage" type="number" min="0" step="1" placeholder="Ej. 21980" required>
+        
+        <label for="fuelCost">Monto pagado ($)</label>
+        <input id="fuelCost" type="number" min="0.01" step="0.01" placeholder="Ej. 3.50" required>
+        
+        <label for="fuelNote">Nota / Tipo de Gasolina</label>
+        <input id="fuelNote" type="text" placeholder="Ej. Extra, Super, Gasolinera Primax...">
+        
+        <div style="margin-top:14px; padding:10px; border-radius:8px; background:rgba(244,63,94,0.06); border:1px solid var(--line); display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="fuelSyncExpense" checked style="width:18px; height:18px; cursor:pointer;">
+          <label for="fuelSyncExpense" style="margin:0; text-transform:none; cursor:pointer; font-size:12px; color:var(--text);">Registrar automáticamente como gasto en Finanzas (Moto)</label>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar tanqueada</button>
+          <button type="button" class="btn-ghost-sm" id="fuelModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Servicio de Moto -->
+  <div class="modal-overlay hidden" id="serviceModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🛠️ Registrar Servicio / Repuesto</h2>
+        <button class="modal-close" id="serviceModalClose">&times;</button>
+      </div>
+      <form class="entry" id="serviceForm">
+        <label for="serviceDate">Fecha</label>
+        <input id="serviceDate" type="date" required>
+        
+        <label for="serviceType">Tipo de Servicio o Repuesto</label>
+        <input id="serviceType" type="text" placeholder="Ej. Frenos, Bujía, Cadena, Llantas..." required>
+        
+        <label for="serviceMileage">Kilometraje (km)</label>
+        <input id="serviceMileage" type="number" min="0" step="1" placeholder="Ej. 21953">
+        
+        <label for="serviceCost">Costo ($)</label>
+        <input id="serviceCost" type="number" min="0" step="0.01" placeholder="Ej. 12.00">
+        
+        <label for="serviceNote">Detalles / Taller</label>
+        <input id="serviceNote" type="text" placeholder="Ej. Cambio de pastillas delanteras">
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar servicio</button>
+          <button type="button" class="btn-ghost-sm" id="serviceModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nueva Tarea Detallada -->
+  <div class="modal-overlay hidden" id="taskModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="taskModalTitle">📋 Nueva Tarea</h2>
+        <button class="modal-close" id="taskModalClose">&times;</button>
+      </div>
+      <form class="entry" id="taskForm">
+        <label for="taskInputTitle">Título de la tarea</label>
+        <input id="taskInputTitle" type="text" placeholder="Ej. Estudiar para cálculo, Comprar repuesto..." required>
+        
+        <label for="taskInputDueDate">Fecha límite (opcional)</label>
+        <input id="taskInputDueDate" type="date">
+        
+        <label for="taskInputPriority">Prioridad</label>
+        <select id="taskInputPriority">
+          <option value="normal">🟡 Normal</option>
+          <option value="high">🔴 Alta / Urgente</option>
+          <option value="low">🟢 Baja</option>
+        </select>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar tarea</button>
+          <button type="button" class="btn-ghost-sm" id="taskModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Examen o Entrega -->
+  <div class="modal-overlay hidden" id="examModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="examModalTitle">🎓 Nuevo Examen o Entrega</h2>
+        <button class="modal-close" id="examModalClose">&times;</button>
+      </div>
+      <form class="entry" id="examForm">
+        <label for="examSubject">Materia / Asignatura</label>
+        <input id="examSubject" type="text" placeholder="Ej. Cálculo, Programación, Física..." required>
+        
+        <label for="examType">Tipo de Evaluación</label>
+        <select id="examType">
+          <option value="Examen">📝 Examen Parcial / Final</option>
+          <option value="Tarea">📄 Tarea / Taller</option>
+          <option value="Proyecto">💻 Proyecto / Presentación</option>
+          <option value="Lección">⚡ Lección / Quiz</option>
+        </select>
+
+        <label for="examTitleInput">Título / Tema</label>
+        <input id="examTitleInput" type="text" placeholder="Ej. Primer Parcial, Tarea #3..." required>
+        
+        <label for="examDate">Fecha del Examen o Entrega</label>
+        <input id="examDate" type="date" required>
+        
+        <label for="examTime">Hora (opcional)</label>
+        <input id="examTime" type="time" value="08:00">
+        
+        <label for="examNote">Temas a estudiar / Instrucciones</label>
+        <input id="examNote" type="text" placeholder="Ej. Capítulos 1 al 4, llevar calculadora...">
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar evaluación</button>
+          <button type="button" class="btn-ghost-sm" id="examModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 
 </html>
