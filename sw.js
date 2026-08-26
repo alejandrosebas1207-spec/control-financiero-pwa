@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mcf-pwa-v37';
+const CACHE_NAME = 'mcf-pwa-v38';
 const ASSETS_TO_CACHE = [
   './manifest.json',
   './icons/icon-192.png',
