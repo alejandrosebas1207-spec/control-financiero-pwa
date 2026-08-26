@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mcf-pwa-v23';
+const CACHE_NAME = 'mcf-pwa-v24';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

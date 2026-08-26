@@ -1095,8 +1095,8 @@
   }
 
   /* Tab View containers */
-  .tab-view { display: none; width: 100%; }
-  .tab-view.active { display: block; animation: fadeUp .3s ease both; }
+  .tab-view { display: none !important; width: 100%; }
+  .tab-view.active { display: block !important; animation: fadeUp .3s ease both; }
 
   /* Life OS Card Headers & Sections */
   .life-header {
@@ -1923,6 +1923,161 @@
     <div class="all-list" id="allList"></div>
   </div>
 </div>
+
+
+<!-- Bottom Mobile Tab Bar -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <button class="bottom-tab active" data-tab="finance" onclick="switchTab('finance')">
+      <span class="b-icon">💰</span>
+      <span class="b-label">Finanzas</span>
+    </button>
+    <button class="bottom-tab" data-tab="moto" onclick="switchTab('moto')">
+      <span class="b-icon">🏍️</span>
+      <span class="b-label">Moto</span>
+    </button>
+    <button class="bottom-tab" data-tab="tasks" onclick="switchTab('tasks')">
+      <span class="b-icon">📋</span>
+      <span class="b-label">Tareas</span>
+      <span class="bottom-badge hidden" id="taskBadgeMobile">0</span>
+    </button>
+    <button class="bottom-tab" data-tab="uni" onclick="switchTab('uni')">
+      <span class="b-icon">🎓</span>
+      <span class="b-label">Universidad</span>
+      <span class="bottom-badge hidden" id="examBadgeMobile">0</span>
+    </button>
+  </nav>
+
+  <!-- Modal: Registrar Tanqueada de Moto -->
+  <div class="modal-overlay hidden" id="fuelModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>⛽ Registrar Tanqueada</h2>
+        <button class="modal-close" id="fuelModalClose">&times;</button>
+      </div>
+      <form class="entry" id="fuelForm">
+        <label for="fuelDate">Fecha</label>
+        <input id="fuelDate" type="date" required>
+        
+        <label for="fuelMileage">Kilometraje actual (km)</label>
+        <input id="fuelMileage" type="number" min="0" step="1" placeholder="Ej. 21980" required>
+        
+        <label for="fuelCost">Monto pagado ($)</label>
+        <input id="fuelCost" type="number" min="0.01" step="0.01" placeholder="Ej. 3.50" required>
+        
+        <label for="fuelNote">Nota / Tipo de Gasolina</label>
+        <input id="fuelNote" type="text" placeholder="Ej. Extra, Super, Gasolinera Primax...">
+        
+        <div style="margin-top:14px; padding:10px; border-radius:8px; background:rgba(244,63,94,0.06); border:1px solid var(--line); display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="fuelSyncExpense" checked style="width:18px; height:18px; cursor:pointer;">
+          <label for="fuelSyncExpense" style="margin:0; text-transform:none; cursor:pointer; font-size:12px; color:var(--text);">Registrar automáticamente como gasto en Finanzas (Moto)</label>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar tanqueada</button>
+          <button type="button" class="btn-ghost-sm" id="fuelModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Servicio de Moto -->
+  <div class="modal-overlay hidden" id="serviceModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🛠️ Registrar Servicio / Repuesto</h2>
+        <button class="modal-close" id="serviceModalClose">&times;</button>
+      </div>
+      <form class="entry" id="serviceForm">
+        <label for="serviceDate">Fecha</label>
+        <input id="serviceDate" type="date" required>
+        
+        <label for="serviceType">Tipo de Servicio o Repuesto</label>
+        <input id="serviceType" type="text" placeholder="Ej. Frenos, Bujía, Cadena, Llantas..." required>
+        
+        <label for="serviceMileage">Kilometraje (km)</label>
+        <input id="serviceMileage" type="number" min="0" step="1" placeholder="Ej. 21953">
+        
+        <label for="serviceCost">Costo ($)</label>
+        <input id="serviceCost" type="number" min="0" step="0.01" placeholder="Ej. 12.00">
+        
+        <label for="serviceNote">Detalles / Taller</label>
+        <input id="serviceNote" type="text" placeholder="Ej. Cambio de pastillas delanteras">
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar servicio</button>
+          <button type="button" class="btn-ghost-sm" id="serviceModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nueva Tarea Detallada -->
+  <div class="modal-overlay hidden" id="taskModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="taskModalTitle">📋 Nueva Tarea</h2>
+        <button class="modal-close" id="taskModalClose">&times;</button>
+      </div>
+      <form class="entry" id="taskForm">
+        <label for="taskInputTitle">Título de la tarea</label>
+        <input id="taskInputTitle" type="text" placeholder="Ej. Estudiar para cálculo, Comprar repuesto..." required>
+        
+        <label for="taskInputDueDate">Fecha límite (opcional)</label>
+        <input id="taskInputDueDate" type="date">
+        
+        <label for="taskInputPriority">Prioridad</label>
+        <select id="taskInputPriority">
+          <option value="normal">🟡 Normal</option>
+          <option value="high">🔴 Alta / Urgente</option>
+          <option value="low">🟢 Baja</option>
+        </select>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar tarea</button>
+          <button type="button" class="btn-ghost-sm" id="taskModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Examen o Entrega -->
+  <div class="modal-overlay hidden" id="examModalOverlay">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="examModalTitle">🎓 Nuevo Examen o Entrega</h2>
+        <button class="modal-close" id="examModalClose">&times;</button>
+      </div>
+      <form class="entry" id="examForm">
+        <label for="examSubject">Materia / Asignatura</label>
+        <input id="examSubject" type="text" placeholder="Ej. Cálculo, Programación, Física..." required>
+        
+        <label for="examType">Tipo de Evaluación</label>
+        <select id="examType">
+          <option value="Examen">📝 Examen Parcial / Final</option>
+          <option value="Tarea">📄 Tarea / Taller</option>
+          <option value="Proyecto">💻 Proyecto / Presentación</option>
+          <option value="Lección">⚡ Lección / Quiz</option>
+        </select>
+
+        <label for="examTitleInput">Título / Tema</label>
+        <input id="examTitleInput" type="text" placeholder="Ej. Primer Parcial, Tarea #3..." required>
+        
+        <label for="examDate">Fecha del Examen o Entrega</label>
+        <input id="examDate" type="date" required>
+        
+        <label for="examTime">Hora (opcional)</label>
+        <input id="examTime" type="time" value="08:00">
+        
+        <label for="examNote">Temas a estudiar / Instrucciones</label>
+        <input id="examNote" type="text" placeholder="Ej. Capítulos 1 al 4, llevar calculadora...">
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar evaluación</button>
+          <button type="button" class="btn-ghost-sm" id="examModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
 <script>
 var sbClient = null;
@@ -5133,160 +5288,6 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-  <!-- Bottom Mobile Tab Bar -->
-  <nav class="bottom-tab-bar" id="bottomTabBar">
-    <button class="bottom-tab active" data-tab="finance" onclick="switchTab('finance')">
-      <span class="b-icon">💰</span>
-      <span class="b-label">Finanzas</span>
-    </button>
-    <button class="bottom-tab" data-tab="moto" onclick="switchTab('moto')">
-      <span class="b-icon">🏍️</span>
-      <span class="b-label">Moto</span>
-    </button>
-    <button class="bottom-tab" data-tab="tasks" onclick="switchTab('tasks')">
-      <span class="b-icon">📋</span>
-      <span class="b-label">Tareas</span>
-      <span class="bottom-badge hidden" id="taskBadgeMobile">0</span>
-    </button>
-    <button class="bottom-tab" data-tab="uni" onclick="switchTab('uni')">
-      <span class="b-icon">🎓</span>
-      <span class="b-label">Universidad</span>
-      <span class="bottom-badge hidden" id="examBadgeMobile">0</span>
-    </button>
-  </nav>
-
-  <!-- Modal: Registrar Tanqueada de Moto -->
-  <div class="modal-overlay hidden" id="fuelModalOverlay">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h2>⛽ Registrar Tanqueada</h2>
-        <button class="modal-close" id="fuelModalClose">&times;</button>
-      </div>
-      <form class="entry" id="fuelForm">
-        <label for="fuelDate">Fecha</label>
-        <input id="fuelDate" type="date" required>
-        
-        <label for="fuelMileage">Kilometraje actual (km)</label>
-        <input id="fuelMileage" type="number" min="0" step="1" placeholder="Ej. 21980" required>
-        
-        <label for="fuelCost">Monto pagado ($)</label>
-        <input id="fuelCost" type="number" min="0.01" step="0.01" placeholder="Ej. 3.50" required>
-        
-        <label for="fuelNote">Nota / Tipo de Gasolina</label>
-        <input id="fuelNote" type="text" placeholder="Ej. Extra, Super, Gasolinera Primax...">
-        
-        <div style="margin-top:14px; padding:10px; border-radius:8px; background:rgba(244,63,94,0.06); border:1px solid var(--line); display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="fuelSyncExpense" checked style="width:18px; height:18px; cursor:pointer;">
-          <label for="fuelSyncExpense" style="margin:0; text-transform:none; cursor:pointer; font-size:12px; color:var(--text);">Registrar automáticamente como gasto en Finanzas (Moto)</label>
-        </div>
-
-        <div style="display:flex; gap:8px; margin-top:16px;">
-          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar tanqueada</button>
-          <button type="button" class="btn-ghost-sm" id="fuelModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Registrar Servicio de Moto -->
-  <div class="modal-overlay hidden" id="serviceModalOverlay">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h2>🛠️ Registrar Servicio / Repuesto</h2>
-        <button class="modal-close" id="serviceModalClose">&times;</button>
-      </div>
-      <form class="entry" id="serviceForm">
-        <label for="serviceDate">Fecha</label>
-        <input id="serviceDate" type="date" required>
-        
-        <label for="serviceType">Tipo de Servicio o Repuesto</label>
-        <input id="serviceType" type="text" placeholder="Ej. Frenos, Bujía, Cadena, Llantas..." required>
-        
-        <label for="serviceMileage">Kilometraje (km)</label>
-        <input id="serviceMileage" type="number" min="0" step="1" placeholder="Ej. 21953">
-        
-        <label for="serviceCost">Costo ($)</label>
-        <input id="serviceCost" type="number" min="0" step="0.01" placeholder="Ej. 12.00">
-        
-        <label for="serviceNote">Detalles / Taller</label>
-        <input id="serviceNote" type="text" placeholder="Ej. Cambio de pastillas delanteras">
-
-        <div style="display:flex; gap:8px; margin-top:16px;">
-          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar servicio</button>
-          <button type="button" class="btn-ghost-sm" id="serviceModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Nueva Tarea Detallada -->
-  <div class="modal-overlay hidden" id="taskModalOverlay">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h2 id="taskModalTitle">📋 Nueva Tarea</h2>
-        <button class="modal-close" id="taskModalClose">&times;</button>
-      </div>
-      <form class="entry" id="taskForm">
-        <label for="taskInputTitle">Título de la tarea</label>
-        <input id="taskInputTitle" type="text" placeholder="Ej. Estudiar para cálculo, Comprar repuesto..." required>
-        
-        <label for="taskInputDueDate">Fecha límite (opcional)</label>
-        <input id="taskInputDueDate" type="date">
-        
-        <label for="taskInputPriority">Prioridad</label>
-        <select id="taskInputPriority">
-          <option value="normal">🟡 Normal</option>
-          <option value="high">🔴 Alta / Urgente</option>
-          <option value="low">🟢 Baja</option>
-        </select>
-
-        <div style="display:flex; gap:8px; margin-top:16px;">
-          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar tarea</button>
-          <button type="button" class="btn-ghost-sm" id="taskModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Nuevo Examen o Entrega -->
-  <div class="modal-overlay hidden" id="examModalOverlay">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h2 id="examModalTitle">🎓 Nuevo Examen o Entrega</h2>
-        <button class="modal-close" id="examModalClose">&times;</button>
-      </div>
-      <form class="entry" id="examForm">
-        <label for="examSubject">Materia / Asignatura</label>
-        <input id="examSubject" type="text" placeholder="Ej. Cálculo, Programación, Física..." required>
-        
-        <label for="examType">Tipo de Evaluación</label>
-        <select id="examType">
-          <option value="Examen">📝 Examen Parcial / Final</option>
-          <option value="Tarea">📄 Tarea / Taller</option>
-          <option value="Proyecto">💻 Proyecto / Presentación</option>
-          <option value="Lección">⚡ Lección / Quiz</option>
-        </select>
-
-        <label for="examTitleInput">Título / Tema</label>
-        <input id="examTitleInput" type="text" placeholder="Ej. Primer Parcial, Tarea #3..." required>
-        
-        <label for="examDate">Fecha del Examen o Entrega</label>
-        <input id="examDate" type="date" required>
-        
-        <label for="examTime">Hora (opcional)</label>
-        <input id="examTime" type="time" value="08:00">
-        
-        <label for="examNote">Temas a estudiar / Instrucciones</label>
-        <input id="examNote" type="text" placeholder="Ej. Capítulos 1 al 4, llevar calculadora...">
-
-        <div style="display:flex; gap:8px; margin-top:16px;">
-          <button type="submit" class="btn-submit" style="margin-top:0;">Guardar evaluación</button>
-          <button type="button" class="btn-ghost-sm" id="examModalCancel" style="flex:0 0 auto; padding:10px 14px;">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-</body>
+  </body>
 
 </html>
