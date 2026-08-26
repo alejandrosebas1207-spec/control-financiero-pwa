@@ -38,21 +38,43 @@
     --radius-sm: 10px;
   }
   *{ box-sizing:border-box; }
-  html,body{ height:100%; }
-  body{
-    margin:0;
-    font-family:'Inter', sans-serif;
+  html {
+    background-color: #0B0407 !important;
+    background: #0B0407 !important;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, sans-serif;
     color: var(--text);
+    background-color: #0B0407 !important;
     background:
-      radial-gradient(circle at 10% 5%, rgba(249,115,22,0.08), transparent 38%),
-      radial-gradient(circle at 92% 18%, rgba(120,53,15,0.12), transparent 40%),
+      radial-gradient(circle at 10% 5%, rgba(244,63,94,0.08), transparent 38%),
+      radial-gradient(circle at 92% 18%, rgba(190,18,60,0.12), transparent 40%),
       radial-gradient(circle at 80% 92%, rgba(255,255,255,0.03), transparent 42%),
-      linear-gradient(180deg, var(--deep) 0%, var(--deep-2) 100%);
-    background-attachment: fixed;
-    min-height:100vh;
+      linear-gradient(180deg, #0B0407 0%, #14070D 100%) !important;
+    background-attachment: fixed !important;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    display: flex;
+    flex-direction: column;
   }
   body::before{ display:none; }
-  .wrap{ position:relative; z-index:1; max-width:1440px; margin:0 auto; padding:22px 28px 90px; display:flex; flex-direction:column; }
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 22px 28px 120px;
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    box-sizing: border-box;
+  }
 
   @keyframes fadeUp{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
   .fade-in{ animation: fadeUp .45s ease both; }
@@ -768,7 +790,9 @@
     }
 
     .wrap{
-      padding: 12px 14px calc(80px + env(safe-area-inset-bottom, 16px)) !important;
+      padding: 12px 14px calc(110px + env(safe-area-inset-bottom, 24px)) !important;
+      min-height: 100vh !important;
+      min-height: -webkit-fill-available !important;
     }
     header.top{
       margin: 0 0 10px !important;
@@ -1096,7 +1120,12 @@
 
   /* Tab View containers */
   .tab-view { display: none !important; width: 100%; }
-  .tab-view.active { display: block !important; animation: fadeUp .3s ease both; }
+  .tab-view.active {
+    display: block !important;
+    animation: fadeUp .3s ease both;
+    flex: 1 0 auto;
+    min-height: calc(85vh - 100px);
+  }
 
   /* Life OS Card Headers & Sections */
   .life-header {
