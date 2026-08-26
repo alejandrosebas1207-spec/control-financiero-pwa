@@ -3432,47 +3432,89 @@ document.getElementById('addCatBtn')?.addEventListener('click', ()=>{
 
 /* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
-  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, motorcycle: motorcycleMaintenance, tasks: tasksList, exams: examsList, creditCard: creditCardConfig, cats: catsData };
+  return {
+    tx,
+    deletedTxIds: Array.from(deletedTxIds),
+    goals,
+    goalHistory,
+    budgets,
+    alertThreshold,
+    defaultAccountId,
+    accountBalances,
+    motorcycleMaintenance,
+    motorcycle: motorcycleMaintenance,
+    tasks: tasksList,
+    exams: examsList,
+    creditCard: creditCardConfig,
+    cats: catsData
+  };
 }
+
 function applyState(data){
   if(!data || typeof data !== 'object') return;
+  
   if(data.deletedTxIds && Array.isArray(data.deletedTxIds)){
     data.deletedTxIds.forEach(id => deletedTxIds.add(id));
     try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(deletedTxIds))); } catch(e){}
   }
+  
   if(data.tx && Array.isArray(data.tx)){
     tx = normalizeTxList(data.tx).filter(t => !deletedTxIds.has(t.id));
-    localStorage.setItem(TX_KEY, JSON.stringify(tx));
+    try { localStorage.setItem(TX_KEY, JSON.stringify(tx)); } catch(e){}
   }
-  if(data.goals && Array.isArray(data.goals)){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
-  if(data.goalHistory && Array.isArray(data.goalHistory)){ goalHistory = data.goalHistory; localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(goalHistory)); }
-  if(data.budgets){ budgets = data.budgets; localStorage.setItem(BUDGETS_KEY, JSON.stringify(budgets)); }
-  if('alertThreshold' in data){ alertThreshold = data.alertThreshold; saveAlert(alertThreshold); }
+  
+  if(data.goals && Array.isArray(data.goals)){
+    goals = data.goals;
+    try { localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); } catch(e){}
+  }
+  
+  if(data.goalHistory && Array.isArray(data.goalHistory)){
+    goalHistory = data.goalHistory;
+    try { localStorage.setItem(GOAL_HISTORY_KEY, JSON.stringify(goalHistory)); } catch(e){}
+  }
+  
+  if(data.budgets){
+    budgets = data.budgets;
+    try { localStorage.setItem(BUDGETS_KEY, JSON.stringify(budgets)); } catch(e){}
+  }
+  
+  if('alertThreshold' in data){
+    alertThreshold = data.alertThreshold;
+    saveAlert(alertThreshold);
+  }
+  
   if(data.cats) applyCats(data.cats);
+  
   if('accountBalances' in data){
     accountBalances = normalizeAccountBalances(data.accountBalances);
     saveAccountBalances(accountBalances);
   }
+  
   if('motorcycleMaintenance' in data){
     motorcycleMaintenance = normalizeMotorcycleMaintenance(data.motorcycleMaintenance);
     saveMotorcycleMaintenance(motorcycleMaintenance);
   }
+  
   if('creditCard' in data){
     creditCardConfig = normalizeCreditCard(data.creditCard);
-    localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(creditCardConfig));
+    try { localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(creditCardConfig)); } catch(e){}
   }
+  
   if('tasks' in data && Array.isArray(data.tasks)){
     tasksList = data.tasks;
     try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasksList)); } catch(e){}
   }
+  
   if('exams' in data && Array.isArray(data.exams)){
     examsList = data.exams;
     try { localStorage.setItem(EXAMS_KEY, JSON.stringify(examsList)); } catch(e){}
   }
+  
   if('defaultAccountId' in data && isKnownAccountId(data.defaultAccountId)){
     defaultAccountId = data.defaultAccountId;
     saveDefaultAccount(defaultAccountId);
   }
+  
   updateBadges();
 }
 
@@ -3486,13 +3528,10 @@ const DEFAULT_USER_ID = '82bd8770-0a5f-4280-88e7-fe03824afa30';
 let sbUrl = localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL;
 let sbAnonKey = localStorage.getItem(SB_KEY_KEY) || DEFAULT_SB_KEY;
 
-// Clean base URL if it contains /rest/v1
 function cleanSupabaseUrl(url){
   return (url || '').trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/$/, '');
 }
 sbUrl = cleanSupabaseUrl(sbUrl);
-
-// Global sbClient, sbUser, sbRealtimeChannel initialized at top of script
 
 var initSupabaseRetries = 0;
 function initSupabase(){
@@ -3509,9 +3548,9 @@ function initSupabase(){
     } catch(e){
       console.warn('Error inicializando cliente Supabase:', e);
     }
-  } else if(typeof window !== 'undefined' && !window.supabase && initSupabaseRetries < 6){
+  } else if(typeof window !== 'undefined' && !window.supabase && initSupabaseRetries < 10){
     initSupabaseRetries++;
-    setTimeout(initSupabase, 500);
+    setTimeout(initSupabase, 300);
   }
 }
 
@@ -3559,26 +3598,46 @@ function handleAuthState(user){
     if(emailEl) emailEl.textContent = user.email;
     if(settingsAuthStatus){
       settingsAuthStatus.className = 'sync-status ok';
-      settingsAuthStatus.innerHTML = '🟢 Conectado: <b>' + escapeHtml(user.email) + '</b>';
+      settingsAuthStatus.innerHTML = '🟢 Cuenta sincronizada: <b>' + escapeHtml(user.email) + '</b>';
     }
     if(settingsAccountBtn) settingsAccountBtn.textContent = 'Gestionar / Cerrar sesión';
   } else {
     if(authBtn) authBtn.classList.remove('logged-in');
-    if(authBtnLabel) authBtnLabel.textContent = 'Conectar cuenta';
+    if(authBtnLabel) authBtnLabel.textContent = 'Sincronizado';
     if(loggedInView) loggedInView.classList.add('hidden');
     if(loggedOutView) loggedOutView.classList.remove('hidden');
     if(settingsAuthStatus){
-      settingsAuthStatus.className = 'sync-status error';
-      settingsAuthStatus.textContent = '🔴 No has iniciado sesión en este dispositivo.';
+      settingsAuthStatus.className = 'sync-status ok';
+      settingsAuthStatus.innerHTML = '🟢 Sincronización continua activa (Nube de Alejandro)';
     }
-    if(settingsAccountBtn) settingsAccountBtn.textContent = 'Iniciar sesión / Conectar cuenta';
+    if(settingsAccountBtn) settingsAccountBtn.textContent = 'Conectar cuenta adicional';
+  }
+}
+
+function setSyncStatusIndicator(state){
+  var indicator = document.getElementById('globalSyncIndicator');
+  var label = document.getElementById('globalSyncLabel');
+  if(!indicator) return;
+  if(state === 'syncing'){
+    indicator.className = 'sync-indicator syncing';
+    if(label) label.textContent = 'Guardando en la nube...';
+  } else if(state === 'synced'){
+    indicator.className = 'sync-indicator synced';
+    if(label) label.textContent = 'Sincronizado';
+  } else if(state === 'offline'){
+    indicator.className = 'sync-indicator offline';
+    if(label) label.textContent = 'Sin conexión (guardado en teléfono)';
+  } else {
+    indicator.className = 'sync-indicator error';
+    if(label) label.textContent = 'Error de conexión';
   }
 }
 
 async function pullFromSupabase(){
   if(!sbClient) return;
   const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
-  if(Date.now() - lastLocalMutationTime < 2500) return;
+  if(Date.now() - lastLocalMutationTime < 2000) return;
+  setSyncStatusIndicator('syncing');
   try {
     const { data, error } = await sbClient
       .from('user_finance')
@@ -3588,19 +3647,24 @@ async function pullFromSupabase(){
       
     if(error){
       console.warn('Error al obtener datos de Supabase:', error);
+      setSyncStatusIndicator('offline');
       return;
     }
     
     if(data && data.data && Object.keys(data.data).length > 0){
       applyState(data.data);
       render();
+      if(currentActiveTab === 'moto') renderMotoDashboard();
+      else if(currentActiveTab === 'tasks') renderTasksList(currentTaskFilter);
+      else if(currentActiveTab === 'uni') renderExamsList();
       if(typeof renderAccountSettings === 'function') renderAccountSettings();
-      
+      setSyncStatusIndicator('synced');
     } else {
       await pushToSupabase();
     }
   } catch(e){
     console.warn('Fallo en pullFromSupabase:', e);
+    setSyncStatusIndicator('offline');
   }
 }
 
@@ -3608,6 +3672,7 @@ async function pushToSupabase(){
   if(!sbClient || isPushingToRemote) return;
   const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
   isPushingToRemote = true;
+  setSyncStatusIndicator('syncing');
   try {
     const currentState = collectState();
     const { error } = await sbClient
@@ -3620,23 +3685,40 @@ async function pushToSupabase(){
       
     if(error){
       console.warn('Error al guardar en Supabase:', error);
+      setSyncStatusIndicator('offline');
+      try { localStorage.setItem('mcf_pending_outbox', 'true'); } catch(e){}
+    } else {
+      setSyncStatusIndicator('synced');
+      try { localStorage.removeItem('mcf_pending_outbox'); } catch(e){}
     }
   } catch(e){
     console.warn('Fallo en pushToSupabase:', e);
+    setSyncStatusIndicator('offline');
+    try { localStorage.setItem('mcf_pending_outbox', 'true'); } catch(e){}
   } finally {
     isPushingToRemote = false;
   }
 }
 
-// supabaseDebounceTimer declared at top of script
 function scheduleSyncPush(){
-  if(typeof sbClient === 'undefined' || !sbClient || typeof sbUser === 'undefined' || !sbUser) return;
+  lastLocalMutationTime = Date.now();
+  if(typeof sbClient === 'undefined' || !sbClient) return;
+  setSyncStatusIndicator('syncing');
   clearTimeout(supabaseDebounceTimer);
-  supabaseDebounceTimer = setTimeout(pushToSupabase, 300);
+  supabaseDebounceTimer = setTimeout(pushToSupabase, 250);
+}
+
+function flushOutboxIfPending(){
+  try {
+    if(localStorage.getItem('mcf_pending_outbox') === 'true'){
+      pushToSupabase();
+    }
+  } catch(e){}
 }
 
 function subscribeToRealtime(){
-  if(!sbClient || !sbUser || sbRealtimeChannel) return;
+  if(!sbClient || sbRealtimeChannel) return;
+  const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
   
   sbRealtimeChannel = sbClient
     .channel('user_finance_realtime')
@@ -3644,2343 +3726,45 @@ function subscribeToRealtime(){
       event: '*',
       schema: 'public',
       table: 'user_finance',
-      filter: `user_id=eq.${sbUser.id}`
+      filter: `user_id=eq.${targetUserId}`
     }, payload => {
       if(payload.new && payload.new.data && !isPushingToRemote){
+        console.log('🔄 Cambio detectado en tiempo real desde otro dispositivo!');
         applyState(payload.new.data);
         render();
-        
+        if(currentActiveTab === 'moto') renderMotoDashboard();
+        else if(currentActiveTab === 'tasks') renderTasksList(currentTaskFilter);
+        else if(currentActiveTab === 'uni') renderExamsList();
+        setSyncStatusIndicator('synced');
       }
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('Estado canal Realtime:', status);
+      if(status === 'SUBSCRIBED') setSyncStatusIndicator('synced');
+    });
 }
 
-/* Modales y UI de Auth */
-let authMode = 'login';
-const authModalOverlay = document.getElementById('authModalOverlay');
-const authBtn = document.getElementById('authBtn');
-const authModalClose = document.getElementById('authModalClose');
-const tabLogin = document.getElementById('tabLogin');
-const tabSignup = document.getElementById('tabSignup');
-const authForm = document.getElementById('authForm');
-const authSubmitBtn = document.getElementById('authSubmitBtn');
-const authMsg = document.getElementById('authMsg');
-const toggleConfigBtn = document.getElementById('toggleConfigBtn');
-const supabaseConfigView = document.getElementById('supabaseConfigView');
-const saveSbConfigBtn = document.getElementById('saveSbConfigBtn');
-const cancelSbConfigBtn = document.getElementById('cancelSbConfigBtn');
-const sbUrlInput = document.getElementById('sbUrlInput');
-const sbKeyInput = document.getElementById('sbKeyInput');
-const logoutBtn = document.getElementById('logoutBtn');
-const forceSyncBtn = document.getElementById('forceSyncBtn');
-
-function openAuthModal(){
-  if(sbUrlInput) sbUrlInput.value = sbUrl;
-  if(sbKeyInput) sbKeyInput.value = sbAnonKey;
-  if(!sbUrl || !sbAnonKey){
-    if(supabaseConfigView) supabaseConfigView.classList.remove('hidden');
-  }
-  if(authModalOverlay) authModalOverlay.classList.remove('hidden');
-}
-function closeAuthModal(){
-  if(authModalOverlay) authModalOverlay.classList.add('hidden');
-  if(authMsg) authMsg.textContent = '';
-}
-
-if(authBtn) authBtn.addEventListener('click', openAuthModal);
-if(authModalClose) authModalClose.addEventListener('click', closeAuthModal);
-if(authModalOverlay) authModalOverlay.addEventListener('click', e=>{ if(e.target===authModalOverlay) closeAuthModal(); });
-
-if(tabLogin) tabLogin.addEventListener('click', ()=>{
-  authMode = 'login';
-  tabLogin.classList.add('active');
-  if(tabSignup) tabSignup.classList.remove('active');
-  if(authSubmitBtn) authSubmitBtn.textContent = 'Entrar';
-  if(authMsg) authMsg.textContent = '';
-});
-if(tabSignup) tabSignup.addEventListener('click', ()=>{
-  authMode = 'signup';
-  tabSignup.classList.add('active');
-  if(tabLogin) tabLogin.classList.remove('active');
-  if(authSubmitBtn) authSubmitBtn.textContent = 'Registrarse';
-  if(authMsg) authMsg.textContent = '';
-});
-
-if(toggleConfigBtn) toggleConfigBtn.addEventListener('click', ()=>{
-  if(supabaseConfigView) supabaseConfigView.classList.toggle('hidden');
-});
-if(cancelSbConfigBtn) cancelSbConfigBtn.addEventListener('click', ()=>{
-  if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
-});
-if(saveSbConfigBtn) saveSbConfigBtn.addEventListener('click', ()=>{
-  const newUrl = cleanSupabaseUrl(sbUrlInput.value.trim());
-  const newKey = sbKeyInput.value.trim();
-  if(!newUrl || !newKey){
-    alert('Por favor ingresa tanto la URL como la Anon Key de Supabase');
-    return;
-  }
-  sbUrl = newUrl;
-  sbAnonKey = newKey;
-  localStorage.setItem(SB_URL_KEY, sbUrl);
-  localStorage.setItem(SB_KEY_KEY, sbAnonKey);
-  initSupabase();
-  if(supabaseConfigView) supabaseConfigView.classList.add('hidden');
-  showToast('Credenciales de Supabase guardadas ✓');
-});
-
-// Settings Account / Sync Actions
-const settingsSyncNowBtn = document.getElementById('settingsSyncNowBtn');
-const settingsAccountBtn = document.getElementById('settingsAccountBtn');
-
-if(settingsSyncNowBtn){
-  settingsSyncNowBtn.addEventListener('click', async ()=>{
-    await pushToSupabase();
-    await pullFromSupabase();
-    showToast('Sincronización completada ✓');
+// Global Lifecycle Sync Listeners
+if(typeof window !== 'undefined'){
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible'){
+      pullFromSupabase();
+      flushOutboxIfPending();
+    }
   });
-}
-if(settingsAccountBtn){
-  settingsAccountBtn.addEventListener('click', ()=>{
-    document.getElementById('settingsPanel').classList.add('hidden');
-    openAuthModal();
-  });
-}
-
-// Inicializar Supabase inmediatamente al cargar la página
-initSupabase();
-
-// Sincronizar automáticamente cuando el usuario regresa a la pestaña o abre la app
-window.addEventListener('focus', () => { if(sbClient && sbUser) pullFromSupabase(); });
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && sbClient && sbUser) {
+  window.addEventListener('focus', function(){
     pullFromSupabase();
-  }
-});
-// Polling de respaldo cada 4 segundos si la app está abierta
-setInterval(() => {
-  if(document.visibilityState === 'visible' && sbClient && sbUser && !isPushingToRemote){
+    flushOutboxIfPending();
+  });
+  window.addEventListener('online', function(){
+    setSyncStatusIndicator('syncing');
     pullFromSupabase();
-  }
-}, 4000);
-
-if(authForm) authForm.addEventListener('submit', async e=>{
-  e.preventDefault();
-  if(!sbClient){
-    authMsg.className = 'auth-msg error';
-    authMsg.textContent = 'Primero debes configurar tus credenciales de Supabase abajo.';
-    if(supabaseConfigView) supabaseConfigView.classList.remove('hidden');
-    return;
-  }
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  if(!email || !password) return;
-  
-  authSubmitBtn.disabled = true;
-  authMsg.className = 'auth-msg';
-  authMsg.textContent = 'Procesando...';
-  
-  try {
-    if(authMode === 'login'){
-      const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
-      if(error) throw error;
-      authMsg.className = 'auth-msg ok';
-      authMsg.textContent = '¡Sesión iniciada con éxito!';
-      setTimeout(()=> closeAuthModal(), 800);
-    } else {
-      const { data, error } = await sbClient.auth.signUp({ email, password });
-      if(error) throw error;
-      authMsg.className = 'auth-msg ok';
-      authMsg.textContent = '¡Cuenta creada! ' + (data.session ? 'Iniciando sesión...' : 'Revisa tu correo de confirmación.');
-      if(data.session) setTimeout(()=> closeAuthModal(), 800);
-    }
-  } catch(err){
-    authMsg.className = 'auth-msg error';
-    authMsg.textContent = err.message || 'Error de autenticación';
-  } finally {
-    authSubmitBtn.disabled = false;
-  }
-});
-
-if(logoutBtn) logoutBtn.addEventListener('click', async ()=>{
-  if(sbClient){
-    await sbClient.auth.signOut();
-    handleAuthState(null);
-    closeAuthModal();
-    showToast('Sesión cerrada');
-  }
-});
-
-if(forceSyncBtn) forceSyncBtn.addEventListener('click', async ()=>{
-  await pushToSupabase();
-  await pullFromSupabase();
-  showToast('Sincronización manual completada ✓');
-});
-
-
-
-
-document.getElementById('exportBtn')?.addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify({tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, cats:catsData}, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download = 'respaldo-finanzas-'+dateKey()+'.json'; a.click();
-  URL.revokeObjectURL(url);
-});
-document.getElementById('importBtn')?.addEventListener('click', ()=> document.getElementById('importFile').click());
-document.getElementById('importFile')?.addEventListener('change', e=>{
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev=>{
-    try{
-      const imported = JSON.parse(ev.target.result);
-      if(imported.tx){ tx = normalizeTxList(imported.tx); saveTx(tx); }
-      if(imported.goals){ goals = imported.goals; saveGoals(goals); }
-      if(imported.goalHistory){ goalHistory = imported.goalHistory; saveGoalHistory(goalHistory); }
-      if(imported.budgets){ budgets = imported.budgets; saveBudgets(budgets); }
-      if('alertThreshold' in imported){ alertThreshold = imported.alertThreshold; saveAlert(alertThreshold); }
-      if(imported.cats) applyCats(imported.cats);
-      if('accountBalances' in imported){
-        accountBalances = normalizeAccountBalances(imported.accountBalances);
-        saveAccountBalances(accountBalances);
-      }
-      if('motorcycleMaintenance' in imported){
-        motorcycleMaintenance = normalizeMotorcycleMaintenance(imported.motorcycleMaintenance);
-        saveMotorcycleMaintenance(motorcycleMaintenance);
-      }
-      if('defaultAccountId' in imported && isKnownAccountId(imported.defaultAccountId)){
-        defaultAccountId = imported.defaultAccountId;
-        saveDefaultAccount(defaultAccountId);
-      }
-      render(); alert('Respaldo importado correctamente.');
-    }catch(err){ alert('El archivo no es un respaldo válido.'); }
-  };
-  reader.readAsText(file); e.target.value='';
-});
-
-/* ---------- Exportar CSV ---------- */
-document.getElementById('exportCsvBtn')?.addEventListener('click', ()=>{
-  if(tx.length===0){ showToast('Todavía no tienes movimientos para exportar'); return; }
-  const sorted = [...tx].sort((a,b)=> a.date.localeCompare(b.date) || a.id-b.id);
-  const header = ['Fecha','Cuenta','Destino','Tipo','Categoría','Nota / Meta','Monto'];
-  const rows = sorted.map(t=>{
-    const tipo = t.type==='income' ? 'Ingreso' : (t.type==='expense' ? 'Gasto' : (t.type==='saving' ? 'Ahorro' : 'Retiro a efectivo'));
-    const destino = t.type==='withdrawal' ? 'Efectivo' : '';
-    const cat = t.type==='expense' ? (t.cat||'') : '';
-    const desc = t.note || (t.type==='saving' ? goalNameById(t.goalId) : '');
-    const monto = (t.type==='income' || t.type==='withdrawal' ? t.amt : -t.amt).toFixed(2);
-    return [t.date, accountNameById(t.account), destino, tipo, cat, desc, monto].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+    flushOutboxIfPending();
   });
-  const csv = '\uFEFF' + [header.join(','), ...rows].join('\r\n');
-  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'movimientos-finanzas-' + dateKey() + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('CSV exportado');
-});
-
-/* ---------- Exportar informe a PDF ---------- */
-function goalNameById(id){
-  if(!id) return '';
-  const active = goals.find(g=>g.id===id);
-  return active ? active.name : '';
-}
-
-function drawDonutToCanvas(catTotals, total, size){
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const cx = size/2, cy = size/2, rOuter = size*0.44, rInner = size*0.26;
-  ctx.clearRect(0,0,size,size);
-  if(!total){
-    ctx.beginPath(); ctx.arc(cx,cy,rOuter,0,Math.PI*2); ctx.fillStyle='#E9E9EE'; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx,cy,rInner,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill();
-    return canvas;
-  }
-  let start = -Math.PI/2;
-  Object.keys(catTotals).forEach(c=>{
-    const val = catTotals[c];
-    if(!val || val<=0) return;
-    const angle = (val/total)*Math.PI*2;
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,rOuter,start,start+angle); ctx.closePath();
-    ctx.fillStyle = CAT_COLOR[c] || '#999999';
-    ctx.fill();
-    start += angle;
-  });
-  ctx.beginPath(); ctx.arc(cx,cy,rInner,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill();
-  return canvas;
-}
-
-function drawFlowBarsToCanvas(months, w, h){
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
-  const padL=26,padR=8,padT=12,padB=24;
-  const pW=w-padL-padR, pH=h-padT-padB;
-  const maxV=Math.max(1,...months.map(m=>Math.max(m.income,m.expense)));
-  const groupW=pW/months.length, barW=Math.min(15,groupW*0.26);
-  ctx.font='9px sans-serif'; ctx.textAlign='left';
-  ctx.fillStyle='#22C55E'; ctx.fillText('■ Ingresos', padL-2, padT-1);
-  ctx.fillStyle='#EF4444'; ctx.fillText('■ Gastos', padL-2+46, padT-1);
-  months.forEach((m,i)=>{
-    const cx=padL+groupW*(i+0.5);
-    const hInc=(m.income/maxV)*pH, hExp=(m.expense/maxV)*pH;
-    ctx.fillStyle='#22C55E'; ctx.fillRect(cx-barW-1.5, padT+pH-hInc, barW, hInc);
-    ctx.fillStyle='#EF4444'; ctx.fillRect(cx+1.5, padT+pH-hExp, barW, hExp);
-    ctx.fillStyle='#555'; ctx.font='9px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(new Date(m.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short'}), cx, h-6);
-  });
-  return canvas;
-}
-
-function drawBudgetBarsToCanvas(cats, monthBudgets, catTotals, w, h){
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
-  if(!cats.length) return canvas;
-  const padL=8,padR=8,padT=16,padB=20;
-  const pW=w-padL-padR, pH=h-padT-padB;
-  const maxV=Math.max(1,...cats.map(c=>Math.max(monthBudgets[c],catTotals[c]||0)));
-  const groupW=pW/cats.length, barW=Math.min(15,groupW*0.26);
-  ctx.font='9px sans-serif'; ctx.textAlign='left';
-  ctx.fillStyle='rgba(166,152,156,0.8)'; ctx.fillText('■ Presupuesto', padL-2, padT-1);
-  ctx.fillStyle='#EF4444'; ctx.fillText('■ Gastado', padL-2+42, padT-1);
-  cats.forEach((c,i)=>{
-    const cx=padL+groupW*(i+0.5);
-    const b=monthBudgets[c], spent=catTotals[c]||0;
-    const hB=(b/maxV)*pH, hS=(spent/maxV)*pH;
-    ctx.fillStyle='rgba(166,152,156,0.6)'; ctx.fillRect(cx-barW-1.5, padT+pH-hB, barW, hB);
-    const ratio=b>0?spent/b:0;
-    ctx.fillStyle=ratio<0.7?'#22C55E':(ratio<=1?'#FBBF24':'#EF4444');
-    ctx.fillRect(cx+1.5, padT+pH-hS, barW, hS);
-    ctx.fillStyle='#555'; ctx.font='8.5px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(c.length>10?c.slice(0,9)+'…':c, cx, h-6);
-  });
-  return canvas;
-}
-
-function drawProjectionToCanvas(data, w, h){
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
-  if(!data || !data.history.length) return canvas;
-  const padL=32,padR=10,padT=14,padB=22;
-  const pW=w-padL-padR, pH=h-padT-padB;
-  const points=data.history.map(h=>({label:h.mk,val:h.cum,projected:false}));
-  if(data.avgRate>0 && data.remaining>0){
-    let cum=data.currentTotal; let mDate=new Date();
-    for(let i=1;i<=24 && cum<data.goal.target;i++){
-      mDate.setMonth(mDate.getMonth()+1); cum+=data.avgRate;
-      points.push({label:monthKeyFromDate(mDate),val:Math.min(cum,data.goal.target*1.05),projected:true});
-    }
-  }
-  if(points.length<2) points.unshift({label:'inicio',val:0,projected:false});
-  const maxV=Math.max(data.goal.target,...points.map(p=>p.val))*1.05;
-  const xp=i=>padL+(points.length===1?pW/2:(pW/(points.length-1))*i);
-  const yp=v=>padT+pH-(v/maxV)*pH;
-  ctx.setLineDash([4,3]); ctx.strokeStyle='#B08B00'; ctx.lineWidth=1.2;
-  ctx.beginPath(); ctx.moveTo(padL,yp(data.goal.target)); ctx.lineTo(w-padR,yp(data.goal.target)); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='#B08B00'; ctx.font='9px sans-serif'; ctx.textAlign='left';
-  ctx.fillText('Meta: '+fmt(data.goal.target), padL+2, yp(data.goal.target)-3);
-  const firstProjIdx=points.findIndex(p=>p.projected);
-  ctx.strokeStyle='rgba(63,165,122,0.9)'; ctx.lineWidth=2;
-  ctx.beginPath();
-  points.forEach((p,i)=>{ const px=xp(i),py=yp(p.val); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); });
-  if(firstProjIdx>0){ ctx.save(); ctx.beginPath(); ctx.rect(padL,padT,xp(firstProjIdx)-padL,pH); ctx.clip(); ctx.stroke(); ctx.restore(); }
-  else ctx.stroke();
-  if(firstProjIdx>0){
-    ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(212,175,55,0.9)';
-    ctx.beginPath();
-    for(let i=firstProjIdx-1;i<points.length;i++){ const px=xp(i),py=yp(points[i].val); if(i===firstProjIdx-1)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
-    ctx.stroke(); ctx.setLineDash([]);
-  }
-  points.forEach((p,i)=>{
-    ctx.beginPath(); ctx.arc(xp(i),yp(p.val),2.4,0,Math.PI*2);
-    ctx.fillStyle=p.projected?'rgba(212,175,55,0.9)':'rgba(63,165,122,0.9)'; ctx.fill();
-  });
-  return canvas;
-}
-
-function drawLineChartCanvas(labels, values, w, h, color){
-  const canvas=document.createElement('canvas');
-  canvas.width=w; canvas.height=h;
-  const ctx=canvas.getContext('2d');
-  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
-  if(!values.length) return canvas;
-  const padL=24,padR=8,padT=10,padB=22;
-  const pW=w-padL-padR, pH=h-padT-padB;
-  const min=Math.min(0,...values), max=Math.max(1,...values);
-  const range=(max-min)||1;
-  const xx=i=>padL+(values.length===1?pW/2:(pW/(values.length-1))*i);
-  const yy=v=>padT+pH-((v-min)/range)*pH;
-  ctx.beginPath(); ctx.moveTo(xx(0),yy(0));
-  values.forEach((v,i)=>ctx.lineTo(xx(i),yy(v)));
-  ctx.lineTo(xx(values.length-1),yy(0)); ctx.lineTo(xx(0),yy(0)); ctx.closePath();
-  const g=ctx.createLinearGradient(0,padT,0,padT+pH);
-  g.addColorStop(0,'rgba(249,115,22,0.22)'); g.addColorStop(1,'rgba(249,115,22,0.02)');
-  ctx.fillStyle=g; ctx.fill();
-  ctx.beginPath();
-  values.forEach((v,i)=>{ if(i===0)ctx.moveTo(xx(i),yy(v)); else ctx.lineTo(xx(i),yy(v)); });
-  ctx.strokeStyle=color; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.stroke();
-  const every=Math.ceil(values.length/7);
-  values.forEach((v,i)=>{
-    ctx.beginPath(); ctx.arc(xx(i),yy(v),2.4,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
-    if(i%every===0||values.length===1){
-      ctx.fillStyle='#777'; ctx.font='9px sans-serif'; ctx.textAlign='center';
-      ctx.fillText(labels[i], xx(i), h-7);
-    }
-  });
-  return canvas;
-}
-
-document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
-  if(typeof window.jspdf === 'undefined'){
-    alert('No se pudo cargar el generador de PDF. Revisa tu conexión a internet e intenta de nuevo.');
-    return;
-  }
-  if(tx.length===0){ alert('Todavía no tienes movimientos para exportar.'); return; }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:'mm', format:'a4' });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const mx = 14;
-  const usableW = pageW - mx*2;
-
-  const C = {
-    text:[28,28,33], textSoft:[122,122,132], line:[228,228,233],
-    gold:[249,115,22], goldDark:[154,52,18], goldSoft:[255,247,237],
-    green:[34,197,94], greenSoft:[240,253,244],
-    red:[239,68,68], redSoft:[254,242,242],
-    blue:[62,123,250], blueSoft:[240,245,255],
-    amber:[176,138,0], amberSoft:[252,248,235],
-    ink:[80,80,90]
-  };
-  let currentY = 0;
-  const now = new Date();
-  const fmtMk = mk => new Date(mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-
-  function ensureSpace(needed){
-    if(currentY + needed > pageH - 15){
-      doc.addPage();
-      currentY = 15;
-    }
-  }
-  function sectionHeader(num, title, subtitle){
-    ensureSpace(18);
-    currentY += 3;
-    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...C.gold);
-    doc.text((num ? num+'  ' : '') + title, mx, currentY);
-    if(subtitle){
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.3); doc.setTextColor(...C.textSoft);
-      doc.text(subtitle, mx, currentY + 4);
-      currentY += 4;
-    }
-    doc.setDrawColor(...C.line); doc.setLineWidth(0.3);
-    doc.line(mx, currentY+1.5, pageW-mx, currentY+1.5);
-    currentY += 5;
-  }
-
-  // ===== PORTADA =====
-  doc.setFillColor(...C.gold); doc.rect(0,0,pageW,36,'F');
-  doc.setFillColor(...C.goldDark); doc.rect(0,36,pageW,1.4,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(255,255,255);
-  doc.text('Mi Control Financiero', mx, 13);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(255,225,230);
-  doc.text('Informe personal de finanzas', mx, 20);
-  const allMk = tx.map(t=>monthKey(t.date)).sort();
-  const firstMk = allMk[0];
-  const lastMk = allMk[allMk.length-1];
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
-  doc.text('Periodo: ' + fmtMk(firstMk) + ' → ' + fmtMk(lastMk), mx, 28);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(255,240,243);
-  doc.text('Generado el ' + now.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}) + ' a las ' + now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}), pageW-mx, 28, {align:'right'});
-  currentY = 46;
-
-  // ===== 1. RESUMEN HISTORICO =====
-  sectionHeader(1, 'Resumen histórico', 'Totales acumulados de todo tu historial');
-  const tInc = tx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-  const tExp = tx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
-  const tSav = tx.filter(t=>t.type==='saving').reduce((s,t)=>s+t.amt,0);
-  const tBal = tInc - tExp - tSav;
-  const cardW = (usableW-9)/4, cardH = 27;
-  function drawCard(x,y,w,h,label,value,color,soft,foot){
-    doc.setFillColor(255,255,255); doc.setDrawColor(...C.line); doc.setLineWidth(0.2);
-    doc.roundedRect(x,y,w,h,2,2,'FD');
-    doc.setFillColor(...color); doc.roundedRect(x,y,w,1.1,0.5,0.5,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...C.textSoft);
-    doc.text(label.toUpperCase(), x+w/2, y+6.5, {align:'center'});
-    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...C.text);
-    doc.text(fmt(value), x+w/2, y+13.5, {align:'center'});
-    doc.setFillColor(...soft);
-    doc.roundedRect(x, y+h-4.5, w, 4.5, 0,0,'F');
-    doc.setFont('helvetica','italic'); doc.setFontSize(6.3); doc.setTextColor(...color);
-    doc.text(foot, x+w/2, y+h-1.4, {align:'center'});
-  }
-  drawCard(mx, currentY, cardW, cardH, 'Ingresos', tInc, C.green, C.greenSoft, 'Total acumulado');
-  drawCard(mx+cardW+3, currentY, cardW, cardH, 'Gastos', tExp, C.red, C.redSoft, 'Total acumulado');
-  drawCard(mx+(cardW+3)*2, currentY, cardW, cardH, 'Ahorros', tSav, C.blue, C.blueSoft, 'Total acumulado');
-  drawCard(mx+(cardW+3)*3, currentY, cardW, cardH, 'Balance', tBal, tBal>=0?C.green:C.red, tBal>=0?C.greenSoft:C.redSoft, tBal>=0?'Superávit global':'Déficit global');
-  currentY += cardH + 9;
-  ensureSpace(28);
-  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...C.textSoft);
-  doc.text('Saldos por cuenta', mx, currentY+2);
-  currentY += 5;
-  const pdfAccountTotals = getCurrentAccountTotals();
-  const pdfAccounts = getAccountOptions(Object.prototype.hasOwnProperty.call(pdfAccountTotals,'unassigned'));
-  doc.autoTable({
-    startY: currentY,
-    margin:{left:mx,right:mx},
-    head:[['Cuenta','Ingresos','Gastos','Ahorro','Saldo']],
-    body: pdfAccounts.map(account=>{
-      const values = pdfAccountTotals[account.id] || { income:0, expense:0, saving:0, balance:0 };
-      return [account.name, fmt(values.income), fmt(values.expense), fmt(values.saving), fmt(values.balance)];
-    }),
-    styles:{font:'helvetica',fontSize:8.5,halign:'right',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-    headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-    alternateRowStyles:{fillColor:[252,252,254]},
-    columnStyles:{0:{halign:'left'},4:{fontStyle:'bold',textColor:C.gold}}
-  });
-  currentY = doc.lastAutoTable.finalY + 8;
-
-  // ===== 2. SALUD FINANCIERA =====
-  const mk = cursorKey();
-  const monthTx = tx.filter(t=>monthKey(t.date)===mk);
-  const mInc = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-  const mExp = monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
-  const healthScore = mInc>0 ? Math.max(0,Math.min(100,Math.round(((mInc-mExp)/mInc)*100))) : (mExp>0?0:100);
-  sectionHeader(2, 'Salud financiera', 'Mes de ' + cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
-  const barW = usableW*0.55, barH = 5;
-  doc.setFillColor(235,235,237); doc.roundedRect(mx,currentY,barW,barH,barH/2,barH/2,'F');
-  if(healthScore>0){
-    const grad = healthScore>=70?C.green:(healthScore>=40?C.amber:C.red);
-    doc.setFillColor(...grad);
-    doc.roundedRect(mx,currentY,barW*(healthScore/100),barH,barH/2,barH/2,'F');
-  }
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...C.text);
-  doc.text(healthScore+'%', mx+barW+3, currentY+3.6);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.textSoft);
-  doc.text(healthScore>=70 ? 'Buen control: gastas menos de lo que ingresas.' : (healthScore>=40 ? 'Vas bien, sigue así y vigila las categorías grandes.' : 'Cuidado: gastas cerca (o más) de lo que ingresas.'), mx+barW+3, currentY+7);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.ink);
-  doc.text('Ingresos del mes: '+fmt(mInc)+'        Gastos del mes: '+fmt(mExp), mx, currentY+barH+4);
-  currentY += barH + 14;
-
-  // ===== 3. RANKING DE CATEGORIAS =====
-  sectionHeader(3, 'Ranking de categorías', 'Las categorías que más te costaron durante ' + cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
-  const catT = {};
-  monthTx.filter(t=>t.type==='expense').forEach(t=>{ catT[t.cat]=(catT[t.cat]||0)+t.amt; });
-  const catSorted = Object.keys(catT).sort((a,b)=>catT[b]-catT[a]);
-  const totalCat = catSorted.reduce((s,c)=>s+catT[c],0);
-  if(catSorted.length===0){
-    doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(...C.textSoft);
-    doc.text('Sin gastos registrados este mes.', mx, currentY+5);
-    currentY += 10;
-  } else {
-    const maxRank = catT[catSorted[0]];
-    const barFull = usableW*0.56;
-    let rY = currentY + 3;
-    catSorted.slice(0,6).forEach(c=>{
-      ensureSpace(8);
-      const val = catT[c], pct = Math.round((val/totalCat)*100);
-      const pct2 = maxRank>0?Math.max(8,(val/maxRank)*100):0;
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...C.text);
-      doc.text(c, mx, rY);
-      doc.setFont('helvetica','bold'); doc.setTextColor(...C.text);
-      doc.text(fmt(val) + '  ('+pct+'%)', mx+barFull, rY, {align:'right'});
-      doc.setFillColor(232,232,236);
-      doc.roundedRect(mx, rY+1.2, barFull, 3.4, 1.4,1.4,'F');
-      const rgb = hexToRgb(CAT_COLOR[c]||'#F97316');
-      doc.setFillColor(rgb.r,rgb.g,rgb.b);
-      doc.roundedRect(mx, rY+1.2, barFull*(pct2/100), 3.4, 1.4,1.4,'F');
-      rY += 9.5;
-    });
-    currentY = rY;
-  }
-
-  // ===== 4. GASTOS FIJOS =====
-  const last6 = [];
-  for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); last6.push(monthKeyFromDate(d)); }
-  const catMonths = {};
-  tx.filter(t=>t.type==='expense').forEach(t=>{
-    const k=monthKey(t.date);
-    if(last6.includes(k)){ if(!catMonths[t.cat]) catMonths[t.cat]={}; catMonths[t.cat][k]=1; }
-  });
-  const recurrent = Object.keys(catMonths).map(c=>{
-    const months = Object.keys(catMonths[c]);
-    const vals = months.map(k=> tx.filter(t=>t.type==='expense'&&t.cat===c&&monthKey(t.date)===k).reduce((s,t)=>s+t.amt,0));
-    return { c, n:months.length, avg:vals.reduce((a,b)=>a+b,0)/vals.length };
-  }).filter(r=>r.n>=3).sort((a,b)=>b.avg-a.avg);
-  if(recurrent.length){
-    sectionHeader(4, 'Posibles gastos fijos', 'Se repiten casi todos los meses · últimos 6 meses');
-    doc.autoTable({
-      startY: currentY,
-      margin:{left:mx,right:mx},
-      head:[['Categoría','Meses','Promedio mensual']],
-      body: recurrent.map(r=>[r.c, r.n+' de 6', fmt(r.avg)]),
-      styles:{font:'helvetica',fontSize:9,halign:'center',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-      headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-      alternateRowStyles:{fillColor:[252,252,254]},
-      columnStyles:{0:{halign:'left'}},
-      didParseCell:function(data){
-        if(data.section==='body' && data.column.index===2){ data.cell.styles.textColor=C.gold; data.cell.styles.fontStyle='bold'; }
-      }
-    });
-    currentY = doc.lastAutoTable.finalY + 8;
-  }
-
-  // ===== 5. DISTRIBUCION DE GASTOS =====
-  const allCat = {};
-  tx.filter(t=>t.type==='expense').forEach(t=>{ allCat[t.cat]=(allCat[t.cat]||0)+t.amt; });
-  const allCatRows = Object.keys(allCat).sort((a,b)=>allCat[b]-allCat[a]);
-  const totalGastoAll = Object.values(allCat).reduce((a,b)=>a+b,0);
-  sectionHeader(5, 'Distribución de gastos', 'Reparto acumulado por categoría (todo el historial)');
-  if(totalGastoAll>0){
-    const donutMM=44;
-    const donutImg = drawDonutToCanvas(allCat,totalGastoAll,180).toDataURL('image/png');
-    doc.addImage(donutImg,'PNG',mx,currentY,donutMM,donutMM);
-    const tableX = mx+donutMM+8;
-    const tableW = usableW-donutMM-8;
-    doc.autoTable({
-      startY: currentY,
-      margin:{left:tableX,right:mx},
-      tableWidth: tableW,
-      head:[['Categoría','Monto','%']],
-      body: allCatRows.map(c=>[c, fmt(allCat[c]), Math.round((allCat[c]/totalGastoAll)*100)+'%']),
-      theme:'grid',
-      styles:{font:'helvetica',fontSize:8.5,halign:'center',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-      headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-      alternateRowStyles:{fillColor:[252,252,254]},
-      columnStyles:{0:{halign:'left'}},
-      didParseCell:function(data){
-        if(data.section==='body' && data.column.index===2){ data.cell.styles.fontStyle='bold'; data.cell.styles.textColor=C.gold; }
-      }
-    });
-    currentY = Math.max(currentY+donutMM, doc.lastAutoTable.finalY) + 8;
-  } else {
-    doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(...C.textSoft);
-    doc.text('Todavía no tienes gastos registrados.', mx, currentY+5);
-    currentY += 10;
-  }
-
-  // ===== 6. FLUJO FINANCIERO =====
-  sectionHeader(6, 'Flujo financiero', 'Últimos 6 meses: ingresos vs gastos');
-  const flowMonths = [];
-  for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); flowMonths.push(monthKeyFromDate(d)); }
-  const flowData = flowMonths.map(fmk=>{
-    const ftx = tx.filter(t=>monthKey(t.date)===fmk);
-    const inc = ftx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-    const exp = ftx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
-    return { mk:fmk, income:inc, expense:exp, net:inc-exp };
-  });
-  const flowChartW = usableW*0.5, flowChartH = 44;
-  const flowImg = drawFlowBarsToCanvas(flowData, 480, 220).toDataURL('image/png');
-  doc.addImage(flowImg,'PNG',mx,currentY,flowChartW,flowChartH);
-  doc.autoTable({
-    startY: currentY,
-    margin:{left:mx+flowChartW+6,right:mx},
-    tableWidth: usableW-flowChartW-6,
-    head:[['Mes','Ingresos','Gastos','Saldo']],
-    body: flowData.map(f=>{
-      const label = new Date(f.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short',year:'2-digit'});
-      return [label, fmt(f.income), fmt(f.expense), (f.net>=0?'+':'')+fmt(f.net)];
-    }),
-    styles:{font:'helvetica',fontSize:8.5,halign:'center',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-    headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-    alternateRowStyles:{fillColor:[252,252,254]},
-    columnStyles:{0:{halign:'left'},3:{fontStyle:'bold'}},
-    didParseCell:function(data){
-      if(data.section==='body' && data.column.index===3){
-        data.cell.styles.textColor = flowData[data.row.index].net>=0?C.green:C.red;
-      }
-    }
-  });
-  currentY = Math.max(currentY+flowChartH, doc.lastAutoTable.finalY) + 8;
-
-  // ===== 7. BALANCE GENERAL =====
-  const series = getMonthlySeries();
-  sectionHeader(7, 'Balance general', 'Evolución del saldo acumulado, mes a mes');
-  if(series.length>0){
-    const labels = series.map(s=>new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short',year:'2-digit'}));
-    const chartImg = drawLineChartCanvas(labels, series.map(s=>s.acc), 400, 190, '#F97316').toDataURL('image/png');
-    const chartW = usableW*0.5, chartH = 42;
-    doc.addImage(chartImg,'PNG',mx,currentY,chartW,chartH);
-    doc.autoTable({
-      startY: currentY,
-      margin:{left:mx+chartW+6,right:mx},
-      tableWidth: usableW-chartW-6,
-       head:[['Mes','Ingresos','Gastos','Ahorro','Saldo','Acum.']],
-      body: series.slice().reverse().map(s=>{
-        const label = new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short',year:'2-digit'});
-         return [label, fmt(s.income), fmt(s.expense), fmt(s.saved), (s.net>=0?'+':'')+fmt(s.net), fmt(s.acc)];
-      }),
-      styles:{font:'helvetica',fontSize:7.5,halign:'right',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-      headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-      alternateRowStyles:{fillColor:[252,252,254]},
-       columnStyles:{0:{halign:'left'}},
-       didParseCell:function(data){
-         if(data.section==='body' && data.column.index===4){
-           const net = series.slice().reverse()[data.row.index].net;
-           data.cell.styles.textColor = net>=0?C.green:C.red;
-           data.cell.styles.fontStyle='bold';
-         }
-         if(data.section==='body' && data.column.index===5){
-           data.cell.styles.textColor=C.gold; data.cell.styles.fontStyle='bold';
-         }
-      }
-    });
-    currentY = Math.max(currentY+chartH, doc.lastAutoTable.finalY) + 8;
-  }
-
-  // ===== 8. PRESUPUESTO VS REAL =====
-  const monthBudgets = getBudgetsForMonth(mk);
-  const budgetCats = CATS.filter(c=>monthBudgets[c]);
-  if(budgetCats.length>0){
-    sectionHeader(8, 'Presupuesto vs. Gasto real', 'Control por categoría · ' + cursor.toLocaleDateString('es-ES',{month:'long',year:'numeric'}));
-    const mCatTotals = {};
-    monthTx.filter(t=>t.type==='expense').forEach(t=>{ mCatTotals[t.cat]=(mCatTotals[t.cat]||0)+t.amt; });
-    const budImg = drawBudgetBarsToCanvas(budgetCats, monthBudgets, mCatTotals, 520, 200).toDataURL('image/png');
-    doc.addImage(budImg,'PNG',mx,currentY,usableW,34);
-    currentY += 36;
-    doc.autoTable({
-      startY: currentY,
-      margin:{left:mx,right:mx},
-      head:[['Categoría','Presupuesto','Gastado','Diferencia','% Usado']],
-      body: budgetCats.map(c=>{
-        const budget=monthBudgets[c], spent=mCatTotals[c]||0, diff=budget-spent;
-        return [c, fmt(budget), fmt(spent), (diff>=0?'+':'')+fmt(diff), Math.round((spent/budget)*100)+'%'];
-      }),
-      styles:{font:'helvetica',fontSize:8.5,halign:'center',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-      headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-      alternateRowStyles:{fillColor:[252,252,254]},
-      columnStyles:{0:{halign:'left'},3:{fontStyle:'bold'}},
-      didParseCell:function(data){
-        if(data.section==='body' && data.column.index===3){
-          data.cell.styles.textColor = (monthBudgets[budgetCats[data.row.index]]-(mCatTotals[budgetCats[data.row.index]]||0))>=0?C.green:C.red;
-        }
-        if(data.section==='body' && data.column.index===4){
-          const pct = parseInt(data.cell.raw);
-          data.cell.styles.textColor = pct<=70?C.green:(pct<=100?C.amber:C.red);
-        }
-      }
-    });
-    currentY = doc.lastAutoTable.finalY + 8;
-  }
-
-  // ===== 9. METAS DE AHORRO =====
-  if(goals.length>0 || goalHistory.length>0){
-    sectionHeader(9, 'Metas de ahorro', 'Progreso de ahorro hacia tus objetivos');
-    if(goals.length>0){
-      const barFull = usableW*0.44;
-      goals.forEach(g=>{
-        const { progress, pct, completed, byAccount } = goalProgress(g);
-        ensureSpace(14);
-        doc.setFont('helvetica','bold'); doc.setFontSize(9.3); doc.setTextColor(...C.text);
-        doc.text(g.name, mx, currentY);
-        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.textSoft);
-        doc.text(fmt(progress)+' de '+fmt(g.target)+' ('+pct+'%)', mx+barFull+2, currentY);
-        currentY += 3.6;
-        doc.setFillColor(235,235,237);
-        doc.roundedRect(mx,currentY,barFull,4,2,2,'F');
-        if(pct>0){
-          doc.setFillColor(...(completed?C.green:C.gold));
-          doc.roundedRect(mx,currentY,barFull*(pct/100),4,2,2,'F');
-        }
-        currentY += 5;
-        if(!completed){
-          const gtx = tx.filter(t=>t.type==='saving'&&t.goalId===g.id);
-          const mt={}; gtx.forEach(t=>{ const k=monthKey(t.date); mt[k]=(mt[k]||0)+t.amt; });
-          const ks=Object.keys(mt).sort().slice(-6);
-          const avg=ks.length?ks.reduce((s,k)=>s+mt[k],0)/ks.length:0;
-          if(avg>0){
-            const monthsLeft=Math.ceil((g.target-progress)/avg);
-            const d=new Date(); d.setMonth(d.getMonth()+monthsLeft);
-            doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...C.amber);
-            doc.text('Estimado: a tu ritmo actual ('+fmt(avg)+'/mes) la completarías hacia '+d.toLocaleDateString('es-ES',{month:'long',year:'numeric'})+'.', mx, currentY+2);
-            currentY += 3;
-          }
-        }
-        currentY += 1.5;
-      });
-    }
-    if(goalHistory.length>0){
-      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...C.textSoft);
-      doc.text('Metas cumplidas', mx, currentY+2);
-      currentY += 4;
-      doc.autoTable({
-        startY: currentY,
-        margin:{left:mx,right:mx},
-        head:[['Meta','Monto objetivo','Fecha']],
-        body: goalHistory.slice().reverse().map(g=>[g.name, fmt(g.target), g.date]),
-        styles:{font:'helvetica',fontSize:8.5,halign:'left',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-        headStyles:{fillColor:[250,250,252],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.5},lineColor:C.textSoft},
-        alternateRowStyles:{fillColor:[252,252,254]},
-      });
-      currentY = doc.lastAutoTable.finalY + 8;
-    }
-  }
-
-  // ===== 10. DETALLE DE MOVIMIENTOS (agrupado por mes) =====
-  sectionHeader(10, 'Detalle de movimientos', tx.length+' registros · agrupados por mes con saldo acumulado');
-  const sorted = [...tx].sort((a,b)=> a.date.localeCompare(b.date) || a.id-b.id);
-  const monthGroups = {};
-  sorted.forEach(t=>{ const k=monthKey(t.date); (monthGroups[k]=monthGroups[k]||[]).push(t); });
-  const mKeys = Object.keys(monthGroups).sort();
-  const bodyArr = [];
-  const bodyMeta = [];
-  let runningSaldo = 0;
-  mKeys.forEach(function(k){
-    bodyArr.push([fmtMk(k),'','','','','','']);
-    bodyMeta.push({type:'band'});
-    let monthNet = 0;
-    monthGroups[k].forEach(function(t){
-      const delta = t.type==='income' ? t.amt : ((t.type==='expense'||t.type==='saving') ? -t.amt : 0);
-      runningSaldo += delta;
-      monthNet += delta;
-      let cat, desc, tipoCol;
-      if(t.type==='income'){ cat='Ingreso'; desc=t.note||''; tipoCol='Ingreso'; }
-      else if(t.type==='expense'){ cat=t.cat||''; desc=(t.cat==='Otros'&&t.note)?t.note:''; tipoCol='Gasto'; }
-      else if(t.type==='saving'){ cat='Ahorro'; desc=goalNameById(t.goalId)||'Sin meta específica'; tipoCol='Ahorro'; }
-      else { cat='Retiro'; desc='Efectivo'; tipoCol='Retiro'; }
-      const valueText = t.type==='withdrawal'
-        ? '↔$'+Math.abs(t.amt).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
-        : (delta>=0?'+':'-')+'$'+Math.abs(t.amt).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-      bodyArr.push([
-        t.date, accountNameById(t.account), cat, desc, tipoCol,
-        valueText,
-        '$'+runningSaldo.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
-      ]);
-      bodyMeta.push({type:'row', t, delta});
-    });
-    bodyArr.push(['','','','Subtotal '+k,'',(monthNet>=0?'+':'')+'$'+Math.abs(monthNet).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}), '']);
-    bodyMeta.push({type:'total', monthNet});
-  });
-
-  doc.autoTable({
-    startY: currentY,
-    margin:{left:mx,right:mx},
-    head:[['Fecha','Cuenta','Categoría','Descripción','Tipo','Valor','Saldo']],
-    body: bodyArr,
-    columnStyles:{1:{halign:'left'},2:{halign:'left'},3:{halign:'left'}},
-    styles:{font:'helvetica',fontSize:7.5,halign:'center',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-    headStyles:{fillColor:[242,242,247],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.6},lineColor:C.textSoft},
-    didParseCell:function(data){
-      const m = bodyMeta[data.row.index];
-      if(!m) return;
-      if(m.type==='band'){
-        Object.keys(data.row.cells).forEach(function(k){
-          data.row.cells[k].styles.fillColor=C.goldSoft;
-          data.row.cells[k].styles.textColor=C.gold;
-          data.row.cells[k].styles.fontStyle='bold';
-          data.row.cells[k].styles.halign='left';
-        });
-      } else if(m.type==='total'){
-        Object.keys(data.row.cells).forEach(function(k){
-          data.row.cells[k].styles.fontStyle='bold';
-          data.row.cells[k].styles.fillColor=[247,247,250];
-          data.row.cells[k].styles.textColor=C.text;
-        });
-        if(data.column.index===5){ data.row.cells['5'].styles.textColor = m.monthNet>=0?C.green:C.red; }
-      } else if(m.type==='row'){
-        if(data.column.index===5){
-          data.cell.styles.textColor = m.t.type==='withdrawal' ? C.gold : (m.delta>=0?C.green:C.red);
-          data.cell.styles.fontStyle='bold';
-        }
-        if(data.column.index===6){ data.cell.styles.textColor=C.text; }
-      }
-    }
-  });
-  currentY = doc.lastAutoTable.finalY + 8;
-
-  // ===== PIE DE PAGINA =====
-  const allPages = doc.internal.getNumberOfPages();
-  for(let i=1;i<=allPages;i++){
-    doc.setPage(i);
-    doc.setDrawColor(...C.line); doc.setLineWidth(0.3);
-    doc.line(mx, pageH-10, pageW-mx, pageH-10);
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.8); doc.setTextColor(...C.textSoft);
-    doc.text('Mi Control Financiero · ' + now.toLocaleDateString('es-ES'), mx, pageH-6);
-    doc.text('Página '+i+' de '+allPages, pageW-mx, pageH-6, {align:'right'});
-  }
-
-  doc.save('informe-financiero-' + dateKey(now) + '.pdf');
-});
-
-function hexToRgb(hex){
-  const h = hex.replace('#','');
-  return { r: parseInt(h.substring(0,2),16), g: parseInt(h.substring(2,4),16), b: parseInt(h.substring(4,6),16) };
-}
-
-
-/* presupuestos */
-document.getElementById('toggleBudgetsBtn')?.addEventListener('click', ()=>{
-  const wrap = document.getElementById('budgetForm');
-  if(wrap.classList.contains('hidden')){ renderBudgetForm(); wrap.classList.remove('hidden'); }
-  else wrap.classList.add('hidden');
-});
-function renderBudgetForm(){
-  const wrap = document.getElementById('budgetForm');
-  const mk = cursorKey();
-  const isOwn = !!budgets[mk];
-  const current = getBudgetsForMonth(mk);
-  const monthLabel = cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-  wrap.innerHTML = `
-    <p class="budget-month-note">Presupuestos de <b>${monthLabel}</b>${isOwn ? '' : (Object.keys(current).length ? ' <span class="budget-inherited">(usando los del mes anterior, aún no personalizados)</span>' : '')}</p>
-    ${CATS.map(c=>`
-    <div class="budget-row">
-      <span>${catIcon(c)}${escapeHtml(c)}</span>
-      <input type="number" min="0" step="1" class="budget-input" data-cat="${escapeAttr(c)}" value="${current[c]||''}" placeholder="Sin límite">
-    </div>`).join('')}
-    <button class="btn-submit" id="saveBudgetsBtn" style="margin-top:6px;">Guardar para ${monthLabel}</button>`;
-  document.getElementById('saveBudgetsBtn')?.addEventListener('click', ()=>{
-    const values = {};
-    wrap.querySelectorAll('.budget-input').forEach(inp=>{
-      const v = parseFloat(inp.value);
-      if(v>0) values[inp.dataset.cat]=v;
-    });
-    setBudgetsForMonth(mk, values);
-    wrap.classList.add('hidden');
-    render();
+  window.addEventListener('offline', function(){
+    setSyncStatusIndicator('offline');
   });
 }
-
-/* metas */
-function renderGoals(){
-  const area = document.getElementById('goalArea');
-  if(goals.length===0){
-    area.innerHTML = `<div class="goal-empty">
-      <div class="empty-icon">${icon('target', 34)}</div>
-      <p>Aún no tienes metas activas. Crea una y elígela al registrar un ahorro.</p>
-      <button class="btn-outline" id="newGoalBtn">+ Crear primera meta</button>
-    </div>`;
-    document.getElementById('newGoalBtn')?.addEventListener('click', ()=>showGoalForm(null));
-  } else {
-    area.innerHTML = goals.map(g=>{
-      const { progress, pct, completed, byAccount } = goalProgress(g);
-      return `<div class="goal-mini ${completed?'completed':''}">
-        ${completed ? `<div class="goal-complete-banner"><p>🎉 ¡Meta cumplida!</p></div>` : ''}
-        <div class="goal-mini-head">
-          <span class="gname">${escapeHtml(g.name)}</span>
-          <span class="gpct">${pct}%</span>
-        </div>
-        <div class="track"><div class="fill ${completed?'full':''}" style="width:${pct}%"></div></div>
-        <div class="goal-mini-amt">${fmt(progress)} de ${fmt(g.target)}</div>
-        ${Object.keys(byAccount).length > 0 ? `
-          <div class="goal-mini-breakdown" style="font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--text-soft); margin-bottom:9px; display:flex; flex-wrap:wrap; gap:5px;">
-            ${Object.entries(byAccount).filter(([_,amt])=>amt>0.005).map(([accId, amt]) => {
-              const aMeta = getAccountMeta(accId);
-              return `<span style="display:inline-flex; align-items:center; gap:4px; background:rgba(0,0,0,0.28); padding:2px 7px; border-radius:5px; border:1px solid rgba(255,255,255,0.08);"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${aMeta.color};"></span> ${escapeHtml(aMeta.name)}: <b style="color:var(--text);">${fmt(amt)}</b></span>`;
-            }).join('')}
-          </div>
-        ` : ''}
-        <div class="goal-mini-actions">
-          ${completed
-            ? `<button class="btn-ghost-sm archive-g" data-id="${g.id}">Archivar</button><button class="btn-ghost-sm discard-g" data-id="${g.id}">Descartar</button>`
-            : `<button class="btn-ghost-sm edit-g" data-id="${g.id}">Editar</button><button class="btn-ghost-sm del-g" data-id="${g.id}">Eliminar</button>`}
-        </div>
-      </div>`;
-    }).join('') + `<button class="btn-outline" id="newGoalBtn" style="width:100%;margin-top:2px;">+ Nueva meta</button>`;
-
-    area.querySelectorAll('.edit-g').forEach(b=>b.addEventListener('click', ()=> showGoalForm(goals.find(g=>g.id===b.dataset.id))));
-    area.querySelectorAll('.del-g').forEach(b=>b.addEventListener('click', ()=>{ goals = goals.filter(g=>g.id!==b.dataset.id); saveGoals(goals); render(); }));
-    area.querySelectorAll('.archive-g').forEach(b=>b.addEventListener('click', ()=>{
-      const g = goals.find(g=>g.id===b.dataset.id);
-      goalHistory.push({ name: g.name, target: g.target, date: dateKey() });
-      saveGoalHistory(goalHistory);
-      goals = goals.filter(x=>x.id!==g.id); saveGoals(goals);
-      render();
-    }));
-    area.querySelectorAll('.discard-g').forEach(b=>b.addEventListener('click', ()=>{ goals = goals.filter(g=>g.id!==b.dataset.id); saveGoals(goals); render(); }));
-    document.getElementById('newGoalBtn')?.addEventListener('click', ()=>showGoalForm(null));
-  }
-  renderGoalHistory();
-  if(document.getElementById('goalField')) updateGoalFieldOptions();
-}
-
-function showGoalForm(existing){
-  const area = document.getElementById('goalArea');
-  area.innerHTML = `<div class="goal-form">
-    <label for="gName">Nombre de la meta</label>
-    <input id="gName" type="text" placeholder="Ej. Laptop nueva" value="${existing? escapeAttr(existing.name):''}">
-    <label for="gTarget">Monto objetivo</label>
-    <input id="gTarget" type="number" min="1" step="0.01" placeholder="300" value="${existing? existing.target:''}">
-    <div class="goal-form-actions">
-      <button class="btn-submit" id="saveGoalBtn">Guardar meta</button>
-      <button class="btn-ghost-sm" id="cancelGoalBtn">Cancelar</button>
-    </div>
-  </div>`;
-  document.getElementById('saveGoalBtn')?.addEventListener('click', ()=>{
-    const name = document.getElementById('gName').value.trim();
-    const target = parseFloat(document.getElementById('gTarget').value);
-    if(!name || !target) return;
-    if(existing){
-      const idx = goals.findIndex(g=>g.id===existing.id);
-      goals[idx] = { ...existing, name, target };
-    } else {
-      goals.push({ id:'g'+Date.now(), name, target, createdDate: dateKey() });
-    }
-    saveGoals(goals);
-    render();
-  });
-  document.getElementById('cancelGoalBtn')?.addEventListener('click', renderGoals);
-}
-
-function renderGoalHistory(){
-  const wrap = document.getElementById('goalArea');
-  let histEl = document.getElementById('goalHistoryBox');
-  if(!histEl){ histEl = document.createElement('div'); histEl.id='goalHistoryBox'; wrap.appendChild(histEl); }
-  if(goalHistory.length===0){ histEl.innerHTML=''; return; }
-  histEl.innerHTML = `<div class="goal-history">
-    <h3>Metas cumplidas</h3>
-    ${goalHistory.map((g,i)=>({g,i})).reverse().map(({g,i})=>`
-      <div class="goal-history-item">
-        <span class="name">✅ ${escapeHtml(g.name)}</span>
-        <span class="right"><span class="amt">${fmt(g.target)}</span><button class="del-x" data-i="${i}">&times;</button></span>
-      </div>`).join('')}
-    <button class="goal-history-clear" id="clearHistoryBtn">Borrar todo el historial</button>
-  </div>`;
-  histEl.querySelectorAll('.del-x').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      goalHistory.splice(parseInt(btn.dataset.i,10), 1);
-      saveGoalHistory(goalHistory);
-      renderGoalHistory();
-    });
-  });
-  document.getElementById('clearHistoryBtn')?.addEventListener('click', ()=>{
-    goalHistory = []; saveGoalHistory(goalHistory); renderGoalHistory();
-  });
-}
-
-/* balance general (acumulado histórico) */
-function getMonthlySeries(){
-  if(tx.length===0) return [];
-  const allMonths = tx.map(t=>monthKey(t.date));
-  let minMonth = allMonths.reduce((a,b)=> a<b?a:b);
-  let maxMonth = monthKeyFromDate(new Date());
-  if(cursorKey() > maxMonth) maxMonth = cursorKey();
-  const months = [];
-  let d = new Date(minMonth+'-01T00:00:00');
-  const end = new Date(maxMonth+'-01T00:00:00');
-  while(d <= end){ months.push(monthKeyFromDate(d)); d.setMonth(d.getMonth()+1); }
-  let acc = 0;
-  return months.map(mk=>{
-    const mtx = tx.filter(t=>monthKey(t.date)===mk);
-    const income = mtx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-    const expense = mtx.filter(t=>t.type==='expense' && normalizeAccountId(t.account)!=='tc').reduce((s,t)=>s+t.amt,0);
-    const saved = mtx.filter(t=>t.type==='saving').reduce((s,t)=>s+t.amt,0);
-    const net = income - expense - saved;
-    acc += net;
-    return { mk, income, expense, saved, net, acc };
-  });
-}
-
-let lastSeries = [];
-function renderBalance(){
-  const series = getMonthlySeries();
-  lastSeries = series;
-  const total = series.length ? series[series.length-1].acc : 0;
-  animateNumber('balTotalHist', total);
-
-  const tbody = document.getElementById('balanceTableBody');
-  if(series.length===0){
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:14px 0;">Aún no hay movimientos.</td></tr>';
-  } else {
-    tbody.innerHTML = series.slice().reverse().map(s=>{
-      const label = new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short', year:'2-digit'});
-      return `<tr>
-        <td>${label}</td><td>${fmt(s.income)}</td><td>${fmt(s.expense)}</td><td>${fmt(s.saved)}</td>
-        <td class="${s.net>=0?'pos':'neg'}">${s.net>=0?'+':''}${fmt(s.net)}</td>
-        <td class="acc">${fmt(s.acc)}</td>
-      </tr>`;
-    }).join('');
-  }
-  drawBalanceChart(series);
-  return total;
-}
-
-function drawBalanceChart(series){
-  const canvas = document.getElementById('balanceChart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth, h = 170;
-  canvas.width = w*dpr; canvas.height = h*dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,w,h);
-  if(!series || series.length===0) return;
-  const padL=6, padR=6, padT=16, padB=22;
-  const plotW = w-padL-padR, plotH = h-padT-padB;
-  const vals = series.map(s=>s.acc);
-  const min = Math.min(0, ...vals), max = Math.max(1, ...vals);
-  const range = (max-min) || 1;
-  const x = i => padL + (series.length===1 ? plotW/2 : (plotW/(series.length-1))*i);
-  const y = v => padT + plotH - ((v-min)/range)*plotH;
-  ctx.strokeStyle = 'rgba(140,170,220,0.18)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(padL, y(0)); ctx.lineTo(w-padR, y(0)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x(0), y(series[0].acc));
-  series.forEach((s,i)=> ctx.lineTo(x(i), y(s.acc)));
-  ctx.lineTo(x(series.length-1), y(0)); ctx.lineTo(x(0), y(0)); ctx.closePath();
-  const grad = ctx.createLinearGradient(0,padT,0,padT+plotH);
-  grad.addColorStop(0, 'rgba(249,115,22,0.28)'); grad.addColorStop(1, 'rgba(249,115,22,0.02)');
-  ctx.fillStyle = grad; ctx.fill();
-  ctx.beginPath();
-  series.forEach((s,i)=>{ const px=x(i), py=y(s.acc); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
-  ctx.strokeStyle = '#F97316'; ctx.lineWidth = 2; ctx.lineJoin='round'; ctx.stroke();
-  const showEvery = Math.ceil(series.length/7);
-  series.forEach((s,i)=>{
-    const px=x(i), py=y(s.acc);
-    ctx.beginPath(); ctx.arc(px,py,2.6,0,Math.PI*2); ctx.fillStyle = '#F97316'; ctx.fill();
-    if(i % showEvery === 0 || series.length===1){
-      ctx.fillStyle = 'rgba(234,240,250,0.55)'; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'center';
-      ctx.fillText(new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short'}), px, h-6);
-    }
-  });
-}
-window.addEventListener('resize', ()=>{
-  drawBalanceChart(lastSeries);
-  drawFlowChart(lastFlow);
-  drawBudgetChart(lastBudgetData.catTotals, lastBudgetData.monthBudgets);
-  drawProjectionChart();
-});
-
-/* flujo financiero (últimos 6 meses) */
-let lastFlow = [];
-let lastDonut = { catTotals: {}, total: 0 };
-function getFlowSeries(){
-  const months = [];
-  for(let i=5;i>=0;i--){ const d=new Date(cursor); d.setMonth(d.getMonth()-i); months.push(monthKeyFromDate(d)); }
-  return months.map(mk=>{
-    const mtx = tx.filter(t=>monthKey(t.date)===mk);
-    const income = mtx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-    const expense = mtx.filter(t=>t.type==='expense' && normalizeAccountId(t.account)!=='tc').reduce((s,t)=>s+t.amt,0);
-    return { mk, income, expense };
-  });
-}
-function drawFlowChart(series){
-  lastFlow = series;
-  const canvas = document.getElementById('flowChart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth, h = 180;
-  canvas.width = w*dpr; canvas.height = h*dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,w,h);
-  if(!series || series.length===0) return;
-  const padL=8, padR=8, padT=14, padB=22;
-  const plotW = w-padL-padR, plotH = h-padT-padB;
-  const maxV = Math.max(1, ...series.map(s=>Math.max(s.income,s.expense)));
-  const x = i => padL + (series.length===1? plotW/2 : (plotW/(series.length-1))*i);
-  const y = v => padT + plotH - (v/maxV)*plotH;
-
-  function drawArea(key, color, alpha){
-    ctx.beginPath(); ctx.moveTo(x(0), y(series[0][key]));
-    series.forEach((s,i)=> ctx.lineTo(x(i), y(s[key])));
-    ctx.lineTo(x(series.length-1), padT+plotH); ctx.lineTo(x(0), padT+plotH); ctx.closePath();
-    ctx.fillStyle = color.replace('ALPHA', alpha); ctx.fill();
-    ctx.beginPath();
-    series.forEach((s,i)=>{ const px=x(i), py=y(s[key]); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
-    ctx.strokeStyle = color.replace('ALPHA','1'); ctx.lineWidth = 2; ctx.lineJoin='round'; ctx.stroke();
-  }
-  drawArea('expense', 'rgba(226,76,91,ALPHA)', '0.12');
-  drawArea('income', 'rgba(52,199,154,ALPHA)', '0.14');
-
-  const showEvery = Math.ceil(series.length/6);
-  series.forEach((s,i)=>{
-    if(i % showEvery === 0 || series.length===1){
-      ctx.fillStyle = 'rgba(234,240,250,0.5)'; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign='center';
-      ctx.fillText(new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short'}), x(i), h-6);
-    }
-  });
-}
-
-/* donut de categorías */
-function drawDonut(catTotals, total){
-  const canvas = document.getElementById('donutChart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const size = 150;
-  canvas.width = size*dpr; canvas.height = size*dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,size,size);
-  const cx=size/2, cy=size/2, rOuter=68, rInner=42;
-  let start = -Math.PI/2;
-  const entries = CATS.filter(c=>catTotals[c]>0);
-  if(total<=0){
-    ctx.beginPath(); ctx.arc(cx,cy,rOuter,0,Math.PI*2);
-    ctx.strokeStyle='rgba(140,170,220,0.12)'; ctx.lineWidth=2; ctx.stroke();
-    ctx.fillStyle='rgba(140,170,220,0.06)'; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx,cy,rInner,0,Math.PI*2);
-    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--panel').trim() || '#222225';
-    ctx.fill();
-    return;
-  }
-  entries.forEach(c=>{
-    const frac = catTotals[c]/total;
-    const end = start + frac*Math.PI*2;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,rOuter,start,end);
-    ctx.closePath();
-    ctx.fillStyle = CAT_COLOR[c];
-    ctx.fill();
-    start = end;
-  });
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath(); ctx.arc(cx,cy,rInner,0,Math.PI*2); ctx.fill();
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-/* Presupuesto vs gasto real */
-let lastBudgetData = { cats: [], catTotals: {}, monthBudgets: {} };
-function drawBudgetChart(catTotals, monthBudgets){
-  const canvas = document.getElementById('budgetChart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth, h = 180;
-  canvas.width = w*dpr; canvas.height = h*dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,w,h);
-
-  const cats = CATS.filter(c=>monthBudgets[c]);
-  lastBudgetData = { cats, catTotals, monthBudgets };
-  const emptyNote = document.getElementById('budgetChartEmpty');
-  if(cats.length===0){
-    emptyNote.textContent = 'Define presupuestos por categoría (arriba, en "Presupuestos") para ver esta comparación.';
-    return;
-  }
-  emptyNote.textContent = '';
-
-  const padL=8, padR=8, padT=14, padB=26;
-  const plotW = w-padL-padR, plotH = h-padT-padB;
-  const maxV = Math.max(1, ...cats.map(c=>Math.max(monthBudgets[c], catTotals[c]||0)));
-  const groupW = plotW / cats.length;
-  const barW = Math.min(26, groupW*0.28);
-
-  cats.forEach((c,i)=>{
-    const groupCenter = padL + groupW*(i+0.5);
-    const budget = monthBudgets[c];
-    const spent = catTotals[c] || 0;
-    const budgetH = (budget/maxV)*plotH;
-    const spentH = (spent/maxV)*plotH;
-    const ratio = spent/budget;
-    const spentColor = ratio < 0.7 ? '#22C55E' : (ratio <= 1 ? '#FBBF24' : '#EF4444');
-
-    ctx.fillStyle = 'rgba(166,152,156,0.35)';
-    ctx.fillRect(groupCenter - barW - 2, padT+plotH-budgetH, barW, budgetH);
-
-    ctx.fillStyle = spentColor;
-    ctx.fillRect(groupCenter + 2, padT+plotH-spentH, barW, spentH);
-
-    ctx.fillStyle = 'rgba(243,238,239,0.55)';
-    ctx.font = '9px JetBrains Mono, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(c.length>10 ? c.slice(0,9)+'…' : c, groupCenter, h-8);
-  });
-}
-
-/* Proyección de ahorro */
-let lastProjection = null;
-function getProjectionData(){
-  const activeGoals = goals.filter(g=>!goalProgress(g).completed);
-  if(activeGoals.length===0) return null;
-  const g = activeGoals[0];
-  const goalTx = tx.filter(t=>t.type==='saving' && t.goalId===g.id);
-
-  const monthTotals = {};
-  goalTx.forEach(t=>{ const mk=monthKey(t.date); monthTotals[mk]=(monthTotals[mk]||0)+t.amt; });
-  const months = Object.keys(monthTotals).sort();
-
-  let cum = 0;
-  const history = months.map(mk=>{ cum += monthTotals[mk]; return { mk, cum }; });
-  const currentTotal = cum;
-  const remaining = Math.max(0, g.target - currentTotal);
-
-  const recentMonths = months.slice(-6);
-  const avgRate = recentMonths.length ? recentMonths.reduce((s,mk)=>s+monthTotals[mk],0)/recentMonths.length : 0;
-
-  return { goal:g, history, currentTotal, remaining, avgRate, othersCount: activeGoals.length-1 };
-}
-
-function drawProjectionChart(){
-  const canvas = document.getElementById('projectionChart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth, h = 180;
-  canvas.width = w*dpr; canvas.height = h*dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,w,h);
-
-  const data = getProjectionData();
-  lastProjection = data;
-  const emptyNote = document.getElementById('projectionChartEmpty');
-
-  if(!data){
-    emptyNote.textContent = 'Crea una meta de ahorro para ver tu proyección.';
-    return;
-  }
-  if(data.history.length===0){
-    emptyNote.textContent = `Todavía no tienes ahorros registrados para "${data.goal.name}".`;
-    return;
-  }
-  if(data.avgRate<=0){
-    emptyNote.textContent = `A tu ritmo actual no alcanzarías "${data.goal.name}". Intenta ahorrar algo este mes.`;
-  } else {
-    const monthsLeft = Math.ceil(data.remaining / data.avgRate);
-    const target = new Date(); target.setMonth(target.getMonth()+monthsLeft);
-    const label = target.toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-    emptyNote.textContent = data.remaining<=0
-      ? `¡"${data.goal.name}" ya está completa!`
-      : `A tu ritmo actual (${fmt(data.avgRate)}/mes), la completarías en ${label}.`;
-    if(data.othersCount>0) emptyNote.textContent += ` (mostrando tu primera meta activa)`;
-  }
-
-  // construir puntos: historial + proyeccion
-  const points = data.history.map(h=>({ label:h.mk, val:h.cum, projected:false }));
-  if(data.avgRate>0 && data.remaining>0){
-    let cum = data.currentTotal;
-    let mDate = new Date();
-    for(let i=1;i<=24 && cum<data.goal.target;i++){
-      mDate.setMonth(mDate.getMonth()+1);
-      cum += data.avgRate;
-      points.push({ label:monthKeyFromDate(mDate), val:Math.min(cum, data.goal.target*1.05), projected:true });
-    }
-  }
-  if(points.length<2) points.unshift({ label:'inicio', val:0, projected:false });
-
-  const padL=8, padR=8, padT=16, padB=22;
-  const plotW = w-padL-padR, plotH = h-padT-padB;
-  const maxV = Math.max(data.goal.target, ...points.map(p=>p.val)) * 1.05;
-  const x = i => padL + (points.length===1?plotW/2:(plotW/(points.length-1))*i);
-  const y = v => padT + plotH - (v/maxV)*plotH;
-
-  // linea meta
-  const targetY = y(data.goal.target);
-  ctx.setLineDash([4,4]);
-  ctx.strokeStyle = '#FBBF24'; ctx.lineWidth = 1.3;
-  ctx.beginPath(); ctx.moveTo(padL, targetY); ctx.lineTo(w-padR, targetY); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#FBBF24'; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'left';
-  ctx.fillText('Meta: ' + fmt(data.goal.target), padL+2, targetY-4);
-
-  // linea historica (solida) y proyectada (punteada)
-  const firstProjIdx = points.findIndex(p=>p.projected);
-  ctx.beginPath();
-  points.forEach((p,i)=>{ const px=x(i), py=y(p.val); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
-  ctx.strokeStyle = 'rgba(63,165,122,0.9)'; ctx.lineWidth = 2; ctx.lineJoin='round';
-  if(firstProjIdx>0){
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(padL, padT, x(firstProjIdx)-padL, plotH);
-    ctx.clip();
-    points.forEach((p,i)=>{ const px=x(i), py=y(p.val); if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py); });
-    ctx.stroke();
-    ctx.restore();
-  } else if(firstProjIdx===-1){
-    ctx.stroke();
-  }
-
-  if(firstProjIdx>0){
-    ctx.setLineDash([5,4]);
-    ctx.strokeStyle = 'rgba(212,175,55,0.9)';
-    ctx.beginPath();
-    for(let i=firstProjIdx-1;i<points.length;i++){
-      const px=x(i), py=y(points[i].val);
-      if(i===firstProjIdx-1) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // puntos
-  points.forEach((p,i)=>{
-    ctx.beginPath();
-    ctx.arc(x(i), y(p.val), 2.4, 0, Math.PI*2);
-    ctx.fillStyle = p.projected ? 'rgba(212,175,55,0.9)' : 'rgba(63,165,122,0.9)';
-    ctx.fill();
-  });
-}
-
-/* animación de números */
-function animateNumber(id, target){
-  const el = document.getElementById(id);
-  if(!el) return;
-  const num = Number.isFinite(Number(target)) ? Number(target) : 0;
-  el.textContent = fmt(num);
-  el.dataset.raw = String(num);
-}
-
-/* análisis del mes */
-function renderAnalysis(monthTx, income, expense){
-  const mk = cursorKey();
-  const now = new Date();
-  const isCurrentMonth = mk === monthKeyFromDate(now);
-  const y = parseInt(mk.slice(0,4),10), m = parseInt(mk.slice(5,7),10);
-  const daysInMonth = new Date(y, m, 0).getDate();
-  let daysElapsed = daysInMonth;
-  if(isCurrentMonth) daysElapsed = Math.max(1, Math.min(daysInMonth, now.getDate()));
-  const avgDaily = expense / daysElapsed;
-  animateNumber('anAvgDaily', avgDaily);
-  document.getElementById('anAvgDailySub').textContent = `sobre ${daysElapsed} día${daysElapsed===1?'':'s'} transcurrido${daysElapsed===1?'':'s'}`;
-  const daysLeft = daysInMonth - daysElapsed;
-  document.getElementById('anDaysLeft').textContent = isCurrentMonth ? String(daysLeft) : '—';
-  document.getElementById('anDaysSub').textContent = isCurrentMonth ? `faltan ${daysLeft} para terminar el mes` : 'mes cerrado';
-}
-
-/* insights */
-function renderInsights(){
-  const grid = document.getElementById('insightsGrid');
-  if(!grid) return;
-  const mk = cursorKey();
-  const monthTx = tx.filter(t=>monthKey(t.date)===mk);
-  const tiles = [];
-
-  const catT = {};
-  monthTx.filter(t=>t.type==='expense').forEach(t=>{ catT[t.cat]=(catT[t.cat]||0)+t.amt; });
-  const topCat = Object.keys(catT).sort((a,b)=>catT[b]-catT[a])[0];
-  if(topCat){
-    tiles.push(`<div class="insight-tile"><div class="tag">Top categoría del mes</div><div class="val gold">${escapeHtml(topCat)}</div><div class="sub">${fmt(catT[topCat])} gastados</div></div>`);
-  } else {
-    tiles.push(`<div class="insight-tile"><div class="tag">Top categoría del mes</div><div class="val">—</div><div class="sub">sin gastos este mes</div></div>`);
-  }
-
-  const monthsMap = {};
-  tx.filter(t=>t.type==='expense').forEach(t=>{ const k=monthKey(t.date); monthsMap[k]=(monthsMap[k]||0)+t.amt; });
-  const maxMonthKey = Object.keys(monthsMap).sort((a,b)=>monthsMap[b]-monthsMap[a])[0];
-  if(maxMonthKey){
-    const mm = new Date(maxMonthKey+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-    tiles.push(`<div class="insight-tile"><div class="tag">Mes con mayor gasto</div><div class="val red">${fmt(monthsMap[maxMonthKey])}</div><div class="sub">${mm}</div></div>`);
-  } else {
-    tiles.push(`<div class="insight-tile"><div class="tag">Mes con mayor gasto</div><div class="val">—</div><div class="sub">sin historial aún</div></div>`);
-  }
-
-  const series = getMonthlySeries();
-  let streak = 0;
-  for(let i=series.length-1;i>=0;i--){
-    const s = series[i];
-    const hadData = tx.some(t=>monthKey(t.date)===s.mk);
-    if(!hadData) continue;
-    if(s.net>=0) streak++;
-    else break;
-  }
-  tiles.push(`<div class="insight-tile"><div class="tag">Racha de superávit</div><div class="val ${streak>0?'green':''}">${streak} mes${streak===1?'':'es'}</div><div class="sub">meses seguidos con saldo positivo</div></div>`);
-
-  const y0 = parseInt(mk.slice(0,4),10);
-  const ytx = tx.filter(t=>monthKey(t.date).slice(0,4)===String(y0));
-  const yInc = ytx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-  const yExp = ytx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
-  tiles.push(`<div class="insight-tile"><div class="tag">Año ${y0} · ingresos vs gastos</div><div class="val ${yInc>=yExp?'green':'red'}">${fmt(yInc-yExp)}</div><div class="sub">balance acumulado del año</div></div>`);
-
-  const last6Mk = [];
-  for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); last6Mk.push(monthKeyFromDate(d)); }
-  const catMonths = {};
-  tx.filter(t=>t.type==='expense').forEach(t=>{ const k=monthKey(t.date); if(last6Mk.includes(k)){ if(!catMonths[t.cat]) catMonths[t.cat]={}; catMonths[t.cat][k]=1; } });
-  const recurrent = Object.keys(catMonths).map(c=>{
-    const months = Object.keys(catMonths[c]);
-    const vals = months.map(mk=> tx.filter(t=>t.type==='expense' && t.cat===c && monthKey(t.date)===mk).reduce((s,t)=>s+t.amt,0));
-    const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-    return { c, n: months.length, avg };
-  }).filter(r=>r.n>=3).sort((a,b)=>b.avg-a.avg);
-
-  if(recurrent.length){
-    tiles.push(`<div class="insight-tile" style="grid-column:span 2;"><div class="tag">Posibles gastos fijos · últimos 6 meses</div>
-      <div class="recurrent-badges">${recurrent.map(r=>`<span class="recurrent-badge">${escapeHtml(r.c)} · ${r.n}/6 meses · <b>${fmt(r.avg)}/mes</b></span>`).join('')}</div>
-      <div class="sub" style="margin-top:8px;">Se repiten casi todos los meses. Revisa si puedes ajustarlos.</div>
-    </div>`);
-  }
-
-  grid.innerHTML = tiles.join('');
-}
-
-/* render principal */
-function render(){
-  const isNarrow = window.innerWidth <= 680;
-  document.getElementById('monthLabel').textContent = cursor.toLocaleDateString('es-ES',{month: isNarrow ? 'short' : 'long', year:'numeric'});
-  document.getElementById('heroSubtitle').textContent = 'Resumen financiero de ' + cursor.toLocaleDateString('es-ES',{month:'long'});
-
-  const monthTx = tx.filter(t=>monthKey(t.date)===cursorKey()).sort((a,b)=>b.date.localeCompare(a.date));
-  const income = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-  const expense = monthTx.filter(t=>t.type==='expense' && normalizeAccountId(t.account)!=='tc').reduce((s,t)=>s+t.amt,0);
-  const saved = monthTx.filter(t=>t.type==='saving').reduce((s,t)=>s+t.amt,0);
-  const free = income-expense-saved;
-
-  renderAccounts();
-  renderCreditCardPanel();
-  renderMotorcycleMaintenance();
-
-  // El balance principal del Hero refleja tu dinero líquido total disponible en cuentas
-  const currentTotals = getCurrentAccountTotals();
-  const liquidCashTotal = ['peigo', 'deuna', 'cash'].reduce((sum, id) => sum + (currentTotals[id] ? currentTotals[id].balance : 0), 0);
-  animateNumber('heroBalance', liquidCashTotal);
-  
-  const heroChange = document.getElementById('heroChange');
-  if(heroChange){
-    // Cantidad que sobró del mes anterior
-    const prevMonthDate = new Date(cursor);
-    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-    const prevMkKey = monthKeyFromDate(prevMonthDate);
-    const prevSeries = getMonthlySeries();
-    const prevEntry = prevSeries.find(s => s.mk === prevMkKey);
-    const prevAcc = prevEntry ? prevEntry.acc : 0;
-    const prevMonthName = prevMonthDate.toLocaleDateString('es-ES', { month: 'long' });
-    
-    if(Math.abs(prevAcc) > 0.005){
-      const pSign = prevAcc > 0 ? '+' : '−';
-      heroChange.innerHTML = `<span class="pos">${pSign}${fmt(Math.abs(prevAcc))}</span> <span style="opacity:0.85;">del mes anterior (${prevMonthName})</span>`;
-    } else {
-      heroChange.innerHTML = `<span style="opacity:0.75;">Sin saldo del mes anterior</span>`;
-    }
-  }
-
-  animateNumber('chipIncome', income);
-  animateNumber('chipExpense', expense);
-  animateNumber('chipSaving', saved);
-
-  // comparación de chips vs mes anterior
-  const prevMkCmp = new Date(cursor); prevMkCmp.setMonth(prevMkCmp.getMonth()-1);
-  const prevMkCmpKey = monthKeyFromDate(prevMkCmp);
-  const prevTxCmp = tx.filter(t=>monthKey(t.date)===prevMkCmpKey);
-  const prevIncCmp = prevTxCmp.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
-  const prevExpCmp = prevTxCmp.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
-  const prevSavCmp = prevTxCmp.filter(t=>t.type==='saving').reduce((s,t)=>s+t.amt,0);
-  const chipSub = (id, cur, prev, invert) => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    if(prev>0){
-      const diff = cur - prev;
-      const pct = Math.round((diff/prev)*100);
-      const up = diff>0;
-      const good = invert ? !up : up;
-      el.className = 'sub ' + (Math.abs(diff)<0.01 ? 'flat' : (good ? 'up' : 'down'));
-      el.textContent = Math.abs(diff)<0.01 ? 'igual que el mes pasado' : (up?'+':'') + fmt(diff) + ` (${pct>0?'+':''}${pct}%) vs mes pasado`;
-    } else if(cur>0){
-      el.className = 'sub up';
-      el.textContent = 'el mes pasado fue $0';
-    } else {
-      el.className = 'sub flat';
-      el.textContent = '';
-    }
-  };
-  chipSub('chipIncomeSub', income, prevIncCmp, false);
-  chipSub('chipExpenseSub', expense, prevExpCmp, true);
-  chipSub('chipSavingSub', saved, prevSavCmp, false);
-
-  const banner = document.getElementById('alertBanner');
-  if(alertThreshold!=null && free < alertThreshold){
-    banner.classList.remove('hidden');
-    banner.textContent = `⚠️ Tu disponible de este mes (${fmt(free)}) está por debajo de tu umbral de ${fmt(alertThreshold)}.`;
-  } else banner.classList.add('hidden');
-
-  // salud financiera
-  let healthScore;
-  if(income>0) healthScore = Math.max(0, Math.min(100, Math.round(((income-expense)/income)*100)));
-  else healthScore = expense>0 ? 0 : 100;
-  document.getElementById('healthFill').style.width = healthScore+'%';
-  document.getElementById('healthPct').textContent = healthScore+'%';
-  const msg = healthScore>=70 ? 'Buen control este mes 👍' : healthScore>=40 ? 'Vas bien, sigue así' : 'Cuidado: estás gastando cerca (o más) de lo que ingresa';
-  document.getElementById('healthMsg').textContent = msg;
-
-  renderAnalysis(monthTx, income, expense);
-  renderInsights();
-
-  // categorías con presupuesto (del mes que se esta viendo)
-  const monthBudgets = getBudgetsForMonth(cursorKey());
-  const catTotals = {};
-  CATS.forEach(c=>catTotals[c]=0);
-  monthTx.filter(t=>t.type==='expense').forEach(t=>{ catTotals[t.cat] = (catTotals[t.cat]||0)+t.amt; });
-  const maxCat = Math.max(1, ...Object.values(catTotals));
-  const catBars = document.getElementById('catBars');
-  const visibleCats = CATS.filter(c=>catTotals[c]>0 || monthBudgets[c]).sort((a,b)=>catTotals[b]-catTotals[a]);
-  if(visibleCats.length===0){
-    catBars.innerHTML = '<div class="cat-empty">Sin gastos registrados este mes.</div>';
-  } else {
-    catBars.innerHTML = visibleCats.map(c=>{
-      const spent = catTotals[c]; const budget = monthBudgets[c];
-      let fillPct, fillClass, extra='';
-      if(budget){
-        const ratio = spent/budget;
-        fillPct = Math.min(100, ratio*100);
-        fillClass = ratio < 0.7 ? 'ok' : (ratio <= 1 ? 'warn' : 'over');
-        extra = ` / ${fmt(budget)}${ratio>1 ? ' ⚠️' : ''}`;
-      } else { fillPct = (spent/maxCat)*100; fillClass = 'neutral'; }
-      return `<div class="cat-row">
-        <span class="name">${catIcon(c)}${escapeHtml(c)}</span>
-        <div class="track"><div class="fill ${fillClass}" style="width:${fillPct}%"></div></div>
-        <span class="amt">${fmt(spent)}${extra}</span>
-      </div>`;
-    }).join('');
-  }
-
-  // donut
-  const totalExpense = Object.values(catTotals).reduce((a,b)=>a+b,0);
-  const donutLegend = document.getElementById('donutLegend');
-  if(totalExpense<=0){
-    donutLegend.innerHTML = '<div class="donut-empty">Sin gastos este mes.</div>';
-  } else {
-    donutLegend.innerHTML = CATS.filter(c=>catTotals[c]>0).sort((a,b)=>catTotals[b]-catTotals[a]).map(c=>`
-      <div class="drow">
-        <span class="dname"><span class="dsw" style="background:${CAT_COLOR[c]}"></span>${escapeHtml(c)}</span>
-        <span class="dval">${Math.round((catTotals[c]/totalExpense)*100)}%</span>
-      </div>`).join('');
-  }
-  drawDonut(catTotals, totalExpense);
-  lastDonut = { catTotals, total: totalExpense };
-  drawFlowChart(getFlowSeries());
-  drawBudgetChart(catTotals, monthBudgets);
-  drawProjectionChart();
-
-  // movimientos (filtrados + agrupados por día)
-  const list = document.getElementById('txList');
-  list.onclick = e => {
-    const delBtn = e.target.closest('.del');
-    if(delBtn){ deleteTx(parseInt(delBtn.dataset.delId,10)); return; }
-    const editBtn = e.target.closest('.edit');
-    if(editBtn){ editTx(parseInt(editBtn.dataset.editId,10)); return; }
-  };
-  let filtered = monthTx;
-  if(txTypeFilter!=='all') filtered = filtered.filter(t=>t.type===txTypeFilter);
-  if(txSearch.trim()){
-    const q = txSearch.trim().toLowerCase();
-    filtered = filtered.filter(t=>txSearchText(t).includes(q));
-  }
-  document.getElementById('txCount').textContent = filtered.length + ' de ' + monthTx.length + ' este mes';
-  if(filtered.length===0){
-    list.innerHTML = '<div class="tx-empty-note"><span class="eicon">🔎</span>' + (monthTx.length===0 ? 'Sin movimientos este mes. Toca "Nuevo movimiento" para empezar.' : 'No hay resultados con ese filtro.') + '</div>';
-  } else {
-    const groups = {};
-    filtered.forEach(t=>{ (groups[t.date] = groups[t.date]||[]).push(t); });
-    list.innerHTML = Object.keys(groups).sort().reverse().map(date=>{
-      const items = groups[date];
-      const d = new Date(date+'T00:00:00');
-      const dayLabel = d.toLocaleDateString('es-ES',{weekday:'short', day:'2-digit', month:'short'});
-      let inc=0, exp=0, transfers=0;
-      items.forEach(t=>{ if(t.type==='income') inc+=t.amt; else if(t.type==='expense') exp+=t.amt; else if(t.type==='withdrawal') transfers+=t.amt; });
-      const sumParts = [];
-      if(inc>0) sumParts.push(`<span class="pos">+${fmt(inc)}</span>`);
-      if(exp>0) sumParts.push(`<span class="neg">−${fmt(exp)}</span>`);
-      if(transfers>0) sumParts.push(`<span class="transfer">↔${fmt(transfers)}</span>`);
-      return `<div class="day-group">
-        <div class="day-group-head"><span class="ddate"><span class="wd">${dayLabel}</span></span><span class="dsum">${sumParts.join(' · ')}</span></div>
-        ${items.map(t=>txRowHtml(t,false)).join('')}
-      </div>`;
-    }).join('');
-  }
-
-  renderGoals();
-  renderBalance();
-  refreshAnalysisVisibility();
-  scheduleSyncPush();
-}
-
-function refreshAnalysisVisibility(){
-  const mk = cursorKey();
-  const monthTx = tx.filter(t=>monthKey(t.date)===mk);
-  const monthExp = monthTx.filter(t=>t.type==='expense');
-  const monthBudgets = getBudgetsForMonth(mk);
-  const hasBudgets = CATS.some(c=>monthBudgets[c]);
-  const hasExpenses = monthExp.length > 0;
-  const hasTransactions = tx.length > 0;
-  const hasGoal = goals.some(g=>!goalProgress(g).completed);
-
-  function manageChartRow(detailsId, rowClass, panels, summaryId, visibleText){
-    const details = document.getElementById(detailsId);
-    const row = details && details.querySelector('[data-chart-row]');
-    const summary = document.getElementById(summaryId);
-    if(!details) return;
-    let visibleCount = 0;
-    if(panels.left) visibleCount++;
-    if(panels.right) visibleCount++;
-    if(visibleCount === 0){
-      details.open = false;
-      details.classList.add('hidden');
-      return;
-    }
-    details.classList.remove('hidden');
-    if(summary) summary.textContent = visibleText || '';
-    if(row){
-      row.classList.toggle('single', visibleCount === 1);
-      const panelEls = row.querySelectorAll('.panel');
-      panelEls[0] && panelEls[0].classList.toggle('hidden', !panels.left);
-      panelEls[1] && panelEls[1].classList.toggle('hidden', !panels.right);
-    }
-  }
-
-  manageChartRow('flowAnalysisSection', '', {left:hasTransactions, right:hasExpenses}, 'flowSectionNote', '');
-  manageChartRow('budgetAnalysisSection', '', {left:hasExpenses && hasBudgets, right:hasGoal}, 'budgetSectionNote', '');
-  document.getElementById('balanceDetails').classList.toggle('hidden', !hasTransactions);
-
-  const insights = document.getElementById('insightsDetails');
-  const insightsGrid = document.getElementById('insightsGrid');
-  const hasInsights = insightsGrid && insightsGrid.innerHTML.trim() !== '';
-  if(!hasInsights){
-    insights.open = false;
-    insights.classList.add('hidden');
-  } else {
-    insights.classList.remove('hidden');
-  }
-}
-
-/* tooltips interactivos en los gráficos */
-const chartTooltip = document.getElementById('chartTooltip');
-function showTip(clientX, clientY, html){
-  chartTooltip.innerHTML = html;
-  chartTooltip.style.left = (clientX + 14) + 'px';
-  chartTooltip.style.top = (clientY + 14) + 'px';
-  chartTooltip.classList.add('visible');
-}
-function hideTip(){ chartTooltip.classList.remove('visible'); }
-
-document.getElementById('flowChart')?.addEventListener('mousemove', e=>{
-  const series = lastFlow;
-  if(!series || series.length===0){ hideTip(); return; }
-  const rect = e.target.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const padL=8, padR=8;
-  const plotW = rect.width - padL - padR;
-  let idx = series.length===1 ? 0 : Math.round(((mx-padL)/plotW)*(series.length-1));
-  idx = Math.max(0, Math.min(series.length-1, idx));
-  const s = series[idx];
-  const label = new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-  showTip(e.clientX, e.clientY, `<b>${label}</b><br>Ingresos: ${fmt(s.income)}<br>Gastos: ${fmt(s.expense)}`);
-});
-document.getElementById('flowChart')?.addEventListener('mouseleave', hideTip);
-
-document.getElementById('balanceChart')?.addEventListener('mousemove', e=>{
-  const series = lastSeries;
-  if(!series || series.length===0){ hideTip(); return; }
-  const rect = e.target.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const padL=6, padR=6;
-  const plotW = rect.width - padL - padR;
-  let idx = series.length===1 ? 0 : Math.round(((mx-padL)/plotW)*(series.length-1));
-  idx = Math.max(0, Math.min(series.length-1, idx));
-  const s = series[idx];
-  const label = new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-  showTip(e.clientX, e.clientY, `<b>${label}</b><br>Ingresos: ${fmt(s.income)}<br>Gastos: ${fmt(s.expense)}<br>Saldo: ${s.net>=0?'+':''}${fmt(s.net)}<br>Acumulado: ${fmt(s.acc)}`);
-});
-document.getElementById('balanceChart')?.addEventListener('mouseleave', hideTip);
-
-document.getElementById('donutChart')?.addEventListener('mousemove', e=>{
-  const { catTotals, total } = lastDonut;
-  if(!total){ hideTip(); return; }
-  const rect = e.target.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  const cx = rect.width/2, cy = rect.height/2;
-  const dx = mx-cx, dy = my-cy;
-  const dist = Math.sqrt(dx*dx+dy*dy);
-  const rOuter = rect.width * (68/150), rInner = rect.width * (42/150);
-  if(dist < rInner || dist > rOuter){ hideTip(); return; }
-  let angle = Math.atan2(dy,dx) + Math.PI/2;
-  if(angle < 0) angle += Math.PI*2;
-  let cumFrac = 0, found = null;
-  for(const c of CATS){
-    if(!catTotals[c] || catTotals[c]<=0) continue;
-    const frac = catTotals[c]/total;
-    if(angle >= cumFrac*Math.PI*2 && angle < (cumFrac+frac)*Math.PI*2){ found = c; break; }
-    cumFrac += frac;
-  }
-  if(found){
-    showTip(e.clientX, e.clientY, `<b>${found}</b><br>${fmt(catTotals[found])} · ${Math.round((catTotals[found]/total)*100)}%`);
-  } else hideTip();
-});
-document.getElementById('donutChart')?.addEventListener('mouseleave', hideTip);
-
-document.getElementById('budgetChart')?.addEventListener('mousemove', e=>{
-  const { cats, catTotals, monthBudgets } = lastBudgetData;
-  if(!cats || cats.length===0){ hideTip(); return; }
-  const rect = e.target.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const padL=8, padR=8;
-  const plotW = rect.width - padL - padR;
-  const groupW = plotW / cats.length;
-  let idx = Math.floor((mx-padL)/groupW);
-  idx = Math.max(0, Math.min(cats.length-1, idx));
-  const c = cats[idx];
-  const spent = catTotals[c] || 0;
-  const budget = monthBudgets[c];
-  const pct = Math.round((spent/budget)*100);
-  showTip(e.clientX, e.clientY, `<b>${c}</b><br>Presupuesto: ${fmt(budget)}<br>Gastado: ${fmt(spent)} (${pct}%)`);
-});
-document.getElementById('budgetChart')?.addEventListener('mouseleave', hideTip);
-
-document.getElementById('projectionChart')?.addEventListener('mousemove', e=>{
-  if(!lastProjection || lastProjection.history.length===0){ hideTip(); return; }
-  const rect = e.target.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const padL=8, padR=8;
-  const plotW = rect.width - padL - padR;
-  const h = lastProjection.history;
-  let idx = h.length===1 ? 0 : Math.round(((mx-padL)/plotW)*(h.length-1));
-  idx = Math.max(0, Math.min(h.length-1, idx));
-  const point = h[idx];
-  const label = new Date(point.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
-  showTip(e.clientX, e.clientY, `<b>${label}</b><br>Ahorrado en "${lastProjection.goal.name}": ${fmt(point.cum)}`);
-});
-document.getElementById('projectionChart')?.addEventListener('mouseleave', hideTip);
-
-
-/* ==========================================================================
-   LIFE OS: TAB NAVIGATION, MOTO, TASKS & UNIVERSIDAD
-   ========================================================================== */
-
-var currentActiveTab = 'finance';
-var TASKS_KEY = 'mcf_life_tasks_v1';
-var EXAMS_KEY = 'mcf_life_exams_v1';
-
-var tasksList = [];
-var examsList = [];
-var currentTaskFilter = 'all';
-var editingTaskId = null;
-var editingExamId = null;
-
-function loadLifeOsData(){
-  try {
-    var sTasks = localStorage.getItem(TASKS_KEY);
-    if(sTasks) tasksList = JSON.parse(sTasks);
-    else if(typeof SEED_DATA !== 'undefined' && SEED_DATA && SEED_DATA.tasks) tasksList = SEED_DATA.tasks;
-  } catch(e){ tasksList = []; }
-
-  try {
-    var sExams = localStorage.getItem(EXAMS_KEY);
-    if(sExams) examsList = JSON.parse(sExams);
-    else if(typeof SEED_DATA !== 'undefined' && SEED_DATA && SEED_DATA.exams) examsList = SEED_DATA.exams;
-  } catch(e){ examsList = []; }
-}
-
-function saveTasksList(){
-  try { localStorage.setItem(TASKS_KEY, JSON.stringify(tasksList)); } catch(e){}
-  updateBadges();
-  scheduleSyncPush();
-}
-
-function saveExamsList(){
-  try { localStorage.setItem(EXAMS_KEY, JSON.stringify(examsList)); } catch(e){}
-  updateBadges();
-  scheduleSyncPush();
-}
-
-function updateBadges(){
-  var pendingTasks = (tasksList||[]).filter(function(t){ return !t.done; }).length;
-  var taskBadge = document.getElementById('taskBadge');
-  var taskBadgeMobile = document.getElementById('taskBadgeMobile');
-  if(taskBadge){
-    taskBadge.textContent = pendingTasks;
-    taskBadge.classList.toggle('hidden', pendingTasks === 0);
-  }
-  if(taskBadgeMobile){
-    taskBadgeMobile.textContent = pendingTasks;
-    taskBadgeMobile.classList.toggle('hidden', pendingTasks === 0);
-  }
-
-  var upcomingExams = (examsList||[]).filter(function(e){ return !e.completed; }).length;
-  var examBadge = document.getElementById('examBadge');
-  var examBadgeMobile = document.getElementById('examBadgeMobile');
-  if(examBadge){
-    examBadge.textContent = upcomingExams;
-    examBadge.classList.toggle('hidden', upcomingExams === 0);
-  }
-  if(examBadgeMobile){
-    examBadgeMobile.textContent = upcomingExams;
-    examBadgeMobile.classList.toggle('hidden', upcomingExams === 0);
-  }
-}
-
-window.switchTab = function(tabName){
-  currentActiveTab = tabName;
-  
-  // Update header dynamic title
-  var heroSubtitle = document.getElementById('heroSubtitle');
-  if(heroSubtitle){
-    if(tabName === 'finance') heroSubtitle.textContent = 'Resumen financiero';
-    else if(tabName === 'moto') heroSubtitle.textContent = 'Mi Garaje & Moto';
-    else if(tabName === 'tasks') heroSubtitle.textContent = 'Centro de Tareas';
-    else if(tabName === 'uni') heroSubtitle.textContent = 'Control Académico';
-  }
-
-  // Update desktop nav tabs
-  document.querySelectorAll('.nav-tab').forEach(function(btn){
-    var target = btn.getAttribute('data-tab');
-    btn.classList.toggle('active', target === tabName);
-  });
-
-  // Update mobile bottom tabs
-  document.querySelectorAll('.bottom-tab').forEach(function(btn){
-    var target = btn.getAttribute('data-tab');
-    btn.classList.toggle('active', target === tabName);
-  });
-
-  // Switch visible tab view
-  document.querySelectorAll('.tab-view').forEach(function(view){
-    view.classList.remove('active');
-  });
-
-  var targetId = tabName === 'finance' ? 'tabViewFinance' :
-                 tabName === 'moto' ? 'tabViewMoto' :
-                 tabName === 'tasks' ? 'tabViewTasks' : 'tabViewUni';
-  var targetView = document.getElementById(targetId);
-  if(targetView){
-    targetView.classList.add('active');
-  }
-
-  // Render specific tab content
-  if(tabName === 'finance'){
-    render();
-  } else if(tabName === 'moto'){
-    renderMotoDashboard();
-  } else if(tabName === 'tasks'){
-    renderTasksList(currentTaskFilter);
-  } else if(tabName === 'uni'){
-    renderExamsList();
-  }
-
-  updateBadges();
-  try { window.scrollTo(0, 0); } catch(e){}
-};
-
-// Global FAB context handler
-function setupFabHandler(){
-  var fab = document.getElementById('fabBtn');
-  if(fab){
-    fab.onclick = function(e){
-      if(e) e.stopPropagation();
-      if(currentActiveTab === 'finance'){
-        openEntryModal(null);
-      } else if(currentActiveTab === 'moto'){
-        openFuelModal();
-      } else if(currentActiveTab === 'tasks'){
-        openTaskModal(null);
-      } else if(currentActiveTab === 'uni'){
-        openExamModal(null);
-      }
-    };
-  }
-}
-
-/* ---------- MOTO DASHBOARD ---------- */
-function renderMotoDashboard(){
-  renderMotorcycleMaintenance();
-  renderMotoFuelStats();
-  renderMotoFuelList();
-  renderMotoServiceList();
-}
-
-function renderMotoFuelStats(){
-  var container = document.getElementById('motoFuelStats');
-  if(!container) return;
-  var cfg = motorcycleMaintenance || { lastDate:'2026-08-16', lastMileage:21953, fuelLogs:[], serviceHistory:[] };
-  var fuelLogs = cfg.fuelLogs || [];
-
-  var totalSpent = fuelLogs.reduce(function(s,f){ return s + (parseFloat(f.cost)||0); }, 0);
-  var totalEntries = fuelLogs.length;
-  var latestFuel = fuelLogs[0] || null;
-  var latestKm = latestFuel ? (latestFuel.mileage.toLocaleString('es-ES') + ' km') : 'Sin registros';
-
-  container.innerHTML = `
-    <div class="moto-fuel-item">
-      <span class="tag">Total invertido en gasolina</span>
-      <strong class="gold">${fmt(totalSpent)}</strong>
-    </div>
-    <div class="moto-fuel-item">
-      <span class="tag">Última tanqueada</span>
-      <strong>${latestKm}</strong>
-    </div>
-    <div class="moto-fuel-item">
-      <span class="tag">Tanqueadas registradas</span>
-      <strong class="green">${totalEntries}</strong>
-    </div>
-  `;
-}
-
-function renderMotoFuelList(){
-  var list = document.getElementById('motoFuelList');
-  if(!list) return;
-  var cfg = motorcycleMaintenance || { lastDate:'2026-08-16', lastMileage:21953, fuelLogs:[], serviceHistory:[] };
-  var fuelLogs = cfg.fuelLogs || [];
-
-  if(fuelLogs.length === 0){
-    list.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-soft); font-size:12.5px;">No hay tanqueadas registradas aún. Toca "+ Tanqueada" para añadir una.</div>`;
-    return;
-  }
-
-  list.innerHTML = fuelLogs.map(function(f, idx){
-    var dStr = new Date(f.date + 'T00:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-    var prevKm = fuelLogs[idx + 1] ? (f.mileage - fuelLogs[idx + 1].mileage) : null;
-    var diffLabel = prevKm !== null && prevKm > 0 ? `· +${prevKm} km recorridos` : '';
-    return `
-      <div class="fuel-log-row">
-        <div class="left">
-          <span class="fkm">⛽ ${f.mileage.toLocaleString('es-ES')} km <span style="font-size:11px; color:var(--text-soft); font-family:'JetBrains Mono';">${diffLabel}</span></span>
-          <span class="fdate">${dStr} ${f.note ? `· ${escapeHtml(f.note)}` : ''}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="fcost">${fmt(f.cost)}</span>
-          <button class="del-x" onclick="deleteFuelLog(${f.id})" title="Eliminar">&times;</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderMotoServiceList(){
-  var list = document.getElementById('motoServiceList');
-  if(!list) return;
-  var cfg = motorcycleMaintenance || { lastDate:'2026-08-16', lastMileage:21953, fuelLogs:[], serviceHistory:[] };
-  var services = cfg.serviceHistory || [];
-
-  if(services.length === 0){
-    list.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-soft); font-size:12.5px;">No hay otros servicios registrados. Toca "+ Mantenimiento" para registrar frenos, cadena, llantas, etc.</div>`;
-    return;
-  }
-
-  list.innerHTML = services.map(function(s){
-    var dStr = new Date(s.date + 'T00:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-    return `
-      <div class="fuel-log-row">
-        <div class="left">
-          <span class="fkm">🛠️ ${escapeHtml(s.type)} ${s.mileage ? `(${s.mileage.toLocaleString('es-ES')} km)` : ''}</span>
-          <span class="fdate">${dStr} ${s.note ? `· ${escapeHtml(s.note)}` : ''}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="fcost">${s.cost ? fmt(s.cost) : 'Preventivo'}</span>
-          <button class="del-x" onclick="deleteMotoService(${s.id})" title="Eliminar">&times;</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function openFuelModal(){
-  var overlay = document.getElementById('fuelModalOverlay');
-  if(!overlay) return;
-  document.getElementById('fuelDate').value = dateKey();
-  document.getElementById('fuelMileage').value = (motorcycleMaintenance && motorcycleMaintenance.lastMileage) || '';
-  document.getElementById('fuelCost').value = '';
-  document.getElementById('fuelNote').value = 'Extra';
-  overlay.classList.remove('hidden');
-}
-function closeFuelModal(){
-  var overlay = document.getElementById('fuelModalOverlay');
-  if(overlay) overlay.classList.add('hidden');
-}
-window.deleteFuelLog = function(id){
-  if(!motorcycleMaintenance || !motorcycleMaintenance.fuelLogs) return;
-  motorcycleMaintenance.fuelLogs = motorcycleMaintenance.fuelLogs.filter(function(f){ return f.id !== id; });
-  saveMotorcycleMaintenance(motorcycleMaintenance);
-  renderMotoDashboard();
-  showToast('Registro de tanqueada eliminado');
-};
-
-function openServiceModal(){
-  var overlay = document.getElementById('serviceModalOverlay');
-  if(!overlay) return;
-  document.getElementById('serviceDate').value = dateKey();
-  document.getElementById('serviceType').value = '';
-  document.getElementById('serviceMileage').value = (motorcycleMaintenance && motorcycleMaintenance.lastMileage) || '';
-  document.getElementById('serviceCost').value = '';
-  document.getElementById('serviceNote').value = '';
-  overlay.classList.remove('hidden');
-}
-function closeServiceModal(){
-  var overlay = document.getElementById('serviceModalOverlay');
-  if(overlay) overlay.classList.add('hidden');
-}
-window.deleteMotoService = function(id){
-  if(!motorcycleMaintenance || !motorcycleMaintenance.serviceHistory) return;
-  motorcycleMaintenance.serviceHistory = motorcycleMaintenance.serviceHistory.filter(function(s){ return s.id !== id; });
-  saveMotorcycleMaintenance(motorcycleMaintenance);
-  renderMotoDashboard();
-  showToast('Servicio eliminado');
-};
-
-/* ---------- TASKS MODULE ---------- */
-function renderTaskCard(t){
-  var isDue = t.dueDate ? new Date(t.dueDate + 'T00:00:00') : null;
-  var dueClass = '';
-  var dueLabel = '';
-  if(isDue){
-    var today = new Date(); today.setHours(0,0,0,0);
-    var dueDays = Math.round((isDue - today) / (1000 * 60 * 60 * 24));
-    if(dueDays < 0){ dueClass = 'overdue'; dueLabel = '⚠️ Vencida hace ' + Math.abs(dueDays) + 'd'; }
-    else if(dueDays === 0){ dueClass = 'today'; dueLabel = '⏰ Hoy'; }
-    else if(dueDays === 1){ dueClass = 'today'; dueLabel = 'Mañana'; }
-    else { dueLabel = '📅 ' + isDue.toLocaleDateString('es-ES', { day:'2-digit', month:'short' }); }
-  }
-
-  var prioClass = t.priority || 'normal';
-
-  return `
-    <div class="task-card ${t.done ? 'done' : ''}" data-id="${t.id}">
-      <button class="task-check" onclick="toggleTaskDone(${t.id})" title="${t.done?'Marcar como pendiente':'Marcar como completada'}">
-        ${t.done ? '✓' : ''}
-      </button>
-      <div class="task-content" onclick="toggleTaskDone(${t.id})" style="cursor:pointer;">
-        <div class="task-title">${escapeHtml(t.title)}</div>
-        <div class="task-meta">
-          <span class="task-priority-dot ${prioClass}"></span>
-          ${dueLabel ? `<span class="task-due ${dueClass}">${dueLabel}</span>` : ''}
-        </div>
-      </div>
-      <div class="task-actions">
-        <button class="link-btn" onclick="openTaskModal(${t.id})" style="font-size:11px;">Editar</button>
-        <button class="del-x" onclick="deleteTask(${t.id})" title="Eliminar">&times;</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderTasksList(filter){
-  if(!filter) filter = 'all';
-  currentTaskFilter = filter;
-  var container = document.getElementById('taskListContainer');
-  var subtitle = document.getElementById('taskSubtitle');
-  if(!container) return;
-
-  document.querySelectorAll('.task-filter-btn').forEach(function(btn){
-    btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
-  });
-
-  var total = tasksList.length;
-  var doneCount = tasksList.filter(function(t){ return t.done; }).length;
-  var pendingCount = total - doneCount;
-
-  if(subtitle){
-    subtitle.textContent = pendingCount + ' pendiente' + (pendingCount!==1?'s':'');
-  }
-
-  var filtered = tasksList;
-  if(filter === 'pending') filtered = tasksList.filter(function(t){ return !t.done; });
-  if(filter === 'done') filtered = tasksList.filter(function(t){ return t.done; });
-
-  if(filtered.length === 0){
-    container.innerHTML = `<div style="text-align:center; padding:28px 12px; color:var(--text-soft); font-size:13px;">
-      ${filter==='done' ? 'No tienes tareas completadas aún.' : (filter==='pending' ? '🎉 ¡Estás al día! No tienes tareas pendientes.' : 'No tienes tareas creadas. Escribe una arriba o toca el botón +.')}
-    </div>`;
-    return;
-  }
-
-  if(filter === 'all'){
-    var todayKey = dateKey();
-    var urgentTasks = filtered.filter(function(t){ return !t.done && (t.dueDate === todayKey || t.priority === 'high'); });
-    var normalTasks = filtered.filter(function(t){ return !t.done && t.dueDate !== todayKey && t.priority !== 'high'; });
-    var completedTasks = filtered.filter(function(t){ return t.done; });
-
-    var htmlParts = [];
-    if(urgentTasks.length > 0){
-      htmlParts.push('<div class="task-group-title">🔥 Hoy / Prioritarias</div>' + urgentTasks.map(renderTaskCard).join(''));
-    }
-    if(normalTasks.length > 0){
-      htmlParts.push('<div class="task-group-title">📋 Próximas</div>' + normalTasks.map(renderTaskCard).join(''));
-    }
-    if(completedTasks.length > 0){
-      htmlParts.push('<div class="task-group-title">✓ Completadas</div>' + completedTasks.map(renderTaskCard).join(''));
-    }
-    container.innerHTML = htmlParts.join('');
-  } else {
-    container.innerHTML = filtered.map(renderTaskCard).join('');
-  }
-}
-
-window.toggleTaskDone = function(id){
-  var t = tasksList.find(function(x){ return x.id === id; });
-  if(!t) return;
-  t.done = !t.done;
-  saveTasksList();
-  renderTasksList(currentTaskFilter);
-};
-
-window.deleteTask = function(id){
-  var idx = tasksList.findIndex(function(x){ return x.id === id; });
-  if(idx === -1) return;
-  var removed = tasksList[idx];
-  tasksList.splice(idx, 1);
-  saveTasksList();
-  renderTasksList(currentTaskFilter);
-  showToast('Tarea eliminada', 'Deshacer', function(){
-    tasksList.push(removed);
-    saveTasksList();
-    renderTasksList(currentTaskFilter);
-  });
-};
-
-window.openTaskModal = function(idOrNull){
-  var overlay = document.getElementById('taskModalOverlay');
-  var titleEl = document.getElementById('taskModalTitle');
-  if(!overlay) return;
-
-  if(idOrNull !== null && idOrNull !== undefined){
-    var t = tasksList.find(function(x){ return x.id === idOrNull; });
-    if(t){
-      editingTaskId = t.id;
-      if(titleEl) titleEl.textContent = 'Editar Tarea';
-      document.getElementById('taskInputTitle').value = t.title;
-      document.getElementById('taskInputDueDate').value = t.dueDate || '';
-      document.getElementById('taskInputPriority').value = t.priority || 'normal';
-    }
-  } else {
-    editingTaskId = null;
-    if(titleEl) titleEl.textContent = '📋 Nueva Tarea';
-    document.getElementById('taskInputTitle').value = '';
-    document.getElementById('taskInputDueDate').value = '';
-    document.getElementById('taskInputPriority').value = 'normal';
-  }
-  overlay.classList.remove('hidden');
-  document.getElementById('taskInputTitle').focus();
-};
-
-function closeTaskModal(){
-  var overlay = document.getElementById('taskModalOverlay');
-  if(overlay) overlay.classList.add('hidden');
-  editingTaskId = null;
-}
-
-/* ---------- UNIVERSIDAD / EXAMS MODULE ---------- */
-function renderExamsList(){
-  var container = document.getElementById('examGridContainer');
-  var subtitle = document.getElementById('uniSubtitle');
-  if(!container) return;
-
-  var total = examsList.length;
-  var upcoming = examsList.filter(function(e){ return !e.completed; }).length;
-  if(subtitle){
-    subtitle.textContent = upcoming + ' evaluación' + (upcoming!==1?'es':'') + ' próxima' + (upcoming!==1?'s':'');
-  }
-
-  if(examsList.length === 0){
-    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:36px 12px; color:var(--text-soft); font-size:13px;">
-      No tienes exámenes ni tareas registradas. Toca "+ Nuevo examen o entrega" para comenzar.
-    </div>`;
-    return;
-  }
-
-  var sorted = examsList.slice().sort(function(a,b){
-    if(a.completed !== b.completed) return a.completed ? 1 : -1;
-    return a.date.localeCompare(b.date);
-  });
-
-  var today = new Date(); today.setHours(0,0,0,0);
-
-  container.innerHTML = sorted.map(function(e){
-    var examDate = new Date(e.date + 'T00:00:00');
-    var diffDays = Math.round((examDate - today) / (1000 * 60 * 60 * 24));
-    
-    var countdownLabel = '';
-    var countdownClass = 'normal';
-    var cardUrgentClass = '';
-
-    if(e.completed){
-      countdownLabel = e.grade ? ('✓ Nota: ' + e.grade) : '✓ Rendido';
-      countdownClass = 'completed';
-    } else if(diffDays < 0){
-      countdownLabel = '⚠️ Pasado';
-      countdownClass = 'urgent';
-    } else if(diffDays === 0){
-      countdownLabel = '🔥 ¡HOY!';
-      countdownClass = 'urgent';
-      cardUrgentClass = 'urgent';
-    } else if(diffDays === 1){
-      countdownLabel = '⚡ ¡MAÑANA!';
-      countdownClass = 'urgent';
-      cardUrgentClass = 'urgent';
-    } else if(diffDays <= 4){
-      countdownLabel = '⏳ En ' + diffDays + ' días';
-      countdownClass = 'soon';
-    } else {
-      countdownLabel = '📅 En ' + diffDays + ' días';
-      countdownClass = 'normal';
-    }
-
-    var dStr = examDate.toLocaleDateString('es-ES', { weekday:'short', day:'2-digit', month:'short' });
-
-    return `
-      <div class="exam-card ${cardUrgentClass}">
-        <div class="exam-card-head">
-          <span class="exam-subject">${escapeHtml(e.subject)} · ${escapeHtml(e.type || 'Evaluación')}</span>
-          <span class="exam-countdown ${countdownClass}">${countdownLabel}</span>
-        </div>
-        <h3 class="exam-title">${escapeHtml(e.title)}</h3>
-        <div class="exam-info-row">
-          <span>📅 ${dStr}</span>
-          ${e.time ? `<span>⏰ ${e.time}</span>` : ''}
-        </div>
-        ${e.note ? `<div class="exam-note">${escapeHtml(e.note)}</div>` : ''}
-        <div class="exam-actions">
-          <button class="btn-ghost-sm" onclick="toggleExamComplete(${e.id})">
-            ${e.completed ? 'Desmarcar' : '✓ Marcar como rendido'}
-          </button>
-          <div style="display:flex; gap:8px;">
-            <button class="link-btn" onclick="openExamModal(${e.id})">Editar</button>
-            <button class="del-x" onclick="deleteExam(${e.id})" title="Eliminar">&times;</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-window.toggleExamComplete = function(id){
-  var e = examsList.find(function(x){ return x.id === id; });
-  if(!e) return;
-  e.completed = !e.completed;
-  if(e.completed && !e.grade){
-    var grade = prompt('¿Qué nota obtuviste? (Opcional, ej. 9.5/10):');
-    if(grade) e.grade = grade.trim();
-  }
-  saveExamsList();
-  renderExamsList();
-};
-
-window.deleteExam = function(id){
-  var idx = examsList.findIndex(function(x){ return x.id === id; });
-  if(idx === -1) return;
-  var removed = examsList[idx];
-  examsList.splice(idx, 1);
-  saveExamsList();
-  renderExamsList();
-  showToast('Evaluación eliminada', 'Deshacer', function(){
-    examsList.push(removed);
-    saveExamsList();
-    renderExamsList();
-  });
-};
-
-window.openExamModal = function(idOrNull){
-  var overlay = document.getElementById('examModalOverlay');
-  var titleEl = document.getElementById('examModalTitle');
-  if(!overlay) return;
-
-  if(idOrNull !== null && idOrNull !== undefined){
-    var e = examsList.find(function(x){ return x.id === idOrNull; });
-    if(e){
-      editingExamId = e.id;
-      if(titleEl) titleEl.textContent = 'Editar Evaluación';
-      document.getElementById('examSubject').value = e.subject;
-      document.getElementById('examType').value = e.type || 'Examen';
-      document.getElementById('examTitleInput').value = e.title;
-      document.getElementById('examDate').value = e.date;
-      document.getElementById('examTime').value = e.time || '08:00';
-      document.getElementById('examNote').value = e.note || '';
-    }
-  } else {
-    editingExamId = null;
-    if(titleEl) titleEl.textContent = '🎓 Nuevo Examen o Entrega';
-    document.getElementById('examSubject').value = '';
-    document.getElementById('examType').value = 'Examen';
-    document.getElementById('examTitleInput').value = '';
-    document.getElementById('examDate').value = dateKey();
-    document.getElementById('examTime').value = '08:00';
-    document.getElementById('examNote').value = '';
-  }
-  overlay.classList.remove('hidden');
-};
-
-function closeExamModal(){
-  var overlay = document.getElementById('examModalOverlay');
-  if(overlay) overlay.classList.add('hidden');
-  editingExamId = null;
-}
-
 
 /* ---------- WEB NOTIFICATIONS & REMINDERS ---------- */
 function setupNotifications(){
