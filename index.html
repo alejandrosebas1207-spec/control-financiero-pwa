@@ -2760,13 +2760,13 @@ function renderMotorcycleMaintenance(){
   toggleBtn.textContent = formIsOpen ? 'Cerrar' : 'Editar';
 }
 
-document.getElementById('toggleMotoMaintenanceBtn').addEventListener('click', ()=>{
+document.getElementById('toggleMotoMaintenanceBtn')?.addEventListener('click', ()=>{
   const form = document.getElementById('motoMaintenanceForm');
   const hidden = form.classList.toggle('hidden');
   document.getElementById('toggleMotoMaintenanceBtn').textContent = hidden ? 'Editar' : 'Cerrar';
   if(!hidden) document.getElementById('motoLastDate').focus();
 });
-document.getElementById('motoMaintenanceForm').addEventListener('submit', e=>{
+document.getElementById('motoMaintenanceForm')?.addEventListener('submit', e=>{
   e.preventDefault();
   const lastDate = document.getElementById('motoLastDate').value;
   const lastMileage = Number(document.getElementById('motoLastMileage').value);
@@ -2786,7 +2786,7 @@ document.getElementById('motoMaintenanceForm').addEventListener('submit', e=>{
   scheduleSyncPush();
   showToast('Mantenimiento de la moto guardado');
 });
-document.getElementById('clearMotoMaintenanceBtn').addEventListener('click', ()=>{
+document.getElementById('cancelMotoMaintenanceBtn')?.addEventListener('click', ()=>{
   motorcycleMaintenance = null;
   saveMotorcycleMaintenance(null);
   renderCreditCardPanel();
@@ -2855,7 +2855,7 @@ avatarRemoveBtn.addEventListener('click', e=>{
 
 document.getElementById('fDate').value = dateKey();
 document.getElementById('amtQuick').innerHTML = [2,5,10,20,50].map(v=>`<button type="button" data-v="${v}">$${v}</button>`).join('');
-document.getElementById('amtQuick').addEventListener('click', e=>{
+document.getElementById('amtQuick')?.addEventListener('click', e=>{
   if(e.target.dataset.v) document.getElementById('fAmt').value = e.target.dataset.v;
 });
 
@@ -2945,9 +2945,9 @@ function closeEntryModal(){
   modalOverlay.classList.add('hidden');
   editingId = null;
 }
-document.getElementById('fabBtn').addEventListener('click', ()=> openEntryModal(null));
-document.getElementById('modalClose').addEventListener('click', closeEntryModal);
-document.getElementById('modalCancelBtn').addEventListener('click', closeEntryModal);
+document.getElementById('fabBtn')?.addEventListener('click', ()=> openEntryModal(null));
+document.getElementById('modalClose')?.addEventListener('click', closeEntryModal);
+document.getElementById('modalCancelBtn')?.addEventListener('click', closeEntryModal);
 modalOverlay.addEventListener('click', e=>{ if(e.target===modalOverlay) closeEntryModal(); });
 
 document.querySelectorAll('.quick-action').forEach(btn=>{
@@ -3002,9 +3002,9 @@ function updateNoteFieldVisibility(){
   document.getElementById('noteLabel').textContent = type==='income' ? '¿De dónde viene este ingreso?' : '¿A qué corresponde?';
   document.getElementById('fNote').placeholder = type==='income' ? 'Ej. Sueldo, quincena, décimo, un camello, beca...' : 'Ej. Pasaje, cyber, recarga, arriendo, copias...';
 }
-document.getElementById('fCat').addEventListener('change', updateNoteFieldVisibility);
+document.getElementById('fCat')?.addEventListener('change', updateNoteFieldVisibility);
 
-document.getElementById('entryForm').addEventListener('submit', e=>{
+document.getElementById('entryForm')?.addEventListener('submit', e=>{
   e.preventDefault();
   const amt = parseFloat(document.getElementById('fAmt').value);
   const date = document.getElementById('fDate').value;
@@ -3121,19 +3121,19 @@ function renderAllList(){
     const editBtn = e.target.closest('.edit'); if(editBtn){ editTx(parseInt(editBtn.dataset.editId,10)); return; }
   };
 }
-document.getElementById('viewAllBtn').addEventListener('click', ()=>{
+document.getElementById('viewAllBtn')?.addEventListener('click', ()=>{
   document.getElementById('allModalOverlay').classList.remove('hidden');
   renderAllList();
 });
-document.getElementById('allModalClose').addEventListener('click', ()=> document.getElementById('allModalOverlay').classList.add('hidden'));
-document.getElementById('allModalOverlay').addEventListener('click', e=>{
+document.getElementById('allModalClose')?.addEventListener('click', ()=> document.getElementById('allModalOverlay').classList.add('hidden'));
+document.getElementById('allModalOverlay')?.addEventListener('click', e=>{
   if(e.target === document.getElementById('allModalOverlay')) document.getElementById('allModalOverlay').classList.add('hidden');
 });
-document.getElementById('allSearchInput').addEventListener('input', e=>{ allSearch = e.target.value; renderAllList(); });
+document.getElementById('allSearchInput')?.addEventListener('input', e=>{ allSearch = e.target.value; renderAllList(); });
 
 /* búsqueda y filtros del panel principal */
-document.getElementById('txSearchInput').addEventListener('input', e=>{ txSearch = e.target.value; render(); });
-document.getElementById('txFilterChips').addEventListener('click', e=>{
+document.getElementById('txSearchInput')?.addEventListener('input', e=>{ txSearch = e.target.value; render(); });
+document.getElementById('txFilterChips')?.addEventListener('click', e=>{
   const btn = e.target.closest('button');
   if(!btn) return;
   txTypeFilter = btn.dataset.f;
@@ -3141,9 +3141,9 @@ document.getElementById('txFilterChips').addEventListener('click', e=>{
   render();
 });
 
-document.getElementById('prevMonth').addEventListener('click', ()=>{ cursor.setMonth(cursor.getMonth()-1); render(); });
-document.getElementById('nextMonth').addEventListener('click', ()=>{ cursor.setMonth(cursor.getMonth()+1); render(); });
-document.getElementById('todayBtn').addEventListener('click', ()=>{ cursor = new Date(); cursor.setDate(1); render(); });
+document.getElementById('prevMonth')?.addEventListener('click', ()=>{ cursor.setMonth(cursor.getMonth()-1); render(); });
+document.getElementById('nextMonth')?.addEventListener('click', ()=>{ cursor.setMonth(cursor.getMonth()+1); render(); });
+document.getElementById('todayBtn')?.addEventListener('click', ()=>{ cursor = new Date(); cursor.setDate(1); render(); });
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape'){
     closeEntryModal();
@@ -3235,7 +3235,7 @@ function renderAccountSettings(){
   }
 }
 
-document.getElementById('gearBtn').addEventListener('click', ()=>{
+document.getElementById('gearBtn')?.addEventListener('click', ()=>{
   const p = document.getElementById('settingsPanel');
   if(p.classList.contains('hidden')){
     document.getElementById('alertInput').value = alertThreshold || '';
@@ -3245,14 +3245,14 @@ document.getElementById('gearBtn').addEventListener('click', ()=>{
   }
   p.classList.toggle('hidden');
 });
-document.getElementById('saveAlertBtn').addEventListener('click', ()=>{
+document.getElementById('saveAlertBtn')?.addEventListener('click', ()=>{
   const v = parseFloat(document.getElementById('alertInput').value);
   alertThreshold = (v && v>0) ? v : null;
   saveAlert(alertThreshold);
   document.getElementById('settingsPanel').classList.add('hidden');
   render();
 });
-document.getElementById('clearAlertBtn').addEventListener('click', ()=>{
+document.getElementById('clearAlertBtn')?.addEventListener('click', ()=>{
   alertThreshold = null; saveAlert(null);
   document.getElementById('alertInput').value = '';
   document.getElementById('settingsPanel').classList.add('hidden');
@@ -3306,7 +3306,7 @@ function renderCatMgmt(){
     });
   });
 }
-document.getElementById('addCatBtn').addEventListener('click', ()=>{
+document.getElementById('addCatBtn')?.addEventListener('click', ()=>{
   const name = document.getElementById('newCatName').value.trim();
   const color = document.getElementById('newCatColor').value;
   if(!name){ showToast('Escribe un nombre para la categoría'); return; }
@@ -3715,14 +3715,14 @@ if(forceSyncBtn) forceSyncBtn.addEventListener('click', async ()=>{
 
 
 
-document.getElementById('exportBtn').addEventListener('click', ()=>{
+document.getElementById('exportBtn')?.addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify({tx, goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, cats:catsData}, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download = 'respaldo-finanzas-'+dateKey()+'.json'; a.click();
   URL.revokeObjectURL(url);
 });
-document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('importFile').click());
-document.getElementById('importFile').addEventListener('change', e=>{
+document.getElementById('importBtn')?.addEventListener('click', ()=> document.getElementById('importFile').click());
+document.getElementById('importFile')?.addEventListener('change', e=>{
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = ev=>{
@@ -3753,7 +3753,7 @@ document.getElementById('importFile').addEventListener('change', e=>{
 });
 
 /* ---------- Exportar CSV ---------- */
-document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
+document.getElementById('exportCsvBtn')?.addEventListener('click', ()=>{
   if(tx.length===0){ showToast('Todavía no tienes movimientos para exportar'); return; }
   const sorted = [...tx].sort((a,b)=> a.date.localeCompare(b.date) || a.id-b.id);
   const header = ['Fecha','Cuenta','Destino','Tipo','Categoría','Nota / Meta','Monto'];
@@ -3934,7 +3934,7 @@ function drawLineChartCanvas(labels, values, w, h, color){
   return canvas;
 }
 
-document.getElementById('exportPdfBtn').addEventListener('click', async ()=>{
+document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
   if(typeof window.jspdf === 'undefined'){
     alert('No se pudo cargar el generador de PDF. Revisa tu conexión a internet e intenta de nuevo.');
     return;
@@ -4413,7 +4413,7 @@ function hexToRgb(hex){
 
 
 /* presupuestos */
-document.getElementById('toggleBudgetsBtn').addEventListener('click', ()=>{
+document.getElementById('toggleBudgetsBtn')?.addEventListener('click', ()=>{
   const wrap = document.getElementById('budgetForm');
   if(wrap.classList.contains('hidden')){ renderBudgetForm(); wrap.classList.remove('hidden'); }
   else wrap.classList.add('hidden');
@@ -4432,7 +4432,7 @@ function renderBudgetForm(){
       <input type="number" min="0" step="1" class="budget-input" data-cat="${escapeAttr(c)}" value="${current[c]||''}" placeholder="Sin límite">
     </div>`).join('')}
     <button class="btn-submit" id="saveBudgetsBtn" style="margin-top:6px;">Guardar para ${monthLabel}</button>`;
-  document.getElementById('saveBudgetsBtn').addEventListener('click', ()=>{
+  document.getElementById('saveBudgetsBtn')?.addEventListener('click', ()=>{
     const values = {};
     wrap.querySelectorAll('.budget-input').forEach(inp=>{
       const v = parseFloat(inp.value);
@@ -4453,7 +4453,7 @@ function renderGoals(){
       <p>Aún no tienes metas activas. Crea una y elígela al registrar un ahorro.</p>
       <button class="btn-outline" id="newGoalBtn">+ Crear primera meta</button>
     </div>`;
-    document.getElementById('newGoalBtn').addEventListener('click', ()=>showGoalForm(null));
+    document.getElementById('newGoalBtn')?.addEventListener('click', ()=>showGoalForm(null));
   } else {
     area.innerHTML = goals.map(g=>{
       const { progress, pct, completed, byAccount } = goalProgress(g);
@@ -4491,7 +4491,7 @@ function renderGoals(){
       render();
     }));
     area.querySelectorAll('.discard-g').forEach(b=>b.addEventListener('click', ()=>{ goals = goals.filter(g=>g.id!==b.dataset.id); saveGoals(goals); render(); }));
-    document.getElementById('newGoalBtn').addEventListener('click', ()=>showGoalForm(null));
+    document.getElementById('newGoalBtn')?.addEventListener('click', ()=>showGoalForm(null));
   }
   renderGoalHistory();
   if(document.getElementById('goalField')) updateGoalFieldOptions();
@@ -4509,7 +4509,7 @@ function showGoalForm(existing){
       <button class="btn-ghost-sm" id="cancelGoalBtn">Cancelar</button>
     </div>
   </div>`;
-  document.getElementById('saveGoalBtn').addEventListener('click', ()=>{
+  document.getElementById('saveGoalBtn')?.addEventListener('click', ()=>{
     const name = document.getElementById('gName').value.trim();
     const target = parseFloat(document.getElementById('gTarget').value);
     if(!name || !target) return;
@@ -4522,7 +4522,7 @@ function showGoalForm(existing){
     saveGoals(goals);
     render();
   });
-  document.getElementById('cancelGoalBtn').addEventListener('click', renderGoals);
+  document.getElementById('cancelGoalBtn')?.addEventListener('click', renderGoals);
 }
 
 function renderGoalHistory(){
@@ -4546,7 +4546,7 @@ function renderGoalHistory(){
       renderGoalHistory();
     });
   });
-  document.getElementById('clearHistoryBtn').addEventListener('click', ()=>{
+  document.getElementById('clearHistoryBtn')?.addEventListener('click', ()=>{
     goalHistory = []; saveGoalHistory(goalHistory); renderGoalHistory();
   });
 }
@@ -5228,7 +5228,7 @@ function showTip(clientX, clientY, html){
 }
 function hideTip(){ chartTooltip.classList.remove('visible'); }
 
-document.getElementById('flowChart').addEventListener('mousemove', e=>{
+document.getElementById('flowChart')?.addEventListener('mousemove', e=>{
   const series = lastFlow;
   if(!series || series.length===0){ hideTip(); return; }
   const rect = e.target.getBoundingClientRect();
@@ -5241,9 +5241,9 @@ document.getElementById('flowChart').addEventListener('mousemove', e=>{
   const label = new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
   showTip(e.clientX, e.clientY, `<b>${label}</b><br>Ingresos: ${fmt(s.income)}<br>Gastos: ${fmt(s.expense)}`);
 });
-document.getElementById('flowChart').addEventListener('mouseleave', hideTip);
+document.getElementById('flowChart')?.addEventListener('mouseleave', hideTip);
 
-document.getElementById('balanceChart').addEventListener('mousemove', e=>{
+document.getElementById('balanceChart')?.addEventListener('mousemove', e=>{
   const series = lastSeries;
   if(!series || series.length===0){ hideTip(); return; }
   const rect = e.target.getBoundingClientRect();
@@ -5256,9 +5256,9 @@ document.getElementById('balanceChart').addEventListener('mousemove', e=>{
   const label = new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
   showTip(e.clientX, e.clientY, `<b>${label}</b><br>Ingresos: ${fmt(s.income)}<br>Gastos: ${fmt(s.expense)}<br>Saldo: ${s.net>=0?'+':''}${fmt(s.net)}<br>Acumulado: ${fmt(s.acc)}`);
 });
-document.getElementById('balanceChart').addEventListener('mouseleave', hideTip);
+document.getElementById('balanceChart')?.addEventListener('mouseleave', hideTip);
 
-document.getElementById('donutChart').addEventListener('mousemove', e=>{
+document.getElementById('donutChart')?.addEventListener('mousemove', e=>{
   const { catTotals, total } = lastDonut;
   if(!total){ hideTip(); return; }
   const rect = e.target.getBoundingClientRect();
@@ -5281,9 +5281,9 @@ document.getElementById('donutChart').addEventListener('mousemove', e=>{
     showTip(e.clientX, e.clientY, `<b>${found}</b><br>${fmt(catTotals[found])} · ${Math.round((catTotals[found]/total)*100)}%`);
   } else hideTip();
 });
-document.getElementById('donutChart').addEventListener('mouseleave', hideTip);
+document.getElementById('donutChart')?.addEventListener('mouseleave', hideTip);
 
-document.getElementById('budgetChart').addEventListener('mousemove', e=>{
+document.getElementById('budgetChart')?.addEventListener('mousemove', e=>{
   const { cats, catTotals, monthBudgets } = lastBudgetData;
   if(!cats || cats.length===0){ hideTip(); return; }
   const rect = e.target.getBoundingClientRect();
@@ -5299,9 +5299,9 @@ document.getElementById('budgetChart').addEventListener('mousemove', e=>{
   const pct = Math.round((spent/budget)*100);
   showTip(e.clientX, e.clientY, `<b>${c}</b><br>Presupuesto: ${fmt(budget)}<br>Gastado: ${fmt(spent)} (${pct}%)`);
 });
-document.getElementById('budgetChart').addEventListener('mouseleave', hideTip);
+document.getElementById('budgetChart')?.addEventListener('mouseleave', hideTip);
 
-document.getElementById('projectionChart').addEventListener('mousemove', e=>{
+document.getElementById('projectionChart')?.addEventListener('mousemove', e=>{
   if(!lastProjection || lastProjection.history.length===0){ hideTip(); return; }
   const rect = e.target.getBoundingClientRect();
   const mx = e.clientX - rect.left;
@@ -5314,7 +5314,7 @@ document.getElementById('projectionChart').addEventListener('mousemove', e=>{
   const label = new Date(point.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'long', year:'numeric'});
   showTip(e.clientX, e.clientY, `<b>${label}</b><br>Ahorrado en "${lastProjection.goal.name}": ${fmt(point.cum)}`);
 });
-document.getElementById('projectionChart').addEventListener('mouseleave', hideTip);
+document.getElementById('projectionChart')?.addEventListener('mouseleave', hideTip);
 
 
 /* ==========================================================================
