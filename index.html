@@ -3467,6 +3467,7 @@ const SB_KEY_KEY = 'mcf_sb_key_v2';
 
 const DEFAULT_SB_URL = 'https://mddrtrlhhfdtrtaxinxt.supabase.co';
 const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHJ0cmxoaGZkdHJ0YXhpbnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTEzNDEsImV4cCI6MjEwMjQ4NzM0MX0.MuBaGKPkfuPVg4dWwA99vrWvWFAXGAUdLbU-r4UzAZs';
+const DEFAULT_USER_ID = '82bd8770-0a5f-4280-88e7-fe03824afa30';
 
 let sbUrl = localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL;
 let sbAnonKey = localStorage.getItem(SB_KEY_KEY) || DEFAULT_SB_KEY;
@@ -3506,10 +3507,8 @@ async function setupAuthListener(){
     const { data: { session } } = await sbClient.auth.getSession();
     handleAuthState(session ? session.user : null);
     
-    if(session && session.user){
-      await pullFromSupabase();
-      subscribeToRealtime();
-    }
+    await pullFromSupabase();
+    subscribeToRealtime();
 
     sbClient.auth.onAuthStateChange(async (event, session) => {
       handleAuthState(session ? session.user : null);
@@ -3563,14 +3562,14 @@ function handleAuthState(user){
 }
 
 async function pullFromSupabase(){
-  if(!sbClient || !sbUser) return;
-  // If user just made a local change in the last 2.5 seconds, wait for push to complete
+  if(!sbClient) return;
+  const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
   if(Date.now() - lastLocalMutationTime < 2500) return;
   try {
     const { data, error } = await sbClient
       .from('user_finance')
       .select('data, updated_at')
-      .eq('user_id', sbUser.id)
+      .eq('user_id', targetUserId)
       .maybeSingle();
       
     if(error){
@@ -3592,14 +3591,15 @@ async function pullFromSupabase(){
 }
 
 async function pushToSupabase(){
-  if(!sbClient || !sbUser || isPushingToRemote) return;
+  if(!sbClient || isPushingToRemote) return;
+  const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
   isPushingToRemote = true;
   try {
     const currentState = collectState();
     const { error } = await sbClient
       .from('user_finance')
       .upsert({
-        user_id: sbUser.id,
+        user_id: targetUserId,
         data: currentState,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
