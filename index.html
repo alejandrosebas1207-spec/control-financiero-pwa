@@ -1891,10 +1891,13 @@
           <h2 class="life-title">📋 Tareas</h2>
           <div class="life-counter-badge" id="taskSubtitle">0 pendientes</div>
         </div>
-        <div class="tasks-filter-row">
-          <button class="task-filter-btn active" data-filter="all">Todas</button>
-          <button class="task-filter-btn" data-filter="pending">Pendientes</button>
-          <button class="task-filter-btn" data-filter="done">Hechas</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="tasks-filter-row">
+            <button class="task-filter-btn active" data-filter="all">Todas</button>
+            <button class="task-filter-btn" data-filter="pending">Pendientes</button>
+            <button class="task-filter-btn" data-filter="done">Hechas</button>
+          </div>
+          <button type="button" class="btn-outline" id="openTaskModalBtn" style="padding:6px 12px; font-size:12px;">+ Detalle</button>
         </div>
       </div>
 
@@ -2249,7 +2252,7 @@ const TASKS_KEY = 'mcf_tasks_list_v1';
 const EXAMS_KEY = 'mcf_exams_list_v1';
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v45_clean_sync';
+const CURRENT_APP_DATA_VERSION = 'v46_clean_sync';
 try {
   const storedVer = localStorage.getItem('mcf_app_data_version');
   if (storedVer !== CURRENT_APP_DATA_VERSION) {
@@ -3062,7 +3065,17 @@ function closeEntryModal(){
   modalOverlay.classList.add('hidden');
   editingId = null;
 }
-document.getElementById('fabBtn')?.addEventListener('click', ()=> openEntryModal(null));
+document.getElementById('fabBtn')?.addEventListener('click', function(){
+  if(typeof currentActiveTab === 'undefined' || currentActiveTab === 'finance'){
+    openEntryModal(null);
+  } else if(currentActiveTab === 'moto'){
+    openFuelModal();
+  } else if(currentActiveTab === 'tasks'){
+    openTaskModal(null);
+  } else if(currentActiveTab === 'uni'){
+    openExamModal(null);
+  }
+});
 document.getElementById('modalClose')?.addEventListener('click', closeEntryModal);
 document.getElementById('modalCancelBtn')?.addEventListener('click', closeEntryModal);
 modalOverlay.addEventListener('click', e=>{ if(e.target===modalOverlay) closeEntryModal(); });
@@ -5116,7 +5129,10 @@ function renderInsights(){
 function render(){
   const isNarrow = window.innerWidth <= 680;
   document.getElementById('monthLabel').textContent = cursor.toLocaleDateString('es-ES',{month: isNarrow ? 'short' : 'long', year:'numeric'});
-  document.getElementById('heroSubtitle').textContent = 'Resumen financiero de ' + cursor.toLocaleDateString('es-ES',{month:'long'});
+  if(typeof currentActiveTab === 'undefined' || currentActiveTab === 'finance'){
+    var subEl = document.getElementById('heroSubtitle');
+    if(subEl) subEl.textContent = 'Resumen financiero de ' + cursor.toLocaleDateString('es-ES',{month:'long'});
+  }
 
   const monthTx = tx.filter(t=>monthKey(t.date)===cursorKey()).sort((a,b)=>b.date.localeCompare(a.date));
   const income = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
@@ -6181,6 +6197,7 @@ function setupLifeOsEventListeners(){
   });
 
   // Task events
+  document.getElementById('openTaskModalBtn')?.addEventListener('click', function(){ openTaskModal(null); });
   document.getElementById('taskModalClose')?.addEventListener('click', closeTaskModal);
   document.getElementById('taskModalCancel')?.addEventListener('click', closeTaskModal);
 
