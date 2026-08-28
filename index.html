@@ -1558,6 +1558,27 @@
   .fuel-log-row .fkm { font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; font-weight: 600; }
   .fuel-log-row .fcost { font-family: 'JetBrains Mono', monospace; font-size: 13.5px; font-weight: 700; color: var(--gold); }
 
+
+  /* Smooth Task Deletion Animation */
+  .task-card {
+    transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.2s ease-out, max-height 0.26s cubic-bezier(0.4, 0, 0.2, 1), margin 0.26s cubic-bezier(0.4, 0, 0.2, 1), padding 0.26s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    max-height: 120px;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .task-card.is-deleting {
+    opacity: 0 !important;
+    transform: translateX(-18px) scale(0.96) !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    pointer-events: none !important;
+  }
+
 </style>
 </head>
 <body>
@@ -2304,13 +2325,33 @@ const GOAL_HISTORY_KEY = 'mcf_goal_history_v1';
 const ACCOUNT_BALANCES_KEY = 'mcf_account_balances_v1';
 const DEFAULT_ACCOUNT_KEY = 'mcf_default_account_id_v1';
 const DELETED_TX_KEY = 'mcf_deleted_tx_v1';
+const DELETED_TASK_KEY = 'mcf_deleted_tasks_v1';
+const DELETED_EXAM_KEY = 'mcf_deleted_exams_v1';
+const DELETED_FUEL_KEY = 'mcf_deleted_fuel_v1';
+const DELETED_SERVICE_KEY = 'mcf_deleted_service_v1';
 const CREDIT_CARD_KEY = 'mcf_credit_card_config_v1';
 const MOTORCYCLE_MAINTENANCE_KEY = 'mcf_motorcycle_maintenance_v1';
 const TASKS_KEY = 'mcf_tasks_list_v1';
 const EXAMS_KEY = 'mcf_exams_list_v1';
+
+let deletedTaskIds = new Set();
+let deletedExamIds = new Set();
+let deletedFuelLogIds = new Set();
+let deletedServiceIds = new Set();
+
+function initTombstoneSet(key, setRef){
+  try {
+    const raw = localStorage.getItem(key);
+    if(raw) JSON.parse(raw).forEach(id => setRef.add(id));
+  } catch(e){}
+}
+initTombstoneSet(DELETED_TASK_KEY, deletedTaskIds);
+initTombstoneSet(DELETED_EXAM_KEY, deletedExamIds);
+initTombstoneSet(DELETED_FUEL_KEY, deletedFuelLogIds);
+initTombstoneSet(DELETED_SERVICE_KEY, deletedServiceIds);
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v49_zero_loss_sync';
+const CURRENT_APP_DATA_VERSION = 'v50_master_tombstones';
 try {
   const storedVer = localStorage.getItem('mcf_app_data_version');
   // First time installation: only populate seed if storage is completely empty
@@ -3516,7 +3557,26 @@ document.getElementById('addCatBtn')?.addEventListener('click', ()=>{
 
 /* ---------- Sincronización con Supabase (Auth + Realtime) ---------- */
 function collectState(){
-  return { tx, deletedTxIds: Array.from(deletedTxIds), goals, goalHistory, budgets, alertThreshold, defaultAccountId, accountBalances, motorcycleMaintenance, motorcycle: motorcycleMaintenance, tasks: tasksList, exams: examsList, creditCard: creditCardConfig, cats: catsData };
+  return { 
+    tx: normalizeTxList(tx).filter(t => !deletedTxIds.has(t.id)), 
+    deletedTxIds: Array.from(deletedTxIds),
+    tasks: (tasksList||[]).filter(t => !deletedTaskIds.has(t.id)),
+    deletedTaskIds: Array.from(deletedTaskIds),
+    exams: (examsList||[]).filter(e => !deletedExamIds.has(e.id)),
+    deletedExamIds: Array.from(deletedExamIds),
+    deletedFuelLogIds: Array.from(deletedFuelLogIds),
+    deletedServiceIds: Array.from(deletedServiceIds),
+    goals, 
+    goalHistory, 
+    budgets, 
+    alertThreshold, 
+    defaultAccountId, 
+    accountBalances, 
+    motorcycleMaintenance, 
+    motorcycle: motorcycleMaintenance, 
+    creditCard: creditCardConfig, 
+    cats: catsData 
+  };
 }
 function applyState(data){
   if(!data || typeof data !== 'object') return;
@@ -5789,6 +5849,10 @@ function closeServiceModal(){
 }
 window.deleteMotoService = function(id){
   if(!motorcycleMaintenance || !motorcycleMaintenance.serviceHistory) return;
+  deletedServiceIds.add(id);
+  try { localStorage.setItem(DELETED_SERVICE_KEY, JSON.stringify(Array.from(deletedServiceIds))); } catch(e){}
+  lastLocalMutationTime = Date.now();
+
   motorcycleMaintenance.serviceHistory = motorcycleMaintenance.serviceHistory.filter(function(s){ return s.id !== id; });
   saveMotorcycleMaintenance(motorcycleMaintenance);
   renderMotoDashboard();
@@ -5895,14 +5959,32 @@ window.deleteTask = function(id){
   var idx = tasksList.findIndex(function(x){ return x.id === id; });
   if(idx === -1) return;
   var removed = tasksList[idx];
-  tasksList.splice(idx, 1);
-  saveTasksList();
-  renderTasksList(currentTaskFilter);
-  showToast('Tarea eliminada', 'Deshacer', function(){
-    tasksList.push(removed);
+  var card = document.querySelector(`.task-card[data-id="${id}"]`);
+
+  deletedTaskIds.add(id);
+  try { localStorage.setItem(DELETED_TASK_KEY, JSON.stringify(Array.from(deletedTaskIds))); } catch(e){}
+  lastLocalMutationTime = Date.now();
+
+  var finalizeDelete = function(){
+    tasksList.splice(idx, 1);
     saveTasksList();
     renderTasksList(currentTaskFilter);
-  });
+    showToast('Tarea eliminada', 'Deshacer', function(){
+      deletedTaskIds.delete(id);
+      try { localStorage.setItem(DELETED_TASK_KEY, JSON.stringify(Array.from(deletedTaskIds))); } catch(e){}
+      lastLocalMutationTime = Date.now();
+      tasksList.splice(idx, 0, removed);
+      saveTasksList();
+      renderTasksList(currentTaskFilter);
+    });
+  };
+
+  if(card){
+    card.classList.add('is-deleting');
+    setTimeout(finalizeDelete, 220);
+  } else {
+    finalizeDelete();
+  }
 };
 
 window.openTaskModal = function(idOrNull){
@@ -6036,11 +6118,19 @@ window.deleteExam = function(id){
   var idx = examsList.findIndex(function(x){ return x.id === id; });
   if(idx === -1) return;
   var removed = examsList[idx];
+
+  deletedExamIds.add(id);
+  try { localStorage.setItem(DELETED_EXAM_KEY, JSON.stringify(Array.from(deletedExamIds))); } catch(e){}
+  lastLocalMutationTime = Date.now();
+
   examsList.splice(idx, 1);
   saveExamsList();
   renderExamsList();
   showToast('Evaluación eliminada', 'Deshacer', function(){
-    examsList.push(removed);
+    deletedExamIds.delete(id);
+    try { localStorage.setItem(DELETED_EXAM_KEY, JSON.stringify(Array.from(deletedExamIds))); } catch(e){}
+    lastLocalMutationTime = Date.now();
+    examsList.splice(idx, 0, removed);
     saveExamsList();
     renderExamsList();
   });
