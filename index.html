@@ -20,23 +20,52 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-  :root{
+  /* ==========================================================================
+     CRIMSON PRO DESIGN SYSTEM (Apple / Linear / Things 3 Grade)
+     ========================================================================== */
+  :root {
     --deep: #0B0407;
-    --deep-2: #14070D;
-    --panel: #1A0A12;
-    --panel-2: #240E19;
-    --line: rgba(244,63,94,0.14);
+    --deep-2: #12060C;
+    --panel: #180911;
+    --panel-2: #220D18;
+    --line: rgba(244,63,94,0.15);
+    --line-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
     --text: #FFF1F2;
-    --text-soft: #A88691;
+    --text-soft: #BCA3AB;
     --gold: #F43F5E;
     --gold-soft: rgba(244,63,94,0.16);
     --red: #FB7185;
     --red-soft: rgba(251,113,133,0.15);
     --green: #10B981;
     --green-soft: rgba(16,185,129,0.15);
-    --radius: 16px;
-    --radius-sm: 10px;
+    --radius: 18px;
+    --radius-sm: 11px;
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+
+  /* Bento Specular Borders */
+  .panel, .hero-balance, .chip, .account-card, .bento-card, .task-card, .exam-card, .maintenance-item, .moto-fuel-item {
+    box-shadow: var(--line-specular), 0 8px 24px -4px rgba(0,0,0,0.45) !important;
+  }
+
+  /* iOS Drag Grabber for Bottom Sheet Modals */
+  @media (max-width: 680px) {
+    .modal-card::before {
+      content: "";
+      display: block;
+      width: 42px;
+      height: 4.5px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 9999px;
+      margin: 0 auto 16px;
+    }
+  }
+
+  /* Clean Scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(244,63,94,0.22); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(244,63,94,0.45); }
   *{ box-sizing:border-box; }
   html {
     background-color: #0B0407 !important;
@@ -707,23 +736,52 @@
   /* ==========================================================================
      IPHONE 15 & MODERN IOS POLISHED THEME
      ========================================================================== */
-  :root{
+  /* ==========================================================================
+     CRIMSON PRO DESIGN SYSTEM (Apple / Linear / Things 3 Grade)
+     ========================================================================== */
+  :root {
     --deep: #0B0407;
-    --deep-2: #14070D;
-    --panel: #1A0A12;
-    --panel-2: #240E19;
-    --line: rgba(244,63,94,0.14);
+    --deep-2: #12060C;
+    --panel: #180911;
+    --panel-2: #220D18;
+    --line: rgba(244,63,94,0.15);
+    --line-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
     --text: #FFF1F2;
-    --text-soft: #A88691;
+    --text-soft: #BCA3AB;
     --gold: #F43F5E;
     --gold-soft: rgba(244,63,94,0.16);
     --red: #FB7185;
     --red-soft: rgba(251,113,133,0.15);
     --green: #10B981;
     --green-soft: rgba(16,185,129,0.15);
-    --radius: 16px;
-    --radius-sm: 10px;
+    --radius: 18px;
+    --radius-sm: 11px;
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+
+  /* Bento Specular Borders */
+  .panel, .hero-balance, .chip, .account-card, .bento-card, .task-card, .exam-card, .maintenance-item, .moto-fuel-item {
+    box-shadow: var(--line-specular), 0 8px 24px -4px rgba(0,0,0,0.45) !important;
+  }
+
+  /* iOS Drag Grabber for Bottom Sheet Modals */
+  @media (max-width: 680px) {
+    .modal-card::before {
+      content: "";
+      display: block;
+      width: 42px;
+      height: 4.5px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 9999px;
+      margin: 0 auto 16px;
+    }
+  }
+
+  /* Clean Scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(244,63,94,0.22); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(244,63,94,0.45); }
 
   body{
     margin:0;
@@ -2252,7 +2310,7 @@ const TASKS_KEY = 'mcf_tasks_list_v1';
 const EXAMS_KEY = 'mcf_exams_list_v1';
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v46_clean_sync';
+const CURRENT_APP_DATA_VERSION = 'v47_clean_sync';
 try {
   const storedVer = localStorage.getItem('mcf_app_data_version');
   if (storedVer !== CURRENT_APP_DATA_VERSION) {
@@ -4542,8 +4600,11 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
 });
 
 function hexToRgb(hex){
-  const h = hex.replace('#','');
-  return { r: parseInt(h.substring(0,2),16), g: parseInt(h.substring(2,4),16), b: parseInt(h.substring(4,6),16) };
+  let h = (hex || '').replace('#','').trim();
+  if(h.length === 3) h = h.split('').map(c => c + c).join('');
+  const num = parseInt(h, 16);
+  if(isNaN(num) || h.length !== 6) return { r: 244, g: 63, b: 94 };
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
 }
 
 
@@ -5796,8 +5857,8 @@ function renderTasksList(filter){
 
   if(filter === 'all'){
     var todayKey = dateKey();
-    var urgentTasks = filtered.filter(function(t){ return !t.done && (t.dueDate === todayKey || t.priority === 'high'); });
-    var normalTasks = filtered.filter(function(t){ return !t.done && t.dueDate !== todayKey && t.priority !== 'high'; });
+    var urgentTasks = filtered.filter(function(t){ return !t.done && ((t.dueDate && t.dueDate <= todayKey) || t.priority === 'high'); });
+    var normalTasks = filtered.filter(function(t){ return !t.done && (!t.dueDate || t.dueDate > todayKey) && t.priority !== 'high'; });
     var completedTasks = filtered.filter(function(t){ return t.done; });
 
     var htmlParts = [];
@@ -6017,6 +6078,23 @@ function closeExamModal(){
 
 
 /* ---------- WEB NOTIFICATIONS & REMINDERS ---------- */
+
+async function sendUniversalNotification(title, options){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  if('serviceWorker' in navigator){
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if(reg && reg.showNotification){
+        await reg.showNotification(title, options);
+        return;
+      }
+    } catch(e){}
+  }
+  try {
+    new Notification(title, options);
+  } catch(e){}
+}
+
 function setupNotifications(){
   var btn = document.getElementById('enableNotificationsBtn');
   var testBtn = document.getElementById('testNotificationBtn');
@@ -6056,7 +6134,7 @@ function setupNotifications(){
 
   testBtn?.addEventListener('click', function(){
     if('Notification' in window && Notification.permission === 'granted'){
-      new Notification('Life OS · Alejandro', {
+      sendUniversalNotification('Life OS · Alejandro', {
         body: '¡Las notificaciones están funcionando perfectamente!',
         icon: './icons/icon-192.png?v=3'
       });
@@ -6105,7 +6183,7 @@ function checkAndSendReminders(isTest){
   if(alerts.length > 0){
     alerts.forEach(function(msg, idx){
       setTimeout(function(){
-        new Notification('Life OS', {
+        sendUniversalNotification('Life OS', {
           body: msg,
           icon: './icons/icon-192.png?v=3'
         });
@@ -6116,17 +6194,15 @@ function checkAndSendReminders(isTest){
 }
 
 function setupLifeOsEventListeners(){
+  setupCreditCardEventListeners();
   setupNotifications();
   checkAndSendReminders(false);
-  // Add overlay backdrop click to close for all life os modals
-  ['fuelModalOverlay', 'serviceModalOverlay', 'taskModalOverlay', 'examModalOverlay'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el){
-      el.addEventListener('click', function(e){
-        if(e.target === el) el.classList.add('hidden');
-      });
-    }
-  });
+  // Add overlay backdrop click to close for all life os modals with state cleanup
+  document.getElementById('fuelModalOverlay')?.addEventListener('click', function(e){ if(e.target === this) closeFuelModal(); });
+  document.getElementById('serviceModalOverlay')?.addEventListener('click', function(e){ if(e.target === this) closeServiceModal(); });
+  document.getElementById('taskModalOverlay')?.addEventListener('click', function(e){ if(e.target === this) closeTaskModal(); });
+  document.getElementById('examModalOverlay')?.addEventListener('click', function(e){ if(e.target === this) closeExamModal(); });
+  document.getElementById('authModalOverlay')?.addEventListener('click', function(e){ if(e.target === this) closeAuthModal(); });
   // Fuel modal
   document.getElementById('fuelModalClose')?.addEventListener('click', closeFuelModal);
   document.getElementById('fuelModalCancel')?.addEventListener('click', closeFuelModal);
@@ -6306,9 +6382,7 @@ function setupLifeOsEventListeners(){
   setupLifeOsEventListeners();
 
   
-  if(syncId){
-    try{ await syncPull(syncId); }catch(e){ /* si falla, seguimos con los datos locales */ }
-  }
+
   render();
 })();
 </script>
