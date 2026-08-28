@@ -2310,24 +2310,30 @@ const TASKS_KEY = 'mcf_tasks_list_v1';
 const EXAMS_KEY = 'mcf_exams_list_v1';
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v48_clean_sync';
+const CURRENT_APP_DATA_VERSION = 'v49_zero_loss_sync';
 try {
   const storedVer = localStorage.getItem('mcf_app_data_version');
-  if (storedVer !== CURRENT_APP_DATA_VERSION) {
-    console.log('Migrando datos a versión', CURRENT_APP_DATA_VERSION);
-    if(typeof SEED_DATA !== 'undefined' && SEED_DATA){
-      if(SEED_DATA.tx) localStorage.setItem(TX_KEY, JSON.stringify(SEED_DATA.tx));
-      if(SEED_DATA.accountBalances) localStorage.setItem(ACCOUNT_BALANCES_KEY, JSON.stringify(SEED_DATA.accountBalances));
-      if(SEED_DATA.goals) localStorage.setItem(GOALS_KEY, JSON.stringify(SEED_DATA.goals));
-      if(SEED_DATA.creditCard) localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(SEED_DATA.creditCard));
-      if(SEED_DATA.motorcycleMaintenance) localStorage.setItem(MOTORCYCLE_MAINTENANCE_KEY, JSON.stringify(SEED_DATA.motorcycleMaintenance));
-      if(SEED_DATA.tasks) localStorage.setItem(TASKS_KEY, JSON.stringify(SEED_DATA.tasks));
-      if(SEED_DATA.exams) localStorage.setItem(EXAMS_KEY, JSON.stringify(SEED_DATA.exams));
-    }
-    localStorage.removeItem(DELETED_TX_KEY);
-    localStorage.setItem('mcf_app_data_version', CURRENT_APP_DATA_VERSION);
+  // First time installation: only populate seed if storage is completely empty
+  if (!localStorage.getItem(TX_KEY) && typeof SEED_DATA !== 'undefined' && SEED_DATA) {
+    if(SEED_DATA.tx) localStorage.setItem(TX_KEY, JSON.stringify(SEED_DATA.tx));
+    if(SEED_DATA.accountBalances) localStorage.setItem(ACCOUNT_BALANCES_KEY, JSON.stringify(SEED_DATA.accountBalances));
+    if(SEED_DATA.goals) localStorage.setItem(GOALS_KEY, JSON.stringify(SEED_DATA.goals));
+    if(SEED_DATA.creditCard) localStorage.setItem(CREDIT_CARD_KEY, JSON.stringify(SEED_DATA.creditCard));
+    if(SEED_DATA.motorcycleMaintenance) localStorage.setItem(MOTORCYCLE_MAINTENANCE_KEY, JSON.stringify(SEED_DATA.motorcycleMaintenance));
+    if(SEED_DATA.tasks) localStorage.setItem(TASKS_KEY, JSON.stringify(SEED_DATA.tasks));
+    if(SEED_DATA.exams) localStorage.setItem(EXAMS_KEY, JSON.stringify(SEED_DATA.exams));
+  } else if (typeof SEED_DATA !== 'undefined' && SEED_DATA && SEED_DATA.tx) {
+    // Non-destructive smart merge on version bump: Merge any new baseline items without wiping local items
+    try {
+      const currentTx = JSON.parse(localStorage.getItem(TX_KEY)) || [];
+      const txMap = new Map();
+      SEED_DATA.tx.forEach(t => txMap.set(t.id, t));
+      currentTx.forEach(t => txMap.set(t.id, t)); // Local items take precedence and are never deleted
+      localStorage.setItem(TX_KEY, JSON.stringify(Array.from(txMap.values())));
+    } catch(err){}
   }
-} catch(e){ console.warn('Error en migrador de version:', e); }
+  localStorage.setItem('mcf_app_data_version', CURRENT_APP_DATA_VERSION);
+} catch(e){ console.warn('Error en inicializador seguro de datos:', e); }
 const OIL_CHANGE_INTERVAL = 1500;
 
 const ACCOUNT_DEFS = [
