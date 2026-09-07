@@ -2303,6 +2303,7 @@ var sbClient = null;
 var sbUser = null;
 var sbRealtimeChannel = null;
 var isPushingToRemote = false;
+var needsAnotherPush = false;
 var supabaseDebounceTimer = null;
 var lastLocalMutationTime = 0;
 
@@ -2351,7 +2352,7 @@ initTombstoneSet(DELETED_FUEL_KEY, deletedFuelLogIds);
 initTombstoneSet(DELETED_SERVICE_KEY, deletedServiceIds);
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v51_peigo_adjusted';
+const CURRENT_APP_DATA_VERSION = 'v52_tc_sync_refined';
 try {
   const storedVer = localStorage.getItem('mcf_app_data_version');
   // First time installation: only populate seed if storage is completely empty
@@ -2418,15 +2419,19 @@ function loadAccountBalances(){
   }catch(e){ return normalizeAccountBalances(SEED_DATA ? SEED_DATA.accountBalances : null); }
   return null;
 }
-const saveAccountBalances = value => {
+const saveAccountBalances = (value, shouldSync = true) => {
   if(value) localStorage.setItem(ACCOUNT_BALANCES_KEY, JSON.stringify(value));
   else localStorage.removeItem(ACCOUNT_BALANCES_KEY);
+  if(shouldSync) scheduleSyncPush();
 };
 function loadDefaultAccount(){
   const stored = localStorage.getItem(DEFAULT_ACCOUNT_KEY);
   return isKnownAccountId(stored) ? stored : ACCOUNT_DEFS[0].id;
 }
-const saveDefaultAccount = id => localStorage.setItem(DEFAULT_ACCOUNT_KEY, normalizeAccountId(id));
+const saveDefaultAccount = (id, shouldSync = true) => {
+  localStorage.setItem(DEFAULT_ACCOUNT_KEY, normalizeAccountId(id));
+  if(shouldSync) scheduleSyncPush();
+};
 
 const DEFAULT_CATS = [
   { name:'Comida', color:'#FBBF24' },
@@ -2855,19 +2860,28 @@ function getNextPaymentDueDate(cutOffDay, paymentDueDay){
   }
 }
 
+function isCreditCardPaymentTx(t){
+  if(!t || t.type !== 'expense') return false;
+  // El pago de tarjeta no puede provenir de la misma tarjeta de crédito (debe ser Deuna, PeiGo o Efectivo)
+  if(normalizeAccountId(t.account) === 'tc') return false;
+  const cat = (t.cat || '').trim().toLowerCase();
+  const note = (t.note || '').trim().toLowerCase();
+  return cat === 'pago tarjeta' || cat === 'pago tarjeta de crédito' || cat === 'pago tc' || cat === 'pagar tarjeta de credito' || /pago.*tarjeta/i.test(cat) || /pagar.*tarjeta/i.test(cat) || /pago.*tarjeta/i.test(note) || /pago.*tc/i.test(note);
+}
+
 function calculateCreditCardDebt(){
   const cfg = creditCardConfig || DEFAULT_CREDIT_CARD;
-  const baseline = cfg.baselineDebt || 0;
+  const baseline = Number.isFinite(Number(cfg.baselineDebt)) ? Number(cfg.baselineDebt) : 0;
   const bDate = cfg.baselineDate || '2026-08-19';
   
-  // 1. All expenses charged to TC since baselineDate
-  const tcExpenses = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'expense' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  // 1. Todos los gastos cargados a la TC desde la fecha base
+  const tcExpenses = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'expense' && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
   
-  // 2. Direct income/payments into TC
-  const directPayments = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'income' && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  // 2. Abonos/ingresos directos a la TC
+  const directPayments = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'income' && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
   
-  // 3. Payments made from debit/cash accounts with category 'Pago Tarjeta' or 'Pago Tarjeta de Crédito'
-  const catPayments = (tx||[]).filter(t => t.type === 'expense' && (t.cat === 'Pago Tarjeta' || t.cat === 'Pago Tarjeta de Crédito') && t.date >= bDate).reduce((s,t) => s + t.amt, 0);
+  // 3. Pagos realizados desde cuentas líquidas (PeiGo, Deuna, Efectivo) con categoría de pago de tarjeta
+  const catPayments = (tx||[]).filter(t => isCreditCardPaymentTx(t) && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
   
   const totalDebt = Math.max(0, baseline + tcExpenses - (directPayments + catPayments));
   return totalDebt;
@@ -2948,7 +2962,7 @@ function setupCreditCardEventListeners(){
         cutOffDay,
         paymentDueDay,
         baselineDebt,
-        baselineDate: dateKey(),
+        baselineDate: (creditCardConfig && creditCardConfig.baselineDate) ? creditCardConfig.baselineDate : '2026-08-19',
         name: 'Tarjeta de Crédito'
       });
       form.classList.add('hidden');
@@ -3238,7 +3252,15 @@ function updateNoteFieldVisibility(){
   document.getElementById('noteLabel').textContent = type==='income' ? '¿De dónde viene este ingreso?' : '¿A qué corresponde?';
   document.getElementById('fNote').placeholder = type==='income' ? 'Ej. Sueldo, quincena, décimo, un camello, beca...' : 'Ej. Pasaje, cyber, recarga, arriendo, copias...';
 }
-document.getElementById('fCat')?.addEventListener('change', updateNoteFieldVisibility);
+document.getElementById('fCat')?.addEventListener('change', () => {
+  updateNoteFieldVisibility();
+  const catVal = document.getElementById('fCat')?.value;
+  const accSel = document.getElementById('fAccount');
+  if(catVal === 'Pago Tarjeta' && accSel && accSel.value === 'tc'){
+    accSel.value = (defaultAccountId && defaultAccountId !== 'tc') ? defaultAccountId : 'deuna';
+    showToast('Selecciona la cuenta líquida de donde saldrá el pago (Deuna, PeiGo o Efectivo)');
+  }
+});
 
 document.getElementById('entryForm')?.addEventListener('submit', e=>{
   e.preventDefault();
@@ -3586,7 +3608,16 @@ function applyState(data){
     try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(deletedTxIds))); } catch(e){}
   }
   if(data.tx && Array.isArray(data.tx)){
-    tx = normalizeTxList(data.tx).filter(t => !deletedTxIds.has(t.id));
+    const txMap = new Map();
+    normalizeTxList(data.tx).forEach(t => {
+      if(!deletedTxIds.has(t.id)) txMap.set(t.id, t);
+    });
+    (tx || []).forEach(t => {
+      if(!deletedTxIds.has(t.id) && !txMap.has(t.id)){
+        txMap.set(t.id, t);
+      }
+    });
+    tx = Array.from(txMap.values());
     localStorage.setItem(TX_KEY, JSON.stringify(tx));
   }
   if(data.goals && Array.isArray(data.goals)){ goals = data.goals; localStorage.setItem(GOALS_KEY, JSON.stringify(goals)); }
@@ -3596,7 +3627,7 @@ function applyState(data){
   if(data.cats) applyCats(data.cats);
   if('accountBalances' in data){
     accountBalances = normalizeAccountBalances(data.accountBalances);
-    saveAccountBalances(accountBalances);
+    saveAccountBalances(accountBalances, false);
   }
   if('motorcycleMaintenance' in data){
     motorcycleMaintenance = normalizeMotorcycleMaintenance(data.motorcycleMaintenance);
@@ -3616,7 +3647,7 @@ function applyState(data){
   }
   if('defaultAccountId' in data && isKnownAccountId(data.defaultAccountId)){
     defaultAccountId = data.defaultAccountId;
-    saveDefaultAccount(defaultAccountId);
+    saveDefaultAccount(defaultAccountId, false);
   }
   updateBadges();
 }
@@ -3750,7 +3781,11 @@ async function pullFromSupabase(){
 }
 
 async function pushToSupabase(){
-  if(!sbClient || isPushingToRemote) return;
+  if(!sbClient) return;
+  if(isPushingToRemote){
+    needsAnotherPush = true;
+    return;
+  }
   const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
   isPushingToRemote = true;
   try {
@@ -3770,6 +3805,10 @@ async function pushToSupabase(){
     console.warn('Fallo en pushToSupabase:', e);
   } finally {
     isPushingToRemote = false;
+    if(needsAnotherPush){
+      needsAnotherPush = false;
+      scheduleSyncPush();
+    }
   }
 }
 
