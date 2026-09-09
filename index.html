@@ -2352,7 +2352,7 @@ initTombstoneSet(DELETED_FUEL_KEY, deletedFuelLogIds);
 initTombstoneSet(DELETED_SERVICE_KEY, deletedServiceIds);
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v54_banco_guayaquil';
+const CURRENT_APP_DATA_VERSION = 'v55_banco_guayaquil_autoheal';
 try {
   // Migración limpia para reemplazar Banco del Pacífico / PeiGo por Banco Guayaquil
   const storedBal = localStorage.getItem(ACCOUNT_BALANCES_KEY);
@@ -2368,11 +2368,11 @@ try {
     } catch(err){}
   }
   const storedDef = localStorage.getItem(DEFAULT_ACCOUNT_KEY);
-  if(!storedDef || storedDef === 'peigo' || storedDef === 'pacifico'){
+  if(!storedDef || storedDef === 'peigo' || storedDef === 'pacifico' || storedDef === 'unassigned'){
     localStorage.setItem(DEFAULT_ACCOUNT_KEY, 'guayaquil');
   }
 
-  // Migrar cualquier transacción local que tenga 'pacifico' a 'guayaquil'
+  // Migrar cualquier transacción local que tenga 'pacifico' o 'unassigned' a 'guayaquil'
   const storedTx = localStorage.getItem(TX_KEY);
   if(storedTx){
     try {
@@ -2380,7 +2380,7 @@ try {
       let changed = false;
       if(Array.isArray(txs)){
         txs.forEach(t => {
-          if(t.account === 'pacifico'){
+          if(t.account === 'pacifico' || t.account === 'unassigned'){
             t.account = 'guayaquil';
             changed = true;
           }
@@ -2432,7 +2432,7 @@ const UNASSIGNED_ACCOUNT = { id:'unassigned', name:'Sin asignar', color:'#A6989C
 const ACCOUNT_BY_ID = Object.fromEntries([...ALL_ACCOUNTS, UNASSIGNED_ACCOUNT].map(account=>[account.id, account]));
 const isKnownAccountId = id => Object.prototype.hasOwnProperty.call(ACCOUNT_BY_ID, id);
 const normalizeAccountId = id => {
-  if (id === 'pacifico') return 'guayaquil';
+  if (id === 'pacifico' || id === 'unassigned') return 'guayaquil';
   return isKnownAccountId(id) ? id : UNASSIGNED_ACCOUNT.id;
 };
 const getAccountMeta = id => ACCOUNT_BY_ID[normalizeAccountId(id)] || UNASSIGNED_ACCOUNT;
@@ -3673,6 +3673,11 @@ function applyState(data){
   if('alertThreshold' in data){ alertThreshold = data.alertThreshold; saveAlert(alertThreshold); }
   if(data.cats) applyCats(data.cats);
   if('accountBalances' in data){
+    if(data.accountBalances && data.accountBalances.balances){
+      delete data.accountBalances.balances.peigo;
+      delete data.accountBalances.balances.pacifico;
+      if(data.accountBalances.balances.guayaquil === undefined) data.accountBalances.balances.guayaquil = 0;
+    }
     accountBalances = normalizeAccountBalances(data.accountBalances);
     saveAccountBalances(accountBalances, false);
   }
@@ -3692,8 +3697,12 @@ function applyState(data){
     examsList = data.exams;
     try { localStorage.setItem(EXAMS_KEY, JSON.stringify(examsList)); } catch(e){}
   }
-  if('defaultAccountId' in data && isKnownAccountId(data.defaultAccountId)){
-    defaultAccountId = data.defaultAccountId;
+  if('defaultAccountId' in data){
+    let defId = data.defaultAccountId;
+    if(defId === 'pacifico' || defId === 'peigo' || defId === 'unassigned' || !isKnownAccountId(defId)){
+      defId = 'guayaquil';
+    }
+    defaultAccountId = defId;
     saveDefaultAccount(defaultAccountId, false);
   }
   updateBadges();
@@ -6572,6 +6581,14 @@ function setupLifeOsEventListeners(){
 
 <script>
 if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
