@@ -2307,7 +2307,7 @@ var needsAnotherPush = false;
 var supabaseDebounceTimer = null;
 var lastLocalMutationTime = 0;
 
-const SEED_DATA = {"tx": [{"id": 1784774000000, "amt": 3.3, "cat": "Otros", "date": "2026-07-03", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774100000, "amt": 25, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774200000, "amt": 1.17, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774300000, "amt": 5, "cat": "Comida", "date": "2026-07-24", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774400000, "amt": 3.03, "cat": "Otros", "date": "2026-07-24", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774500000, "amt": 7.25, "cat": null, "date": "2026-07-24", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774600000, "amt": 5, "cat": "Cuidado personal", "date": "2026-07-25", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774700000, "amt": 2.85, "cat": null, "date": "2026-07-25", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774800000, "amt": 17.02, "cat": "Otros", "date": "2026-07-25", "note": "Regalo Elizabeth", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774900000, "amt": 20, "cat": null, "date": "2026-07-27", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775000000, "amt": 19.49, "cat": "Otros", "date": "2026-07-27", "note": "Comida, Pastel", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775100000, "amt": 2.85, "cat": "Otros", "date": "2026-07-27", "note": "Impresiones", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775200000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775300000, "amt": 5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775400000, "amt": 5, "cat": null, "date": "2026-07-30", "note": "Hermana", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775500000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775600000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775700000, "amt": 1.5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775800000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775900000, "amt": 2.25, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776000000, "amt": 3.8, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776100000, "amt": 1, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776200000, "amt": 1.2, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776300000, "amt": 250, "cat": null, "date": "2026-08-03", "note": "Sueldo", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776400000, "amt": 8.93, "cat": null, "date": "2026-08-03", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776500000, "amt": 8, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776600000, "amt": 80, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776700000, "amt": 50, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776800000, "amt": 5, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776900000, "amt": 9.5, "cat": "Comida", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777000000, "amt": 3.43, "cat": "Otros", "date": "2026-08-03", "note": "COD", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777100000, "amt": 10.35, "cat": "Comida", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777200000, "amt": 3.3, "cat": "Otros", "date": "2026-08-04", "note": "Spotify", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777300000, "amt": 0.55, "cat": "Otros", "date": "2026-08-04", "note": "RE", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777500000, "amt": 3.5, "cat": "Otros", "date": "2026-08-04", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777600000, "amt": 0.25, "cat": "Moto", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777700000, "amt": 24.4, "cat": "Comida", "date": "2026-08-06", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777800000, "amt": 2.06, "cat": "Otros", "date": "2026-08-06", "note": "Pinche Banco", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777900000, "amt": 6.5, "cat": "Comida", "date": "2026-08-11", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778000000, "amt": 5.74, "cat": "Otros", "date": "2026-08-13", "note": "Antigravity", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778100000, "amt": 8.75, "cat": "Comida", "date": "2026-08-16", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1784778200000, "amt": 3.73, "cat": "Otros", "date": "2026-08-16", "note": "Cod", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1786930758953, "amt": 1, "cat": null, "date": "2026-08-16", "note": null, "type": "income", "goalId": null, "account": "cash"}, {"id": 1787142686360, "amt": 10.31, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787144277476, "amt": 8, "cat": null, "date": "2026-08-19", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787161900000, "amt": 14.23, "cat": "Otros", "date": "2026-08-19", "note": "Gasolina / TC", "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787169733316, "amt": 1.05, "cat": "Otros", "date": "2026-08-19", "note": "Recarga", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1787178947217, "amt": 4.25, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787178964443, "amt": 0.5, "cat": null, "date": "2026-08-19", "note": "De una", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787182317637, "amt": 5, "cat": "Cuidado personal", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787193690597, "amt": 15, "cat": null, "date": "2026-08-19", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "deuna"}, {"id": 1787762000001, "amt": 5, "cat": null, "date": "2026-08-26", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787762000002, "amt": 1, "cat": "Comida", "date": "2026-08-26", "note": "Aguita", "type": "expense", "goalId": null, "account": "cash"}, {"id": 1787674800000, "amt": 3.86, "cat": null, "date": "2026-08-25", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787680000001, "amt": 2.65, "cat": null, "date": "2026-08-20", "note": "Efectivo", "type": "income", "goalId": null, "account": "cash"}, {"id": 1787680000002, "amt": 2.65, "cat": null, "date": "2026-08-20", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "cash"}, {"id": 1787763000001, "amt": 1, "cat": null, "date": "2026-08-26", "note": "Efectivo", "type": "income", "goalId": null, "account": "cash"}, {"id": 1787588400000, "amt": 10.75, "cat": null, "date": "2026-08-24", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787850000001, "amt": 7.99, "cat": "Otros", "date": "2026-08-27", "note": "Tarjeta de Crédito", "type": "expense", "goalId": null, "account": "tc"}], "cats": [{"name": "Comida", "color": "#A6989C"}, {"name": "Moto", "color": "#A6989C"}, {"name": "Cuidado personal", "color": "#A6989C"}, {"name": "Deudas universidad", "color": "#A6989C"}, {"name": "Otros", "color": "#A6989C"}, {"name": "Pago Tarjeta", "color": "#F43F5E"}], "exams": [], "goals": [{"id": "g1785873709486", "name": "1er", "target": 100, "createdDate": "2026-08-04"}], "tasks": [{"id": 1787200000002, "done": true, "title": "Tanquear la moto", "dueDate": "2026-08-19", "priority": "high", "createdAt": "2026-08-19"}], "budgets": {"2026-07": {"Moto": 5, "Comida": 15, "Cuidado personal": 5}, "2026-08": {"Moto": 20, "Cuidado personal": 10, "Deudas universidad": 150}, "_default": {"Moto": 15, "Otros": 50, "Cuidado personal": 10, "Deudas universidad": 100}}, "creditCard": {"name": "Tarjeta de Crédito", "cutOffDay": 24, "baselineDate": "2026-08-19", "baselineDebt": 0, "paymentDueDay": 8}, "motorcycle": {"lastDate": "2026-08-16", "lastMileage": 21953}, "goalHistory": [], "deletedTxIds": [], "alertThreshold": null, "accountBalances": {"balances": {"tc": 0, "cash": 0, "deuna": 40.95, "pacifico": 0}, "baselineDate": "2026-08-07"}, "defaultAccountId": "pacifico", "motorcycleMaintenance": {"lastDate": "2026-08-16", "lastMileage": 21953}};
+const SEED_DATA = {"tx": [{"id": 1784774000000, "amt": 3.3, "cat": "Otros", "date": "2026-07-03", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774100000, "amt": 25, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774200000, "amt": 1.17, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774300000, "amt": 5, "cat": "Comida", "date": "2026-07-24", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774400000, "amt": 3.03, "cat": "Otros", "date": "2026-07-24", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774500000, "amt": 7.25, "cat": null, "date": "2026-07-24", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774600000, "amt": 5, "cat": "Cuidado personal", "date": "2026-07-25", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774700000, "amt": 2.85, "cat": null, "date": "2026-07-25", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774800000, "amt": 17.02, "cat": "Otros", "date": "2026-07-25", "note": "Regalo Elizabeth", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774900000, "amt": 20, "cat": null, "date": "2026-07-27", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775000000, "amt": 19.49, "cat": "Otros", "date": "2026-07-27", "note": "Comida, Pastel", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775100000, "amt": 2.85, "cat": "Otros", "date": "2026-07-27", "note": "Impresiones", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775200000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775300000, "amt": 5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775400000, "amt": 5, "cat": null, "date": "2026-07-30", "note": "Hermana", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775500000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775600000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775700000, "amt": 1.5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775800000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775900000, "amt": 2.25, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776000000, "amt": 3.8, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776100000, "amt": 1, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776200000, "amt": 1.2, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776300000, "amt": 250, "cat": null, "date": "2026-08-03", "note": "Sueldo", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776400000, "amt": 8.93, "cat": null, "date": "2026-08-03", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776500000, "amt": 8, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776600000, "amt": 80, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776700000, "amt": 50, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776800000, "amt": 5, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776900000, "amt": 9.5, "cat": "Comida", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777000000, "amt": 3.43, "cat": "Otros", "date": "2026-08-03", "note": "COD", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777100000, "amt": 10.35, "cat": "Comida", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777200000, "amt": 3.3, "cat": "Otros", "date": "2026-08-04", "note": "Spotify", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777300000, "amt": 0.55, "cat": "Otros", "date": "2026-08-04", "note": "RE", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777500000, "amt": 3.5, "cat": "Otros", "date": "2026-08-04", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777600000, "amt": 0.25, "cat": "Moto", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777700000, "amt": 24.4, "cat": "Comida", "date": "2026-08-06", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777800000, "amt": 2.06, "cat": "Otros", "date": "2026-08-06", "note": "Pinche Banco", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777900000, "amt": 6.5, "cat": "Comida", "date": "2026-08-11", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778000000, "amt": 5.74, "cat": "Otros", "date": "2026-08-13", "note": "Antigravity", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778100000, "amt": 8.75, "cat": "Comida", "date": "2026-08-16", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1784778200000, "amt": 3.73, "cat": "Otros", "date": "2026-08-16", "note": "Cod", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1786930758953, "amt": 1, "cat": null, "date": "2026-08-16", "note": null, "type": "income", "goalId": null, "account": "cash"}, {"id": 1787142686360, "amt": 10.31, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787144277476, "amt": 8, "cat": null, "date": "2026-08-19", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787161900000, "amt": 14.23, "cat": "Otros", "date": "2026-08-19", "note": "Gasolina / TC", "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787169733316, "amt": 1.05, "cat": "Otros", "date": "2026-08-19", "note": "Recarga", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1787178947217, "amt": 4.25, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787178964443, "amt": 0.5, "cat": null, "date": "2026-08-19", "note": "De una", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787182317637, "amt": 5, "cat": "Cuidado personal", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787193690597, "amt": 15, "cat": null, "date": "2026-08-19", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "deuna"}, {"id": 1787762000001, "amt": 5, "cat": null, "date": "2026-08-26", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787762000002, "amt": 1, "cat": "Comida", "date": "2026-08-26", "note": "Aguita", "type": "expense", "goalId": null, "account": "cash"}, {"id": 1787674800000, "amt": 3.86, "cat": null, "date": "2026-08-25", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787680000001, "amt": 2.65, "cat": null, "date": "2026-08-20", "note": "Efectivo", "type": "income", "goalId": null, "account": "cash"}, {"id": 1787680000002, "amt": 2.65, "cat": null, "date": "2026-08-20", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "cash"}, {"id": 1787763000001, "amt": 1, "cat": null, "date": "2026-08-26", "note": "Efectivo", "type": "income", "goalId": null, "account": "cash"}, {"id": 1787588400000, "amt": 10.75, "cat": null, "date": "2026-08-24", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787850000001, "amt": 7.99, "cat": "Otros", "date": "2026-08-27", "note": "Tarjeta de Crédito", "type": "expense", "goalId": null, "account": "tc"}], "cats": [{"name": "Comida", "color": "#A6989C"}, {"name": "Moto", "color": "#A6989C"}, {"name": "Cuidado personal", "color": "#A6989C"}, {"name": "Deudas universidad", "color": "#A6989C"}, {"name": "Otros", "color": "#A6989C"}, {"name": "Pago Tarjeta", "color": "#F43F5E"}], "exams": [], "goals": [{"id": "g1785873709486", "name": "1er", "target": 100, "createdDate": "2026-08-04"}], "tasks": [{"id": 1787200000002, "done": true, "title": "Tanquear la moto", "dueDate": "2026-08-19", "priority": "high", "createdAt": "2026-08-19"}], "budgets": {"2026-07": {"Moto": 5, "Comida": 15, "Cuidado personal": 5}, "2026-08": {"Moto": 20, "Cuidado personal": 10, "Deudas universidad": 150}, "_default": {"Moto": 15, "Otros": 50, "Cuidado personal": 10, "Deudas universidad": 100}}, "creditCard": {"name": "Tarjeta de Crédito", "cutOffDay": 24, "baselineDate": "2026-08-19", "baselineDebt": 0, "paymentDueDay": 8}, "motorcycle": {"lastDate": "2026-08-16", "lastMileage": 21953}, "goalHistory": [], "deletedTxIds": [], "alertThreshold": null, "accountBalances": {"balances": {"tc": 0, "cash": 0, "deuna": 40.95, "guayaquil": 0}, "baselineDate": "2026-08-07"}, "defaultAccountId": "guayaquil", "motorcycleMaintenance": {"lastDate": "2026-08-16", "lastMileage": 21953}};
 
 function getStoredOrSeed(key, seedValue){
   try {
@@ -2352,23 +2352,44 @@ initTombstoneSet(DELETED_FUEL_KEY, deletedFuelLogIds);
 initTombstoneSet(DELETED_SERVICE_KEY, deletedServiceIds);
 const ALERT_KEY = 'mcf_alert_v1';
 
-const CURRENT_APP_DATA_VERSION = 'v53_banco_pacifico';
+const CURRENT_APP_DATA_VERSION = 'v54_banco_guayaquil';
 try {
-  // Migración limpia para reemplazar PeiGo por Banco del Pacífico
+  // Migración limpia para reemplazar Banco del Pacífico / PeiGo por Banco Guayaquil
   const storedBal = localStorage.getItem(ACCOUNT_BALANCES_KEY);
   if(storedBal){
     try {
       const b = JSON.parse(storedBal);
       if(b && b.balances){
         delete b.balances.peigo;
-        if(b.balances.pacifico === undefined) b.balances.pacifico = 0;
+        delete b.balances.pacifico;
+        if(b.balances.guayaquil === undefined) b.balances.guayaquil = 0;
         localStorage.setItem(ACCOUNT_BALANCES_KEY, JSON.stringify(b));
       }
     } catch(err){}
   }
   const storedDef = localStorage.getItem(DEFAULT_ACCOUNT_KEY);
-  if(!storedDef || storedDef === 'peigo'){
-    localStorage.setItem(DEFAULT_ACCOUNT_KEY, 'pacifico');
+  if(!storedDef || storedDef === 'peigo' || storedDef === 'pacifico'){
+    localStorage.setItem(DEFAULT_ACCOUNT_KEY, 'guayaquil');
+  }
+
+  // Migrar cualquier transacción local que tenga 'pacifico' a 'guayaquil'
+  const storedTx = localStorage.getItem(TX_KEY);
+  if(storedTx){
+    try {
+      const txs = JSON.parse(storedTx);
+      let changed = false;
+      if(Array.isArray(txs)){
+        txs.forEach(t => {
+          if(t.account === 'pacifico'){
+            t.account = 'guayaquil';
+            changed = true;
+          }
+        });
+        if(changed){
+          localStorage.setItem(TX_KEY, JSON.stringify(txs));
+        }
+      }
+    } catch(err){}
   }
 
   const storedVer = localStorage.getItem('mcf_app_data_version');
@@ -2397,19 +2418,23 @@ try {
 const OIL_CHANGE_INTERVAL = 1500;
 
 const ACCOUNT_DEFS = [
-  { id:'pacifico', name:'Banco Pacífico', color:'#0066B3', icon:'bank' },
+  { id:'guayaquil', name:'Banco Guayaquil', color:'#DE0059', icon:'bank' },
   { id:'deuna', name:'Deuna!', color:'#F2B84B', icon:'deuna' },
   { id:'tc', name:'Tarjeta de Crédito', color:'#F43F5E', icon:'card' },
   { id:'cash', name:'Efectivo', color:'#6EA8FE', icon:'cash' }
 ];
 const ARCHIVED_ACCOUNTS = [
-  { id:'peigo', name:'PeiGo', color:'#39C49A', icon:'peigo' }
+  { id:'pacifico', name:'Banco Pacífico (cerrada)', color:'#0066B3', icon:'bank' },
+  { id:'peigo', name:'PeiGo (cerrada)', color:'#39C49A', icon:'peigo' }
 ];
 const ALL_ACCOUNTS = [...ACCOUNT_DEFS, ...ARCHIVED_ACCOUNTS];
 const UNASSIGNED_ACCOUNT = { id:'unassigned', name:'Sin asignar', color:'#A6989C', icon:'unassigned' };
 const ACCOUNT_BY_ID = Object.fromEntries([...ALL_ACCOUNTS, UNASSIGNED_ACCOUNT].map(account=>[account.id, account]));
 const isKnownAccountId = id => Object.prototype.hasOwnProperty.call(ACCOUNT_BY_ID, id);
-const normalizeAccountId = id => isKnownAccountId(id) ? id : UNASSIGNED_ACCOUNT.id;
+const normalizeAccountId = id => {
+  if (id === 'pacifico') return 'guayaquil';
+  return isKnownAccountId(id) ? id : UNASSIGNED_ACCOUNT.id;
+};
 const getAccountMeta = id => ACCOUNT_BY_ID[normalizeAccountId(id)] || UNASSIGNED_ACCOUNT;
 const getAccountOptions = includeUnassigned => includeUnassigned ? [...ACCOUNT_DEFS, UNASSIGNED_ACCOUNT] : ACCOUNT_DEFS;
 function normalizeAccountBalances(raw){
@@ -2447,7 +2472,7 @@ const saveAccountBalances = (value, shouldSync = true) => {
 };
 function loadDefaultAccount(){
   const stored = localStorage.getItem(DEFAULT_ACCOUNT_KEY);
-  return (isKnownAccountId(stored) && stored !== 'peigo') ? stored : ACCOUNT_DEFS[0].id;
+  return (isKnownAccountId(stored) && stored !== 'peigo' && stored !== 'pacifico') ? stored : ACCOUNT_DEFS[0].id;
 }
 const saveDefaultAccount = (id, shouldSync = true) => {
   localStorage.setItem(DEFAULT_ACCOUNT_KEY, normalizeAccountId(id));
@@ -2723,8 +2748,8 @@ function renderAccounts(){
   const monthTotals = getAccountTotals(tx.filter(t=>monthKey(t.date)===cursorKey()), accountBalances ? accountBalances.baselineDate : null);
   const accountIds = getAccountOptions(Object.prototype.hasOwnProperty.call(totals,'unassigned')).map(account=>account.id);
   
-  // Total en cuentas líquidas (Banco Pacífico, Deuna!, Efectivo) - NO resta la tarjeta de crédito
-  const liquidAccountIds = ['pacifico', 'deuna', 'cash'];
+  // Total en cuentas líquidas (Banco Guayaquil, Deuna!, Efectivo) - NO resta la tarjeta de crédito
+  const liquidAccountIds = ['guayaquil', 'deuna', 'cash'];
   const liquidTotal = liquidAccountIds.reduce((sum, id) => sum + (totals[id] ? totals[id].balance : 0), 0);
   const flowLabel = cursor.toLocaleDateString('es-ES',{month:'short'});
   animateNumber('accountsTotal', liquidTotal);
@@ -2925,9 +2950,9 @@ function renderCreditCardPanel(){
   const nextPay = getNextPaymentDueDate(cfg.cutOffDay, pDay);
   const nextPayLabel = nextPay.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
   
-  // Calculate total liquid cash in Banco Pacífico, Deuna, and Cash
+  // Calculate total liquid cash in Banco Guayaquil, Deuna, and Cash
   const totals = getCurrentAccountTotals();
-  const liquidCash = (totals.pacifico ? totals.pacifico.balance : 0) + (totals.deuna ? totals.deuna.balance : 0) + (totals.cash ? totals.cash.balance : 0);
+  const liquidCash = (totals.guayaquil ? totals.guayaquil.balance : 0) + (totals.deuna ? totals.deuna.balance : 0) + (totals.cash ? totals.cash.balance : 0);
   const isCovered = liquidCash >= debt;
   const coverageText = isCovered ? `${fmt(liquidCash)} (100% ✓)` : `${fmt(liquidCash)} (Faltan ${fmt(debt - liquidCash)})`;
   const coverageClass = isCovered ? 'coverage' : 'coverage warn';
@@ -3280,7 +3305,7 @@ document.getElementById('fCat')?.addEventListener('change', () => {
   const accSel = document.getElementById('fAccount');
   if(catVal === 'Pago Tarjeta' && accSel && accSel.value === 'tc'){
     accSel.value = (defaultAccountId && defaultAccountId !== 'tc') ? defaultAccountId : 'deuna';
-    showToast('Selecciona la cuenta líquida de donde saldrá el pago (Deuna, Banco Pacífico o Efectivo)');
+    showToast('Selecciona la cuenta líquida de donde saldrá el pago (Deuna, Banco Guayaquil o Efectivo)');
   }
 });
 
@@ -5335,7 +5360,7 @@ function render(){
 
   // El balance principal del Hero refleja tu dinero líquido total disponible en cuentas
   const currentTotals = getCurrentAccountTotals();
-  const liquidCashTotal = ['pacifico', 'deuna', 'cash'].reduce((sum, id) => sum + (currentTotals[id] ? currentTotals[id].balance : 0), 0);
+  const liquidCashTotal = ['guayaquil', 'deuna', 'cash'].reduce((sum, id) => sum + (currentTotals[id] ? currentTotals[id].balance : 0), 0);
   animateNumber('heroBalance', liquidCashTotal);
   
   const heroChange = document.getElementById('heroChange');
