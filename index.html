@@ -3821,6 +3821,9 @@ async function pullFromSupabase(){
       return;
     }
     
+    // Do not let a response that started before a local edit overwrite it.
+    if(goalFormOpen || Date.now() - lastLocalMutationTime < 2500) return;
+
     if(data && data.data && Object.keys(data.data).length > 0){
       applyState(data.data);
       render();
@@ -4005,13 +4008,6 @@ document.addEventListener('visibilitychange', () => {
     pullFromSupabase();
   }
 });
-// Polling de respaldo cada 4 segundos si la app está abierta
-setInterval(() => {
-  if(document.visibilityState === 'visible' && sbClient && sbUser && !isPushingToRemote){
-    pullFromSupabase();
-  }
-}, 4000);
-
 if(authForm) authForm.addEventListener('submit', async e=>{
   e.preventDefault();
   if(!sbClient){
@@ -4844,6 +4840,7 @@ function showGoalForm(existing){
     goalFormOpen = false;
     saveGoals(goals);
     render();
+    showToast(existing ? 'Meta actualizada ✓' : 'Meta creada ✓');
   });
   document.getElementById('cancelGoalBtn')?.addEventListener('click', ()=>renderGoals(true));
 }
