@@ -161,6 +161,8 @@
     padding:16px 18px; margin-bottom:16px; display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;
   }
   .settings-panel.hidden{ display:none; }
+  .form-error{ color:var(--red); font-size:12px; margin:8px 0 0; }
+  .form-error.hidden{ display:none; }
   .settings-panel label{ display:block; font-size:10.5px; color: var(--text-soft); margin-bottom:6px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:.06em; }
   .settings-panel input{ padding:9px 11px; border-radius:7px; border:1px solid var(--line); background: rgba(0,0,0,0.28); color:var(--text); font-size:13.5px; width:160px; }
   .settings-panel input:focus{ outline:none; border-color: var(--gold); }
@@ -2309,14 +2311,6 @@ var lastLocalMutationTime = 0;
 
 const SEED_DATA = {"tx": [{"id": 1784774000000, "amt": 3.3, "cat": "Otros", "date": "2026-07-03", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774100000, "amt": 25, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774200000, "amt": 1.17, "cat": null, "date": "2026-07-23", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774300000, "amt": 5, "cat": "Comida", "date": "2026-07-24", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774400000, "amt": 3.03, "cat": "Otros", "date": "2026-07-24", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774500000, "amt": 7.25, "cat": null, "date": "2026-07-24", "note": null, "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774600000, "amt": 5, "cat": "Cuidado personal", "date": "2026-07-25", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774700000, "amt": 2.85, "cat": null, "date": "2026-07-25", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784774800000, "amt": 17.02, "cat": "Otros", "date": "2026-07-25", "note": "Regalo Elizabeth", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784774900000, "amt": 20, "cat": null, "date": "2026-07-27", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775000000, "amt": 19.49, "cat": "Otros", "date": "2026-07-27", "note": "Comida, Pastel", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775100000, "amt": 2.85, "cat": "Otros", "date": "2026-07-27", "note": "Impresiones", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775200000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775300000, "amt": 5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775400000, "amt": 5, "cat": null, "date": "2026-07-30", "note": "Hermana", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775500000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775600000, "amt": 5, "cat": "Moto", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775700000, "amt": 1.5, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784775800000, "amt": 10, "cat": null, "date": "2026-07-30", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784775900000, "amt": 2.25, "cat": "Comida", "date": "2026-07-30", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776000000, "amt": 3.8, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776100000, "amt": 1, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776200000, "amt": 1.2, "cat": "Comida", "date": "2026-07-31", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776300000, "amt": 250, "cat": null, "date": "2026-08-03", "note": "Sueldo", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776400000, "amt": 8.93, "cat": null, "date": "2026-08-03", "note": "Madre", "type": "income", "goalId": null, "account": "peigo"}, {"id": 1784776500000, "amt": 8, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776600000, "amt": 80, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776700000, "amt": 50, "cat": "Deudas universidad", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776800000, "amt": 5, "cat": "Moto", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784776900000, "amt": 9.5, "cat": "Comida", "date": "2026-08-03", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777000000, "amt": 3.43, "cat": "Otros", "date": "2026-08-03", "note": "COD", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777100000, "amt": 10.35, "cat": "Comida", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777200000, "amt": 3.3, "cat": "Otros", "date": "2026-08-04", "note": "Spotify", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777300000, "amt": 0.55, "cat": "Otros", "date": "2026-08-04", "note": "RE", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777500000, "amt": 3.5, "cat": "Otros", "date": "2026-08-04", "note": "Five", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777600000, "amt": 0.25, "cat": "Moto", "date": "2026-08-04", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777700000, "amt": 24.4, "cat": "Comida", "date": "2026-08-06", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777800000, "amt": 2.06, "cat": "Otros", "date": "2026-08-06", "note": "Pinche Banco", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784777900000, "amt": 6.5, "cat": "Comida", "date": "2026-08-11", "note": null, "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778000000, "amt": 5.74, "cat": "Otros", "date": "2026-08-13", "note": "Antigravity", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1784778100000, "amt": 8.75, "cat": "Comida", "date": "2026-08-16", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1784778200000, "amt": 3.73, "cat": "Otros", "date": "2026-08-16", "note": "Cod", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1786930758953, "amt": 1, "cat": null, "date": "2026-08-16", "note": null, "type": "income", "goalId": null, "account": "cash"}, {"id": 1787142686360, "amt": 10.31, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787144277476, "amt": 8, "cat": null, "date": "2026-08-19", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787161900000, "amt": 14.23, "cat": "Otros", "date": "2026-08-19", "note": "Gasolina / TC", "type": "expense", "goalId": null, "account": "tc"}, {"id": 1787169733316, "amt": 1.05, "cat": "Otros", "date": "2026-08-19", "note": "Recarga", "type": "expense", "goalId": null, "account": "peigo"}, {"id": 1787178947217, "amt": 4.25, "cat": "Moto", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787178964443, "amt": 0.5, "cat": null, "date": "2026-08-19", "note": "De una", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787182317637, "amt": 5, "cat": "Cuidado personal", "date": "2026-08-19", "note": null, "type": "expense", "goalId": null, "account": "deuna"}, {"id": 1787193690597, "amt": 15, "cat": null, "date": "2026-08-19", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "deuna"}, {"id": 1787762000001, "amt": 5, "cat": null, "date": "2026-08-26", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787762000002, "amt": 1, "cat": "Comida", "date": "2026-08-26", "note": "Aguita", "type": "expense", "goalId": null, "account": "cash"}, {"id": 1787674800000, "amt": 3.86, "cat": null, "date": "2026-08-25", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787680000001, "amt": 2.65, "cat": null, "date": "2026-08-20", "note": "Efectivo", "type": "income", "goalId": null, "account": "cash"}, {"id": 1787680000002, "amt": 2.65, "cat": null, "date": "2026-08-20", "note": null, "type": "saving", "goalId": "g1785873709486", "account": "cash"}, {"id": 1787763000001, "amt": 1, "cat": null, "date": "2026-08-26", "note": "Efectivo", "type": "income", "goalId": null, "account": "cash"}, {"id": 1787588400000, "amt": 10.75, "cat": null, "date": "2026-08-24", "note": "Madre", "type": "income", "goalId": null, "account": "deuna"}, {"id": 1787850000001, "amt": 7.99, "cat": "Otros", "date": "2026-08-27", "note": "Tarjeta de Crédito", "type": "expense", "goalId": null, "account": "tc"}], "cats": [{"name": "Comida", "color": "#A6989C"}, {"name": "Moto", "color": "#A6989C"}, {"name": "Cuidado personal", "color": "#A6989C"}, {"name": "Deudas universidad", "color": "#A6989C"}, {"name": "Otros", "color": "#A6989C"}, {"name": "Pago Tarjeta", "color": "#F43F5E"}], "exams": [], "goals": [{"id": "g1785873709486", "name": "1er", "target": 100, "createdDate": "2026-08-04"}], "tasks": [{"id": 1787200000002, "done": true, "title": "Tanquear la moto", "dueDate": "2026-08-19", "priority": "high", "createdAt": "2026-08-19"}], "budgets": {"2026-07": {"Moto": 5, "Comida": 15, "Cuidado personal": 5}, "2026-08": {"Moto": 20, "Cuidado personal": 10, "Deudas universidad": 150}, "_default": {"Moto": 15, "Otros": 50, "Cuidado personal": 10, "Deudas universidad": 100}}, "creditCard": {"name": "Tarjeta de Crédito", "cutOffDay": 24, "baselineDate": "2026-08-19", "baselineDebt": 0, "paymentDueDay": 8}, "motorcycle": {"lastDate": "2026-08-16", "lastMileage": 21953}, "goalHistory": [], "deletedTxIds": [], "alertThreshold": null, "accountBalances": {"balances": {"tc": 0, "cash": 0, "deuna": 40.95, "guayaquil": 0}, "baselineDate": "2026-08-07"}, "defaultAccountId": "guayaquil", "motorcycleMaintenance": {"lastDate": "2026-08-16", "lastMileage": 21953}};
 
-function getStoredOrSeed(key, seedValue){
-  try {
-    const stored = localStorage.getItem(key);
-    if(stored) return JSON.parse(stored);
-  } catch(e){}
-  return seedValue;
-}
-
 const TX_KEY = 'mcf_tx_v2';
 const BUDGETS_KEY = 'mcf_budgets_v1';
 const GOALS_KEY = 'mcf_goals_v2';
@@ -2392,7 +2386,6 @@ try {
     } catch(err){}
   }
 
-  const storedVer = localStorage.getItem('mcf_app_data_version');
   // First time installation: only populate seed if storage is completely empty
   if (!localStorage.getItem(TX_KEY) && typeof SEED_DATA !== 'undefined' && SEED_DATA) {
     if(SEED_DATA.tx) localStorage.setItem(TX_KEY, JSON.stringify(SEED_DATA.tx));
@@ -2412,7 +2405,6 @@ try {
       localStorage.setItem(TX_KEY, JSON.stringify(Array.from(txMap.values())));
     } catch(err){}
   }
-  if(SEED_DATA && SEED_DATA.accountBalances) localStorage.setItem(ACCOUNT_BALANCES_KEY, JSON.stringify(SEED_DATA.accountBalances));
   localStorage.setItem('mcf_app_data_version', CURRENT_APP_DATA_VERSION);
 } catch(e){ console.warn('Error en inicializador seguro de datos:', e); }
 const OIL_CHANGE_INTERVAL = 1500;
@@ -3369,12 +3361,6 @@ function editTx(id){
   const t = tx.find(x=>x.id===id);
   if(t) openEntryModal({ ...t });
 }
-function duplicateTx(id){
-  const t = tx.find(x=>x.id===id);
-  if(!t) return;
-  openEntryModal({ type:t.type, cat:t.cat, amt:t.amt, date:t.date, goalId:t.goalId, note:t.note, account:t.account });
-  modalTitle.textContent = 'Duplicar movimiento';
-}
 function txLabel(t){
   if(t.type==='expense') return escapeHtml(t.cat || 'Gasto') + ((t.cat==='Otros' && t.note) ? ` — ${escapeHtml(t.note)}` : '');
   if(t.type==='income') return 'Ingreso' + (t.note ? ` — ${escapeHtml(t.note)}` : '');
@@ -3713,8 +3699,6 @@ const SB_KEY_KEY = 'mcf_sb_key_v2';
 
 const DEFAULT_SB_URL = 'https://mddrtrlhhfdtrtaxinxt.supabase.co';
 const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kZHJ0cmxoaGZkdHJ0YXhpbnh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MTEzNDEsImV4cCI6MjEwMjQ4NzM0MX0.MuBaGKPkfuPVg4dWwA99vrWvWFAXGAUdLbU-r4UzAZs';
-const DEFAULT_USER_ID = '82bd8770-0a5f-4280-88e7-fe03824afa30';
-
 let sbUrl = localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL;
 let sbAnonKey = localStorage.getItem(SB_KEY_KEY) || DEFAULT_SB_KEY;
 
@@ -3808,8 +3792,8 @@ function handleAuthState(user){
 }
 
 async function pullFromSupabase(){
-  if(!sbClient) return;
-  const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
+  if(!sbClient || !sbUser) return;
+  const targetUserId = sbUser.id;
   if(Date.now() - lastLocalMutationTime < 2500) return;
   try {
     const { data, error } = await sbClient
@@ -3837,12 +3821,12 @@ async function pullFromSupabase(){
 }
 
 async function pushToSupabase(){
-  if(!sbClient) return;
+  if(!sbClient || !sbUser) return;
   if(isPushingToRemote){
     needsAnotherPush = true;
     return;
   }
-  const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
+  const targetUserId = sbUser.id;
   isPushingToRemote = true;
   try {
     const currentState = collectState();
@@ -3877,8 +3861,8 @@ function scheduleSyncPush(){
 }
 
 function subscribeToRealtime(){
-  if(!sbClient || sbRealtimeChannel) return;
-  const targetUserId = (sbUser && sbUser.id) ? sbUser.id : DEFAULT_USER_ID;
+  if(!sbClient || !sbUser || sbRealtimeChannel) return;
+  const targetUserId = sbUser.id;
   
   sbRealtimeChannel = sbClient
     .channel('user_finance_realtime')
@@ -4209,50 +4193,6 @@ function drawBudgetBarsToCanvas(cats, monthBudgets, catTotals, w, h){
     ctx.fillRect(cx+1.5, padT+pH-hS, barW, hS);
     ctx.fillStyle='#555'; ctx.font='8.5px sans-serif'; ctx.textAlign='center';
     ctx.fillText(c.length>10?c.slice(0,9)+'…':c, cx, h-6);
-  });
-  return canvas;
-}
-
-function drawProjectionToCanvas(data, w, h){
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
-  if(!data || !data.history.length) return canvas;
-  const padL=32,padR=10,padT=14,padB=22;
-  const pW=w-padL-padR, pH=h-padT-padB;
-  const points=data.history.map(h=>({label:h.mk,val:h.cum,projected:false}));
-  if(data.avgRate>0 && data.remaining>0){
-    let cum=data.currentTotal; let mDate=new Date();
-    for(let i=1;i<=24 && cum<data.goal.target;i++){
-      mDate.setMonth(mDate.getMonth()+1); cum+=data.avgRate;
-      points.push({label:monthKeyFromDate(mDate),val:Math.min(cum,data.goal.target*1.05),projected:true});
-    }
-  }
-  if(points.length<2) points.unshift({label:'inicio',val:0,projected:false});
-  const maxV=Math.max(data.goal.target,...points.map(p=>p.val))*1.05;
-  const xp=i=>padL+(points.length===1?pW/2:(pW/(points.length-1))*i);
-  const yp=v=>padT+pH-(v/maxV)*pH;
-  ctx.setLineDash([4,3]); ctx.strokeStyle='#B08B00'; ctx.lineWidth=1.2;
-  ctx.beginPath(); ctx.moveTo(padL,yp(data.goal.target)); ctx.lineTo(w-padR,yp(data.goal.target)); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='#B08B00'; ctx.font='9px sans-serif'; ctx.textAlign='left';
-  ctx.fillText('Meta: '+fmt(data.goal.target), padL+2, yp(data.goal.target)-3);
-  const firstProjIdx=points.findIndex(p=>p.projected);
-  ctx.strokeStyle='rgba(63,165,122,0.9)'; ctx.lineWidth=2;
-  ctx.beginPath();
-  points.forEach((p,i)=>{ const px=xp(i),py=yp(p.val); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); });
-  if(firstProjIdx>0){ ctx.save(); ctx.beginPath(); ctx.rect(padL,padT,xp(firstProjIdx)-padL,pH); ctx.clip(); ctx.stroke(); ctx.restore(); }
-  else ctx.stroke();
-  if(firstProjIdx>0){
-    ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(212,175,55,0.9)';
-    ctx.beginPath();
-    for(let i=firstProjIdx-1;i<points.length;i++){ const px=xp(i),py=yp(points[i].val); if(i===firstProjIdx-1)ctx.moveTo(px,py); else ctx.lineTo(px,py); }
-    ctx.stroke(); ctx.setLineDash([]);
-  }
-  points.forEach((p,i)=>{
-    ctx.beginPath(); ctx.arc(xp(i),yp(p.val),2.4,0,Math.PI*2);
-    ctx.fillStyle=p.projected?'rgba(212,175,55,0.9)':'rgba(63,165,122,0.9)'; ctx.fill();
   });
   return canvas;
 }
@@ -4809,7 +4749,7 @@ function renderGoals(){
     area.innerHTML = `<div class="goal-empty">
       <div class="empty-icon">${icon('target', 34)}</div>
       <p>Aún no tienes metas activas. Crea una y elígela al registrar un ahorro.</p>
-      <button class="btn-outline" id="newGoalBtn">+ Crear primera meta</button>
+      <button type="button" class="btn-outline" id="newGoalBtn">+ Crear primera meta</button>
     </div>`;
     document.getElementById('newGoalBtn')?.addEventListener('click', ()=>showGoalForm(null));
   } else {
@@ -4837,7 +4777,7 @@ function renderGoals(){
             : `<button class="btn-ghost-sm edit-g" data-id="${g.id}">Editar</button><button class="btn-ghost-sm del-g" data-id="${g.id}">Eliminar</button>`}
         </div>
       </div>`;
-    }).join('') + `<button class="btn-outline" id="newGoalBtn" style="width:100%;margin-top:2px;">+ Nueva meta</button>`;
+    }).join('') + `<button type="button" class="btn-outline" id="newGoalBtn" style="width:100%;margin-top:2px;">+ Nueva meta</button>`;
 
     area.querySelectorAll('.edit-g').forEach(b=>b.addEventListener('click', ()=> showGoalForm(goals.find(g=>g.id===b.dataset.id))));
     area.querySelectorAll('.del-g').forEach(b=>b.addEventListener('click', ()=>{ goals = goals.filter(g=>g.id!==b.dataset.id); saveGoals(goals); render(); }));
@@ -4857,20 +4797,27 @@ function renderGoals(){
 
 function showGoalForm(existing){
   const area = document.getElementById('goalArea');
-  area.innerHTML = `<div class="goal-form">
+  area.innerHTML = `<form class="goal-form" id="goalForm" novalidate>
     <label for="gName">Nombre de la meta</label>
-    <input id="gName" type="text" placeholder="Ej. Laptop nueva" value="${existing? escapeAttr(existing.name):''}">
+    <input id="gName" type="text" placeholder="Ej. Laptop nueva" maxlength="80" required value="${existing? escapeAttr(existing.name):''}">
     <label for="gTarget">Monto objetivo</label>
-    <input id="gTarget" type="number" min="1" step="0.01" placeholder="300" value="${existing? existing.target:''}">
+    <input id="gTarget" type="number" min="0.01" step="0.01" placeholder="300" required value="${existing? existing.target:''}">
+    <p class="form-error hidden" id="goalFormError" role="alert"></p>
     <div class="goal-form-actions">
-      <button class="btn-submit" id="saveGoalBtn">Guardar meta</button>
-      <button class="btn-ghost-sm" id="cancelGoalBtn">Cancelar</button>
+      <button type="submit" class="btn-submit" id="saveGoalBtn">Guardar meta</button>
+      <button type="button" class="btn-ghost-sm" id="cancelGoalBtn">Cancelar</button>
     </div>
-  </div>`;
-  document.getElementById('saveGoalBtn')?.addEventListener('click', ()=>{
+  </form>`;
+  document.getElementById('goalForm')?.addEventListener('submit', event=>{
+    event.preventDefault();
     const name = document.getElementById('gName').value.trim();
     const target = parseFloat(document.getElementById('gTarget').value);
-    if(!name || !target) return;
+    const error = document.getElementById('goalFormError');
+    if(!name || !Number.isFinite(target) || target <= 0){
+      error.textContent = 'Escribe un nombre y un monto objetivo mayor que $0.';
+      error.classList.remove('hidden');
+      return;
+    }
     if(existing){
       const idx = goals.findIndex(g=>g.id===existing.id);
       goals[idx] = { ...existing, name, target };
