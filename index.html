@@ -246,6 +246,19 @@
   .account-migration-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .account-migration select{ min-width:150px; }
   @media (max-width: 680px){
+    /* Prevent a wide child from making the iPhone canvas pan horizontally. */
+    html, body{
+      width:100%;
+      max-width:100%;
+      overflow-x:hidden;
+      overscroll-behavior-x:none;
+    }
+    .wrap, .tab-view, .tab-container-centered, .main-grid-section, .center-stack,
+    .hero-row > *, .grid > *, .panel{
+      min-width:0;
+      max-width:100%;
+    }
+
     /* Hide charts and desktop-only analytics on mobile */
     #flowAnalysisSection, #budgetAnalysisSection, .charts-row, .analysis-section, .analysis-row, .balance-panel, .health-card {
       display: none !important;
