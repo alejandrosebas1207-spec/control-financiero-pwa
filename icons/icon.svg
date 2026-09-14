@@ -1,38 +1,56 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
+    <!-- Fondo obsidiana / grafito profundo -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1A1A1E"/>
-      <stop offset="100%" stop-color="#0E0E10"/>
+      <stop offset="0%" stop-color="#18221D"/>
+      <stop offset="45%" stop-color="#111614"/>
+      <stop offset="100%" stop-color="#090C0B"/>
     </linearGradient>
-    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F97316"/>
-      <stop offset="50%" stop-color="#EA580C"/>
-      <stop offset="100%" stop-color="#9A3412"/>
+
+    <!-- Resplandor ambiental de luz menta / oro -->
+    <radialGradient id="glow" cx="46%" cy="36%" r="62%">
+      <stop offset="0%" stop-color="#C4EF96" stop-opacity="0.18"/>
+      <stop offset="50%" stop-color="#88D7B0" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#111614" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Gradiente del monograma AS (blanco titanio a menta de lujo) -->
+    <linearGradient id="glyphGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#F2F8F3"/>
+      <stop offset="100%" stop-color="#C4EF96"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#22C55E"/>
-      <stop offset="100%" stop-color="#3B82F6"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#F97316" flood-opacity="0.3"/>
+
+    <!-- Sombra profunda iOS Native -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#000000" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="5" stdDeviation="10" flood-color="#C4EF96" flood-opacity="0.16"/>
     </filter>
+
+    <!-- Borde especular -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.28)"/>
+      <stop offset="40%" stop-color="rgba(255,255,255,0.06)"/>
+      <stop offset="100%" stop-color="rgba(196,239,150,0.12)"/>
+    </linearGradient>
   </defs>
-  
-  <!-- Fondo redondeado suave -->
-  <rect width="512" height="512" rx="120" fill="url(#bg)" stroke="rgba(249,115,22,0.3)" stroke-width="6"/>
-  
-  <!-- Círculo central brillante -->
-  <circle cx="256" cy="256" r="170" fill="url(#gold)" filter="url(#shadow)"/>
-  <circle cx="256" cy="256" r="162" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4"/>
-  
-  <!-- Símbolo de dinero / crecimiento -->
-  <path d="M256 120 V392 M180 180 C180 145 220 135 256 135 C310 135 330 165 330 200 C330 260 180 250 180 310 C180 355 215 375 256 375 C310 375 335 345 335 315" 
-        fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-        
-  <!-- Gráfico de barras ascendente en la base -->
-  <rect x="130" y="380" width="40" height="25" rx="6" fill="#22C55E" opacity="0.85"/>
-  <rect x="190" y="360" width="40" height="45" rx="6" fill="#22C55E" opacity="0.95"/>
-  <rect x="250" y="335" width="40" height="70" rx="6" fill="#3B82F6"/>
-  <rect x="310" y="305" width="40" height="100" rx="6" fill="#F97316"/>
-  <rect x="370" y="270" width="40" height="135" rx="6" fill="#22C55E"/>
+
+  <!-- Squircle Base iOS Native -->
+  <rect x="8" y="8" width="496" height="496" rx="118" ry="118" fill="url(#bg)"/>
+  <rect x="8" y="8" width="496" height="496" rx="118" ry="118" fill="url(#glow)"/>
+  <rect x="8" y="8" width="496" height="496" rx="118" ry="118" fill="none" stroke="url(#borderGrad)" stroke-width="2.5"/>
+
+  <!-- Anillo geométrico orbital interno sutil -->
+  <circle cx="256" cy="256" r="204" fill="none" stroke="rgba(196,239,150,0.06)" stroke-width="1.5" stroke-dasharray="6 8"/>
+
+  <!-- Monograma AS Tipográfico Centrado Ópticamente -->
+  <g filter="url(#shadow)">
+    <text x="256" y="327" 
+          font-family="Montserrat, -apple-system, sans-serif" 
+          font-size="204" 
+          font-weight="900" 
+          letter-spacing="6" 
+          text-anchor="middle" 
+          fill="url(#glyphGrad)">AS</text>
+  </g>
 </svg>

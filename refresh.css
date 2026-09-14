@@ -83,7 +83,7 @@ h1 { font-size:26px; letter-spacing:-1px; }
 @media(min-width:1100px) {
   .wrap { width:calc(100% - 220px); margin-left:220px; }
   .nav-tabs { position:fixed; left:0; top:0; bottom:0; width:220px; margin:0; padding:110px 18px 24px; border:0; border-right:1px solid var(--line); border-radius:0; display:flex; flex-direction:column; justify-content:flex-start; align-items:stretch; gap:8px; z-index:50; }
-  .nav-tabs::before { content:'◈  Life OS'; position:absolute; top:34px; left:30px; color:var(--text); font:600 25px 'Space Grotesk',sans-serif; letter-spacing:-1px; }
+  .nav-tabs::before { content:'◈  Alejo OS'; position:absolute; top:34px; left:30px; color:var(--text); font:600 25px 'Space Grotesk',sans-serif; letter-spacing:-1px; }
   .nav-tabs::after { content:'TU ESPACIO PERSONAL'; margin-top:auto; font:9px 'Inter',sans-serif; letter-spacing:1.5px; color:var(--text-soft); padding-left:14px; }
   .nav-tab { min-height:48px; }
   .nav-tab.active::after { content:''; width:5px; height:5px; border-radius:50%; background:var(--gold); margin-left:auto; }
