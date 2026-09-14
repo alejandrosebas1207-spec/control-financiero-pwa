@@ -94,7 +94,7 @@ h1 { font-size:26px; letter-spacing:-1px; }
 }
 @media(max-width:680px) {
   .nav-tabs { display:none; }
-  .wrap { padding:12px 16px calc(155px + env(safe-area-inset-bottom, 0px)) !important; }
+  .wrap { padding:12px 16px calc(165px + env(safe-area-inset-bottom, 30px)) !important; overflow-x: clip !important; }
   header.top { gap:16px !important; padding:10px 0 16px !important; margin-bottom:18px !important; }
   .brand { flex-direction:row !important; text-align:left !important; justify-content:flex-start; gap:12px !important; }
   h1 { font-size:22px !important; }

@@ -72,13 +72,9 @@
     background: #0B0407 !important;
     min-height: 100%;
     min-height: -webkit-fill-available;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     width: 100% !important;
-    max-width: 100vw !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overscroll-behavior-x: none !important;
-    touch-action: pan-y;
+    overscroll-behavior-y: none;
     -webkit-text-size-adjust: 100%;
   }
   body {
@@ -94,14 +90,10 @@
     background-attachment: fixed !important;
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     width: 100% !important;
-    max-width: 100vw !important;
     position: relative;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    overscroll-behavior-x: none !important;
-    touch-action: pan-y;
+    touch-action: manipulation;
     display: flex;
     flex-direction: column;
   }
@@ -263,12 +255,11 @@
   .account-migration-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .account-migration select{ min-width:150px; }
   @media (max-width: 680px){
-    /* Prevent a wide child from making the iPhone canvas pan horizontally. */
+    /* Prevent a wide child from making the iPhone canvas pan horizontally without breaking vertical scroll. */
     html, body{
       width:100%;
       max-width:100%;
-      overflow-x:hidden;
-      overscroll-behavior-x:none;
+      overflow-x:clip !important;
     }
     .wrap, .tab-view, .tab-container-centered, .main-grid-section, .center-stack,
     .hero-row > *, .grid > *, .panel{
@@ -1238,14 +1229,17 @@
     .nav-tabs { display: none; }
     .bottom-tab-bar { display: flex; }
     .wrap {
-      padding-bottom: calc(125px + env(safe-area-inset-bottom, 24px)) !important;
-      overflow-x: hidden !important;
+      padding-bottom: calc(160px + env(safe-area-inset-bottom, 30px)) !important;
+      overflow-x: clip !important;
       max-width: 100vw !important;
+    }
+    #goalArea {
+      margin-bottom: 24px;
     }
   }
 
   /* Tab View containers */
-  .tab-view { display: none !important; width: 100%; overflow-x: hidden; box-sizing: border-box; }
+  .tab-view { display: none !important; width: 100%; overflow-x: clip; box-sizing: border-box; }
   .tab-view.active {
     display: block !important;
     animation: fadeUp .3s ease both;
@@ -5763,6 +5757,7 @@ function updateBadges(){
 }
 
 window.switchTab = function(tabName){
+  if(typeof currentActiveTab !== 'undefined' && currentActiveTab === tabName) return;
   currentActiveTab = tabName;
   
   // Update header dynamic title
@@ -6598,27 +6593,18 @@ function setupLifeOsEventListeners(){
   render();
 })();
 
-// Blindaje contra pinch-to-zoom y double-tap zoom indeseado en móviles (iOS / Android)
+// Blindaje contra pinch-to-zoom indeseado en móviles (iOS Safari / WebKit)
 document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive: false });
 document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, { passive: false });
 document.addEventListener('gestureend', function(e){ e.preventDefault(); }, { passive: false });
-let lastTouchEndTime = 0;
-document.addEventListener('touchend', function(e){
-  const now = Date.now();
-  if(now - lastTouchEndTime <= 300){
-    if(!e.target.closest('input, textarea, select, button, a, [role="button"]')){
-      e.preventDefault();
-    }
-  }
-  lastTouchEndTime = now;
-}, { passive: false });
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
+    // Solo recargar si la app apenas está arrancando (primeros 2 segundos) para no interrumpir al usuario
+    if (!refreshing && performance.now() < 2000) {
       refreshing = true;
       window.location.reload();
     }
@@ -6628,7 +6614,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
         console.log('Service Worker PWA activo:', reg.scope);
-        reg.update();
       })
       .catch(err => console.log('Service Worker info:', err));
   });
