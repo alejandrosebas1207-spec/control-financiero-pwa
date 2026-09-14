@@ -1,7 +1,12 @@
-const CACHE_NAME = 'lifeos-pwa-v55';
+const CACHE_NAME = 'lifeos-pwa-v58';
 const CORE_ASSETS = [
   './',
   './index.html',
+  './refresh.css',
+  './icons/brands/guayaquil.svg',
+  './icons/brands/deuna.svg',
+  './icons/brands/mastercard.svg',
+  './icons/brands/cash.svg',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',

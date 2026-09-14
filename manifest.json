@@ -4,8 +4,8 @@
   "description": "Centro de comando personal: Finanzas, Moto, Tareas y Universidad",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0B0407",
-  "theme_color": "#0B0407",
+  "background_color": "#101413",
+  "theme_color": "#101413",
   "orientation": "portrait-primary",
   "icons": [
     {

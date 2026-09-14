@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Life OS">
-<meta name="theme-color" content="#0B0407">
+<meta name="theme-color" content="#101413">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
@@ -1595,8 +1595,15 @@
   }
 
 </style>
+<link rel="stylesheet" href="refresh.css">
 </head>
 <body>
+    <nav aria-label="Secciones principales" class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" data-tab="finance" onclick="switchTab('finance')"><span class="nav-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 14h2"/></svg></span> Finanzas</button>
+      <button class="nav-tab" data-tab="moto" onclick="switchTab('moto')"><span class="nav-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="m5 17 5-8 5 8h4l-4-12h-3M9 9h5"/></svg></span> Moto</button>
+      <button class="nav-tab" data-tab="tasks" onclick="switchTab('tasks')"><span class="nav-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 3h6v4H9zM9 13l2 2 4-4"/></svg></span> Tareas <span class="tab-badge hidden" id="taskBadge">0</span></button>
+      <button class="nav-tab" data-tab="uni" onclick="switchTab('uni')"><span class="nav-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5-10-5Zm4 3v6q6 4 12 0v-6M22 9v8"/></svg></span> Universidad <span class="tab-badge hidden" id="examBadge">0</span></button>
+    </nav>
 <div class="wrap">
 
   <header class="top">
@@ -1611,12 +1618,7 @@
         <h1 id="heroSubtitle">Resumen financiero</h1>
       </div>
     </div>
-    <nav class="nav-tabs" id="navTabs">
-      <button class="nav-tab active" data-tab="finance" onclick="switchTab('finance')"><span class="nav-icon">💰</span> Finanzas</button>
-      <button class="nav-tab" data-tab="moto" onclick="switchTab('moto')"><span class="nav-icon">🏍️</span> Moto</button>
-      <button class="nav-tab" data-tab="tasks" onclick="switchTab('tasks')"><span class="nav-icon">📋</span> Tareas <span class="tab-badge hidden" id="taskBadge">0</span></button>
-      <button class="nav-tab" data-tab="uni" onclick="switchTab('uni')"><span class="nav-icon">🎓</span> Universidad <span class="tab-badge hidden" id="examBadge">0</span></button>
-    </nav>
+
     <div class="month-nav">
       <span class="cal-icon">
         <svg viewBox="0 0 24 24" width="15" height="15"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -1724,9 +1726,10 @@
   <div class="tab-view active" id="tabViewFinance">
   <section class="hero-row fade-in">
     <div class="hero-balance">
-      <span class="tag">Balance actual</span>
+      <div class="balance-heading"><span class="tag">Balance disponible</span><span class="balance-currency">USD</span></div>
       <div class="hero-val" id="heroBalance">$0</div>
       <div class="hero-change" id="heroChange"></div>
+      <div class="balance-footer"><span class="balance-avatars" aria-hidden="true"><span><img src="icons/brands/guayaquil.svg" alt=""></span><span><img src="icons/brands/deuna.svg" alt=""></span><span>$</span></span><span>En tus cuentas y efectivo</span></div>
     </div>
     <div class="hero-chips">
       <div class="chip income"><span class="tag">Ingresos</span><div class="val" id="chipIncome">$0</div><div class="sub" id="chipIncomeSub"></div></div>
@@ -2162,20 +2165,20 @@
 <!-- Bottom Mobile Tab Bar -->
   <nav class="bottom-tab-bar" id="bottomTabBar">
     <button class="bottom-tab active" data-tab="finance" onclick="switchTab('finance')">
-      <span class="b-icon">💰</span>
+      <span class="b-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 14h2"/></svg></span>
       <span class="b-label">Finanzas</span>
     </button>
     <button class="bottom-tab" data-tab="moto" onclick="switchTab('moto')">
-      <span class="b-icon">🏍️</span>
+      <span class="b-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="17" r="3"/><circle cx="19" cy="17" r="3"/><path d="m5 17 5-8 5 8h4l-4-12h-3M9 9h5"/></svg></span>
       <span class="b-label">Moto</span>
     </button>
     <button class="bottom-tab" data-tab="tasks" onclick="switchTab('tasks')">
-      <span class="b-icon">📋</span>
+      <span class="b-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 3h6v4H9zM9 13l2 2 4-4"/></svg></span>
       <span class="b-label">Tareas</span>
       <span class="bottom-badge hidden" id="taskBadgeMobile">0</span>
     </button>
     <button class="bottom-tab" data-tab="uni" onclick="switchTab('uni')">
-      <span class="b-icon">🎓</span>
+      <span class="b-icon"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5-10-5Zm4 3v6q6 4 12 0v-6M22 9v8"/></svg></span>
       <span class="b-label">Universidad</span>
       <span class="bottom-badge hidden" id="examBadgeMobile">0</span>
     </button>
@@ -2554,9 +2557,17 @@ function icon(key, size, noMargin){
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="vertical-align:-3px;margin-right:${noMargin?'0':'5px'};flex-shrink:0;">${ICON_PATHS[key]||''}</svg>`;
 }
 function catIcon(cat, size){ return icon(CAT_ICON_KEY[cat] || 'otros', size); }
+// Brand artwork is bundled locally so account identities also work offline.
+function accountArtwork(id, size = 24){
+  const normalized = normalizeAccountId(id);
+  const assets = {guayaquil:'guayaquil', deuna:'deuna', tc:'mastercard', cash:'cash'};
+  const asset = assets[normalized];
+  if(!asset) return icon(getAccountMeta(id).icon, size, true);
+  return `<img class="account-logo account-logo-${asset}" src="icons/brands/${asset}.svg" alt="" width="${size}" height="${size}">`;
+}
 function accountIcon(id, size){
   const meta = getAccountMeta(id);
-  return `<span class="account-mark" style="--account-color:${meta.color}">${icon(meta.icon, size || 14)}</span>`;
+  return `<span class="account-mark brand-mark-${normalizeAccountId(id)}" style="--account-color:${meta.color}">${accountArtwork(id, size || 14)}</span>`;
 }
 function accountNameById(id){ return getAccountMeta(id).name; }
 
@@ -2770,12 +2781,13 @@ function renderAccounts(){
       const tcHasDebt = tcDebt > 0.005;
       const tcClass = tcHasDebt ? 'tc-has-debt' : 'tc-zero';
       return `<div class="account-card tc-card">
-        <div class="account-card-top">
-          <div class="account-card-icon" style="--account-color:${meta.color}">${icon(meta.icon,22,true)}</div>
-          <span class="account-card-name">${escapeHtml(meta.name)}</span>
+        <div class="account-card-top gold-card-heading">
+          <span class="account-card-name">Mastercard <span class="gold-edition">Gold</span></span>
+          <span class="card-chip" aria-hidden="true"><svg viewBox="0 0 32 24" fill="none"><rect x="1" y="1" width="30" height="22" rx="5"/><path d="M11 1v22M21 1v22M1 8h10M1 16h10M21 8h10M21 16h10M11 12h10"/></svg></span>
         </div>
+        <div class="account-balance-label">Deuda actual</div>
         <div class="account-card-balance tc-val ${tcClass}">${fmt(tcDebt)}</div>
-        <div class="account-card-flow">Corte día ${creditCardConfig.cutOffDay} · Pago día ${creditCardConfig.paymentDueDay || 8}</div>
+        <div class="gold-card-footer"><div class="account-card-flow">Corte · día ${creditCardConfig.cutOffDay}<br>Pago · día ${creditCardConfig.paymentDueDay || 8}</div><img class="mastercard-logo" src="icons/brands/mastercard.svg" alt="Mastercard" width="48" height="38"></div>
       </div>`;
     }
     
@@ -2784,17 +2796,18 @@ function renderAccounts(){
     const monthFlow = month.balance;
     const balanceClass = current.balance > 0.005 ? 'pos' : (current.balance < -0.005 ? 'neg' : 'zero');
     const flowClass = monthFlow > 0.005 ? 'pos' : (monthFlow < -0.005 ? 'neg' : '');
-    return `<div class="account-card">
+    return `<div class="account-card account-${escapeHtml(id)}">
       <div class="account-card-top">
-      <div class="account-card-icon" style="--account-color:${meta.color}">${icon(meta.icon,22,true)}</div>
+      <div class="account-card-icon" style="--account-color:${meta.color}">${accountArtwork(id,26)}</div>
         <span class="account-card-name">${escapeHtml(meta.name)}</span>
       </div>
+      <div class="account-balance-label">Saldo disponible</div>
       <div class="account-card-balance ${balanceClass}">${balanceAmount(current.balance)}</div>
       <div class="account-card-flow">En ${flowLabel}: <span class="${flowClass}">${signedAmount(monthFlow)}</span></div>
       ${(() => {
         const savedFromAcc = (tx||[]).filter(t=>t.type==='saving' && normalizeAccountId(t.account)===id).reduce((s,t)=>s+t.amt, 0)
                            - (tx||[]).filter(t=>t.type==='withdrawal' && normalizeAccountId(t.account)===id).reduce((s,t)=>s+t.amt, 0);
-        return savedFromAcc > 0.005 ? `<div style="font-size:9.5px; color:var(--gold); margin-top:4px; font-family:'JetBrains Mono',monospace;">💰 ${fmt(savedFromAcc)} en ahorro</div>` : '';
+        return savedFromAcc > 0.005 ? `<div class="account-savings"><span>Ahorro</span><strong>${fmt(savedFromAcc)}</strong></div>` : '';
       })()}
     </div>`;
   }).join('');
