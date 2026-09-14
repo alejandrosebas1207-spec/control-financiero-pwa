@@ -2704,12 +2704,8 @@ const escapeHtml = s => { const d=document.createElement('div'); d.textContent=s
 const escapeAttr = s => escapeHtml(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
 function getBudgetsForMonth(mk){
-  if(budgets[mk] && Object.keys(budgets[mk]).length > 0) return budgets[mk];
-  // si este mes no tiene presupuesto propio, usa el del mes anterior mas reciente que si tenga
-  const priorMonths = Object.keys(budgets).filter(k=>k!=='_default' && k<mk).sort();
-  if(priorMonths.length) return budgets[priorMonths[priorMonths.length-1]];
-  if(budgets['_default']) return budgets['_default'];
-  return {};
+  // Budgets apply only to the month explicitly configured, including an empty month.
+  return Object.prototype.hasOwnProperty.call(budgets, mk) ? budgets[mk] : {};
 }
 function setBudgetsForMonth(mk, values){
   budgets[mk] = values;
@@ -4742,11 +4738,11 @@ document.getElementById('toggleBudgetsBtn')?.addEventListener('click', ()=>{
 function renderBudgetForm(){
   const wrap = document.getElementById('budgetForm');
   const mk = cursorKey();
-  const isOwn = !!budgets[mk];
+  wrap.dataset.month = mk;
   const current = getBudgetsForMonth(mk);
   const monthLabel = cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'});
   wrap.innerHTML = `
-    <p class="budget-month-note">Presupuestos de <b>${monthLabel}</b>${isOwn ? '' : (Object.keys(current).length ? ' <span class="budget-inherited">(usando los del mes anterior, aún no personalizados)</span>' : '')}</p>
+    <p class="budget-month-note">Presupuestos de <b>${monthLabel}</b>. Solo se aplican a este mes. Deja un importe vacío para quitar su límite.</p>
     ${CATS.map(c=>`
     <div class="budget-row">
       <span>${catIcon(c)}${escapeHtml(c)}</span>
@@ -5325,6 +5321,10 @@ function renderInsights(){
 
 /* render principal */
 function render(){
+  const budgetForm = document.getElementById('budgetForm');
+  if(!budgetForm.classList.contains('hidden') && budgetForm.dataset.month !== cursorKey()){
+    renderBudgetForm();
+  }
   const isNarrow = window.innerWidth <= 680;
   document.getElementById('monthLabel').textContent = cursor.toLocaleDateString('es-ES',{month: isNarrow ? 'short' : 'long', year:'numeric'});
   if(typeof currentActiveTab === 'undefined' || currentActiveTab === 'finance'){
@@ -5426,7 +5426,7 @@ function render(){
   const catBars = document.getElementById('catBars');
   const visibleCats = CATS.filter(c=>catTotals[c]>0 || monthBudgets[c]).sort((a,b)=>catTotals[b]-catTotals[a]);
   if(visibleCats.length===0){
-    catBars.innerHTML = '<div class="cat-empty">Sin gastos registrados este mes.</div>';
+    catBars.innerHTML = '<div class="cat-empty">Sin categorías activas este mes. Registra un gasto o configura un presupuesto para este mes.</div>';
   } else {
     catBars.innerHTML = visibleCats.map(c=>{
       const spent = catTotals[c]; const budget = monthBudgets[c];
