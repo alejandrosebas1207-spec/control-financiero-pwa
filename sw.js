@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lifeos-pwa-v60';
+const CACHE_NAME = 'lifeos-pwa-v61';
 const CORE_ASSETS = [
   './',
   './index.html',
