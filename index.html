@@ -2358,6 +2358,8 @@ var sbRealtimeChannel = null;
 var isPushingToRemote = false;
 var needsAnotherPush = false;
 var supabaseDebounceTimer = null;
+var supabasePullPromise = null;
+var pendingAuthSyncTimer = null;
 var lastLocalMutationTime = 0;
 var goalFormOpen = false;
 
@@ -3793,28 +3795,59 @@ function initSupabase(){
 
 async function setupAuthListener(){
   if(!sbClient) return;
-  try {
-    const { data: { session } } = await sbClient.auth.getSession();
-    handleAuthState(session ? session.user : null);
-    
-    await pullFromSupabase();
-    subscribeToRealtime();
+  const authClient = sbClient;
 
-    sbClient.auth.onAuthStateChange(async (event, session) => {
-      handleAuthState(session ? session.user : null);
-      if(event === 'SIGNED_IN' && session && session.user){
-        await pullFromSupabase();
-        subscribeToRealtime();
-      } else if(event === 'SIGNED_OUT'){
-        if(sbRealtimeChannel && sbClient){
-          sbClient.removeChannel(sbRealtimeChannel);
-          sbRealtimeChannel = null;
-        }
+  // Supabase can deadlock when another async client call is awaited from inside
+  // onAuthStateChange. Keep this callback synchronous and do the pull next tick.
+  authClient.auth.onAuthStateChange((event, session) => {
+    if(authClient !== sbClient) return;
+    handleAuthState(session ? session.user : null);
+
+    if(event === 'SIGNED_OUT'){
+      clearTimeout(pendingAuthSyncTimer);
+      if(sbRealtimeChannel){
+        authClient.removeChannel(sbRealtimeChannel);
+        sbRealtimeChannel = null;
       }
-    });
+      return;
+    }
+
+    if(session && session.user && (
+      event === 'INITIAL_SESSION' ||
+      event === 'SIGNED_IN' ||
+      event === 'TOKEN_REFRESHED'
+    )){
+      queueSupabaseRefresh(0, 2);
+    }
+  });
+
+  try {
+    const { data: { session }, error } = await authClient.auth.getSession();
+    if(authClient !== sbClient) return;
+    if(error) throw error;
+    handleAuthState(session ? session.user : null);
+    if(session && session.user){
+      const synced = await pullFromSupabase();
+      subscribeToRealtime();
+      if(!synced) queueSupabaseRefresh(1200, 2);
+    }
   } catch(e){
     console.warn('Error en auth listener:', e);
+    queueSupabaseRefresh(1200, 2);
   }
+}
+
+function queueSupabaseRefresh(delay, retriesLeft){
+  clearTimeout(pendingAuthSyncTimer);
+  pendingAuthSyncTimer = setTimeout(async function(){
+    pendingAuthSyncTimer = null;
+    if(!sbClient || !sbUser) return;
+    const synced = await pullFromSupabase();
+    subscribeToRealtime();
+    if(!synced && retriesLeft > 0 && document.visibilityState === 'visible'){
+      queueSupabaseRefresh(1200, retriesLeft - 1);
+    }
+  }, delay || 0);
 }
 
 function handleAuthState(user){
@@ -3852,11 +3885,14 @@ function handleAuthState(user){
 }
 
 async function pullFromSupabase(){
-  if(!sbClient || !sbUser || goalFormOpen) return;
+  if(!sbClient || !sbUser || goalFormOpen) return false;
+  if(supabasePullPromise) return supabasePullPromise;
+  const targetClient = sbClient;
   const targetUserId = sbUser.id;
-  if(Date.now() - lastLocalMutationTime < 2500) return;
-  try {
-    const { data, error } = await sbClient
+  if(Date.now() - lastLocalMutationTime < 2500) return false;
+
+  const currentPull = (async function(){
+    const { data, error } = await targetClient
       .from('user_finance')
       .select('data, updated_at')
       .eq('user_id', targetUserId)
@@ -3864,22 +3900,36 @@ async function pullFromSupabase(){
       
     if(error){
       console.warn('Error al obtener datos de Supabase:', error);
-      return;
+      return false;
     }
     
     // Do not let a response that started before a local edit overwrite it.
-    if(goalFormOpen || Date.now() - lastLocalMutationTime < 2500) return;
+    if(
+      targetClient !== sbClient ||
+      !sbUser ||
+      sbUser.id !== targetUserId ||
+      goalFormOpen ||
+      Date.now() - lastLocalMutationTime < 2500
+    ) return false;
 
     if(data && data.data && Object.keys(data.data).length > 0){
       applyState(data.data);
       render();
       if(typeof renderAccountSettings === 'function') renderAccountSettings();
-      
     } else {
       await pushToSupabase();
     }
+    return true;
+  })();
+
+  supabasePullPromise = currentPull;
+  try {
+    return await currentPull;
   } catch(e){
     console.warn('Fallo en pullFromSupabase:', e);
+    return false;
+  } finally {
+    if(supabasePullPromise === currentPull) supabasePullPromise = null;
   }
 }
 
@@ -3951,6 +4001,8 @@ if(typeof window !== 'undefined'){
     if(document.visibilityState === 'visible') pullFromSupabase();
   });
   window.addEventListener('focus', function(){ pullFromSupabase(); });
+  window.addEventListener('pageshow', function(){ pullFromSupabase(); });
+  window.addEventListener('online', function(){ queueSupabaseRefresh(0, 2); });
 }
 
 /* Modales y UI de Auth */
@@ -4046,14 +4098,6 @@ if(settingsAccountBtn){
 
 // Inicializar Supabase inmediatamente al cargar la página
 initSupabase();
-
-// Sincronizar automáticamente cuando el usuario regresa a la pestaña o abre la app
-window.addEventListener('focus', () => { if(sbClient && sbUser) pullFromSupabase(); });
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && sbClient && sbUser) {
-    pullFromSupabase();
-  }
-});
 if(authForm) authForm.addEventListener('submit', async e=>{
   e.preventDefault();
   if(!sbClient){
