@@ -2,5 +2,7 @@ services:
   - type: web
     name: mi-control-financiero
     env: static
+    branch: main
+    autoDeploy: true
     buildCommand: ""
     staticPublishPath: ./

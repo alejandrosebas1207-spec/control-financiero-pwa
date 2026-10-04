@@ -48,14 +48,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // HTML Navigation: Network-First with 3s Timeout and solid Cache Fallback
+  // HTML Navigation: Network-First with 1.2s Timeout and solid Cache Fallback
   if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
     event.respondWith(
       new Promise(resolve => {
         const timeoutId = setTimeout(async () => {
           const cached = await caches.match('./index.html') || await caches.match('./');
           if (cached) resolve(cached);
-        }, 3000);
+        }, 1200);
 
         fetch(event.request)
           .then(networkRes => {
@@ -76,9 +76,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Static Assets: Stale-While-Revalidate
+  // Static Assets: Stale-While-Revalidate with ignoreSearch
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
+    caches.match(event.request, { ignoreSearch: true }).then(cachedResponse => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
         if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
           const responseToCache = networkResponse.clone();

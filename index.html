@@ -479,7 +479,7 @@
   .tx-row.income .amt{ color: var(--green); }
   .tx-row.expense .amt{ color: var(--red); }
   .tx-row.saving .amt{ color: var(--gold); }
-  .tx-row.withdrawal .amt{ color: var(--gold); }
+  .tx-row.withdrawal .amt, .tx-row.transfer .amt{ color: var(--gold); }
   .tx-row .edit, .tx-row .del{
     width:28px; height:28px; min-width:28px; min-height:28px;
     display:flex; align-items:center; justify-content:center;
@@ -573,7 +573,7 @@
   .type-toggle button.active[data-t="income"]{ background: var(--green-soft); border-color: var(--green); color: var(--green); }
   .type-toggle button.active[data-t="expense"]{ background: var(--red-soft); border-color: var(--red); color: var(--red); }
   .type-toggle button.active[data-t="saving"]{ background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
-  .type-toggle button.active[data-t="withdrawal"]{ background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
+  .type-toggle button.active[data-t="withdrawal"], .type-toggle button.active[data-t="transfer"]{ background: var(--gold-soft); border-color: var(--gold); color: var(--gold); }
 
   form.entry label{ display:block; font-size:10.5px; color: var(--text-soft); margin:10px 0 5px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:.08em; }
   form.entry select, form.entry input{
@@ -1829,7 +1829,7 @@
       <button class="quick-action income" data-q="income">↑ Ingreso</button>
       <button class="quick-action expense" data-q="expense">↓ Gasto</button>
       <button class="quick-action" data-q="saving">⊕ Ahorro</button>
-      <button class="quick-action" data-q="withdrawal">↔ Retiro</button>
+      <button class="quick-action" data-q="withdrawal">↔ Transferencia</button>
     </div>
   </section>
 
@@ -1907,7 +1907,7 @@
             <button data-f="income">Ingresos</button>
             <button data-f="expense">Gastos</button>
             <button data-f="saving">Ahorros</button>
-            <button data-f="withdrawal">Retiros</button>
+            <button data-f="withdrawal">Transferencias</button>
           </div>
         </div>
         <div class="tx-list" id="txList"></div>
@@ -2145,7 +2145,7 @@
       <button type="button" data-t="income" class="active">Ingreso</button>
       <button type="button" data-t="expense">Gasto</button>
       <button type="button" data-t="saving">Ahorro</button>
-      <button type="button" data-t="withdrawal">Retiro</button>
+      <button type="button" data-t="withdrawal">Transferencia</button>
     </div>
     <form class="entry" id="entryForm">
       <div id="catField">
@@ -2164,9 +2164,9 @@
         <label for="fAccount" id="accountLabel">Cuenta</label>
         <select id="fAccount" required></select>
       </div>
-      <div id="withdrawalDestination" class="withdrawal-destination hidden">
-        <span>Destino</span>
-        <strong id="withdrawalDestinationLabel">Efectivo</strong>
+      <div id="withdrawalDestination" class="hidden">
+        <label for="fToAccount">Cuenta de destino (entra)</label>
+        <select id="fToAccount"></select>
       </div>
       <label for="fAmt">Monto</label>
       <input id="fAmt" type="number" step="0.01" min="0" placeholder="0.00" required>
@@ -2449,15 +2449,6 @@ try {
     if(SEED_DATA.motorcycleMaintenance) localStorage.setItem(MOTORCYCLE_MAINTENANCE_KEY, JSON.stringify(SEED_DATA.motorcycleMaintenance));
     if(SEED_DATA.tasks) localStorage.setItem(TASKS_KEY, JSON.stringify(SEED_DATA.tasks));
     if(SEED_DATA.exams) localStorage.setItem(EXAMS_KEY, JSON.stringify(SEED_DATA.exams));
-  } else if (typeof SEED_DATA !== 'undefined' && SEED_DATA && SEED_DATA.tx) {
-    // Non-destructive smart merge on version bump: Merge any new baseline items without wiping local items
-    try {
-      const currentTx = JSON.parse(localStorage.getItem(TX_KEY)) || [];
-      const txMap = new Map();
-      SEED_DATA.tx.forEach(t => txMap.set(t.id, t));
-      currentTx.forEach(t => txMap.set(t.id, t)); // Local items take precedence and are never deleted
-      localStorage.setItem(TX_KEY, JSON.stringify(Array.from(txMap.values())));
-    } catch(err){}
   }
   localStorage.setItem('mcf_app_data_version', CURRENT_APP_DATA_VERSION);
 } catch(e){ console.warn('Error en inicializador seguro de datos:', e); }
@@ -2613,7 +2604,14 @@ let cursor = new Date(); cursor.setDate(1);
 
 function normalizeTxList(raw){
   const source = Array.isArray(raw) ? raw : [];
-  return source.filter(Boolean).map(t=>({ ...t, account: normalizeAccountId(t.account) }));
+  return source.filter(Boolean).map(t=>{
+    const isTrf = t.type === 'withdrawal' || t.type === 'transfer';
+    return {
+      ...t,
+      account: normalizeAccountId(t.account),
+      toAccount: isTrf ? normalizeAccountId(t.toAccount || 'cash') : (t.toAccount ? normalizeAccountId(t.toAccount) : undefined)
+    };
+  });
 }
 const loadTx = () => {
   try{
@@ -2762,12 +2760,13 @@ function getAccountTotals(items, baselineDate){
   relevantItems.forEach(t=>{
     const accountId = normalizeAccountId(t.account);
     if(!totals[accountId]) totals[accountId] = emptyAccountTotal();
-    if(t.type==='withdrawal'){
+    if(t.type==='withdrawal' || t.type==='transfer'){
+      const toAccountId = normalizeAccountId(t.toAccount || 'cash');
+      if(!totals[toAccountId]) totals[toAccountId] = emptyAccountTotal();
       totals[accountId].withdrawalOut += t.amt;
-      if(!totals.cash) totals.cash = emptyAccountTotal();
-      totals.cash.withdrawalIn += t.amt;
+      totals[toAccountId].withdrawalIn += t.amt;
       refreshAccountTotal(totals[accountId]);
-      refreshAccountTotal(totals.cash);
+      refreshAccountTotal(totals[toAccountId]);
       return;
     }
     if(t.type==='income') totals[accountId].income += t.amt;
@@ -2976,8 +2975,11 @@ function calculateCreditCardDebt(){
   // 1. Todos los gastos cargados a la TC desde la fecha base
   const tcExpenses = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'expense' && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
   
-  // 2. Abonos/ingresos directos a la TC
-  const directPayments = (tx||[]).filter(t => normalizeAccountId(t.account) === 'tc' && t.type === 'income' && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
+  // 2. Abonos/ingresos directos a la TC o transferencias enviadas a la TC
+  const directPayments = (tx||[]).filter(t => (
+    (normalizeAccountId(t.account) === 'tc' && t.type === 'income') ||
+    ((t.type === 'withdrawal' || t.type === 'transfer') && normalizeAccountId(t.toAccount) === 'tc')
+  ) && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
   
   // 3. Pagos realizados desde cuentas líquidas (PeiGo, Deuna, Efectivo) con categoría de pago de tarjeta
   const catPayments = (tx||[]).filter(t => isCreditCardPaymentTx(t) && (!bDate || t.date >= bDate)).reduce((s,t) => s + Number(t.amt||0), 0);
@@ -3220,27 +3222,45 @@ let txSearch = '';
 let txTypeFilter = 'all';
 let allSearch = '';
 
+function renderToAccountOptions(selectedId, fromId){
+  const sel = document.getElementById('fToAccount');
+  if(!sel) return;
+  const available = ACCOUNT_DEFS.filter(acc => acc.id !== fromId);
+  sel.innerHTML = available.map(account=>`<option value="${account.id}">${escapeHtml(account.name)}</option>`).join('');
+  const targetId = (selectedId && selectedId !== fromId && isKnownAccountId(selectedId))
+    ? selectedId
+    : (available.find(a => a.id === 'cash') ? 'cash' : (available[0] ? available[0].id : ''));
+  sel.value = targetId;
+}
+
 function syncTypeVisibility(){
-  const isWithdrawal = type==='withdrawal';
+  const isTransfer = type==='withdrawal' || type==='transfer';
   document.getElementById('catField').classList.toggle('hidden', type!=='expense');
   document.getElementById('goalField').classList.toggle('hidden', type!=='saving');
-  document.getElementById('withdrawalDestination').classList.toggle('hidden', !isWithdrawal);
-  document.getElementById('withdrawalDestinationLabel').innerHTML = accountIcon('cash',14) + 'Efectivo';
-  document.getElementById('accountLabel').textContent = isWithdrawal ? 'Cuenta de origen' : 'Cuenta';
+  document.getElementById('withdrawalDestination').classList.toggle('hidden', !isTransfer);
+  document.getElementById('accountLabel').textContent = isTransfer ? 'Cuenta de origen (sale)' : 'Cuenta';
+  
   const currentAccount = document.getElementById('fAccount').value;
-  renderAccountOptions(currentAccount, isWithdrawal);
-  if(type==='saving') updateGoalFieldOptions();
+  renderAccountOptions(currentAccount, isTransfer);
+  if(isTransfer){
+    const toAccVal = document.getElementById('fToAccount')?.value;
+    renderToAccountOptions(toAccVal, document.getElementById('fAccount').value);
+  }
+  if(type==='saving'){
+    const curGoal = document.getElementById('fGoal')?.value;
+    updateGoalFieldOptions(curGoal);
+  }
   updateNoteFieldVisibility();
 }
-function renderAccountOptions(selectedId, forWithdrawal){
+function renderAccountOptions(selectedId, forTransfer){
   const sel = document.getElementById('fAccount');
   if(!sel) return;
   const includeUnassigned = normalizeAccountId(selectedId)==='unassigned';
-  const available = forWithdrawal ? ACCOUNT_DEFS.filter(account=>account.id!=='cash') : ACCOUNT_DEFS;
+  const available = ACCOUNT_DEFS;
   const options = includeUnassigned ? [...available, UNASSIGNED_ACCOUNT] : available;
   sel.innerHTML = options.map(account=>`<option value="${account.id}">${escapeHtml(account.name)}</option>`).join('');
-  const selectedIsAvailable = isKnownAccountId(selectedId) && (!forWithdrawal || selectedId!=='cash');
-  sel.value = includeUnassigned ? UNASSIGNED_ACCOUNT.id : (selectedIsAvailable ? selectedId : (forWithdrawal ? ACCOUNT_DEFS[0].id : defaultAccountId));
+  const selectedIsAvailable = isKnownAccountId(selectedId);
+  sel.value = includeUnassigned ? UNASSIGNED_ACCOUNT.id : (selectedIsAvailable ? selectedId : defaultAccountId);
 }
 function resetEntryForm(){
   type = 'income';
@@ -3261,13 +3281,14 @@ function openEntryModal(prefill){
   if(prefill){
     if(prefill.id) editingId = prefill.id;
     if(prefill.type){
-      type = prefill.type;
+      type = prefill.type === 'transfer' ? 'withdrawal' : prefill.type;
       document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.t===type));
     }
     if(prefill.amt !== undefined && prefill.amt !== '') document.getElementById('fAmt').value = prefill.amt;
     if(prefill.date) document.getElementById('fDate').value = prefill.date;
     if(prefill.note) document.getElementById('fNote').value = prefill.note || '';
-    if(prefill.account) renderAccountOptions(prefill.account);
+    if(prefill.account) renderAccountOptions(prefill.account, type==='withdrawal');
+    if(prefill.toAccount) renderToAccountOptions(prefill.toAccount, prefill.account);
     if(prefill.cat) document.getElementById('fCat').value = prefill.cat;
     modalTitle.textContent = prefill.id ? 'Editar movimiento' : 'Nuevo movimiento';
     modalSubmitBtn.textContent = prefill.id ? 'Guardar cambios' : 'Guardar movimiento';
@@ -3348,10 +3369,19 @@ document.querySelectorAll('.type-toggle button').forEach(btn=>{
 });
 
 function updateNoteFieldVisibility(){
-  const show = type==='income' || (type==='expense' && document.getElementById('fCat').value==='Otros');
+  const isTransfer = type==='withdrawal' || type==='transfer';
+  const show = type==='income' || isTransfer || (type==='expense' && document.getElementById('fCat').value==='Otros');
   document.getElementById('noteField').classList.toggle('hidden', !show);
-  document.getElementById('noteLabel').textContent = type==='income' ? '¿De dónde viene este ingreso?' : '¿A qué corresponde?';
-  document.getElementById('fNote').placeholder = type==='income' ? 'Ej. Sueldo, quincena, décimo, un camello, beca...' : 'Ej. Pasaje, cyber, recarga, arriendo, copias...';
+  if(type==='income'){
+    document.getElementById('noteLabel').textContent = '¿De dónde viene este ingreso?';
+    document.getElementById('fNote').placeholder = 'Ej. Sueldo, quincena, décimo, un camello, beca...';
+  } else if(isTransfer){
+    document.getElementById('noteLabel').textContent = 'Concepto del traspaso (opcional)';
+    document.getElementById('fNote').placeholder = 'Ej. Retiro cajero, recarga de saldo, traspaso...';
+  } else {
+    document.getElementById('noteLabel').textContent = '¿A qué corresponde?';
+    document.getElementById('fNote').placeholder = 'Ej. Pasaje, cyber, recarga, arriendo, copias...';
+  }
 }
 document.getElementById('fCat')?.addEventListener('change', () => {
   updateNoteFieldVisibility();
@@ -3362,36 +3392,43 @@ document.getElementById('fCat')?.addEventListener('change', () => {
     showToast('Selecciona la cuenta líquida de donde saldrá el pago (Deuna, Banco Guayaquil o Efectivo)');
   }
 });
+document.getElementById('fAccount')?.addEventListener('change', () => {
+  if(type === 'withdrawal' || type === 'transfer'){
+    renderToAccountOptions(document.getElementById('fToAccount')?.value, document.getElementById('fAccount')?.value);
+  }
+});
 
 document.getElementById('entryForm')?.addEventListener('submit', e=>{
   e.preventDefault();
   const amt = parseFloat(document.getElementById('fAmt').value);
   const date = document.getElementById('fDate').value;
   if(!amt || !date) return;
+  const isTransfer = type==='withdrawal' || type==='transfer';
   const cat = type==='expense' ? document.getElementById('fCat').value : null;
   const goalId = type==='saving' ? (document.getElementById('fGoal').value || null) : null;
   const account = normalizeAccountId(document.getElementById('fAccount').value);
-  const note = (type==='income' || (type==='expense' && cat==='Otros')) ? document.getElementById('fNote').value.trim() || null : null;
+  const toAccount = isTransfer ? normalizeAccountId(document.getElementById('fToAccount')?.value || 'cash') : null;
+  const note = (type==='income' || isTransfer || (type==='expense' && cat==='Otros')) ? document.getElementById('fNote').value.trim() || null : null;
   if(editingId !== null){
     const idx = tx.findIndex(t=>t.id===editingId);
     lastLocalMutationTime = Date.now();
-    if(idx>-1) tx[idx] = { ...tx[idx], type, cat, amt, date, goalId, note, account };
+    if(idx>-1) tx[idx] = { ...tx[idx], type, cat, amt, date, goalId, note, account, toAccount };
     editingId = null;
     saveTx(tx);
     pushToSupabase();
     closeEntryModal();
     render();
-    showToast('Movimiento actualizado');
+    showToast(isTransfer ? 'Transferencia actualizada' : 'Movimiento actualizado');
   } else {
     lastLocalMutationTime = Date.now();
-    tx.push({ id: Date.now(), type, cat, amt, date, goalId, note, account });
+    tx.push({ id: Date.now(), type, cat, amt, date, goalId, note, account, toAccount });
     saveTx(tx);
     pushToSupabase();
     document.getElementById('fAmt').value = '';
     document.getElementById('fNote').value = '';
     closeEntryModal();
     render();
-    showToast('Movimiento guardado');
+    showToast(isTransfer ? 'Transferencia guardada' : 'Movimiento guardado');
   }
 });
 
@@ -3426,21 +3463,28 @@ function editTx(id){
 function txLabel(t){
   if(t.type==='expense') return escapeHtml(t.cat || 'Gasto') + ((t.cat==='Otros' && t.note) ? ` — ${escapeHtml(t.note)}` : '');
   if(t.type==='income') return 'Ingreso' + (t.note ? ` — ${escapeHtml(t.note)}` : '');
-  if(t.type==='withdrawal') return 'Retiro → Efectivo';
+  if(t.type==='withdrawal' || t.type==='transfer'){
+    const toAcc = getAccountMeta(t.toAccount || 'cash');
+    return (t.note ? escapeHtml(t.note) : `Traspaso a ${escapeHtml(toAcc.name)}`);
+  }
   return 'Ahorro' + (goalNameById(t.goalId) ? ` — ${escapeHtml(goalNameById(t.goalId))}` : '');
 }
 function txSearchText(t){
-  const typeLabel = t.type==='withdrawal' ? 'retiro efectivo' : (t.type==='income' ? 'ingreso' : (t.type==='expense' ? 'gasto' : 'ahorro'));
-  return [t.note||'', t.cat||'', t.type||'', typeLabel, accountNameById(t.account), t.type==='withdrawal'?'Efectivo':''].join(' ').toLowerCase();
+  const isTrf = t.type==='withdrawal' || t.type==='transfer';
+  const typeLabel = isTrf ? 'transferencia traspaso retiro' : (t.type==='income' ? 'ingreso' : (t.type==='expense' ? 'gasto' : 'ahorro'));
+  const toAcc = isTrf ? accountNameById(t.toAccount || 'cash') : '';
+  return [t.note||'', t.cat||'', t.type||'', typeLabel, accountNameById(t.account), toAcc].join(' ').toLowerCase();
 }
 function txRowHtml(t, showDay){
   const d = new Date(t.date+'T00:00:00');
   const dayLabel = d.toLocaleDateString('es-ES',{day:'2-digit', month:'short'});
-  const iconHtml = t.type==='expense' ? catIcon(t.cat) : icon(t.type==='income'?'ingreso':(t.type==='withdrawal'?'withdrawal':'ahorro'));
-  const sign = t.type==='expense' ? '-' : (t.type==='withdrawal' ? '↔' : '+');
+  const isTrf = t.type==='withdrawal' || t.type==='transfer';
+  const iconHtml = t.type==='expense' ? catIcon(t.cat) : icon(t.type==='income'?'ingreso':(isTrf?'withdrawal':'ahorro'));
+  const sign = t.type==='expense' ? '-' : (isTrf ? '↔' : '+');
   const account = getAccountMeta(t.account);
-  const accountLabel = t.type==='withdrawal'
-    ? `${accountIcon(t.account,11)}${escapeHtml(account.name)} → ${accountIcon('cash',11)}Efectivo`
+  const toAcc = isTrf ? getAccountMeta(t.toAccount || 'cash') : null;
+  const accountLabel = isTrf
+    ? `${accountIcon(t.account,11)}${escapeHtml(account.name)} → ${accountIcon(toAcc.id,11)}${escapeHtml(toAcc.name)}`
     : `${accountIcon(t.account,11)}${escapeHtml(account.name)}`;
   return `<div class="tx-row ${t.type} ${showDay?'dayed':''}">
     ${showDay ? `<span class="day">${dayLabel}</span>` : ''}
@@ -3913,9 +3957,13 @@ async function pullFromSupabase(){
     ) return false;
 
     if(data && data.data && Object.keys(data.data).length > 0){
-      applyState(data.data);
-      render();
-      if(typeof renderAccountSettings === 'function') renderAccountSettings();
+      const localState = collectState();
+      const isUnchanged = JSON.stringify(data.data) === JSON.stringify(localState);
+      if(!isUnchanged){
+        applyState(data.data);
+        render();
+        if(typeof renderAccountSettings === 'function') renderAccountSettings();
+      }
     } else {
       await pushToSupabase();
     }
@@ -4876,11 +4924,12 @@ function renderGoals(force = false){
         <div class="goal-mini-actions">
           ${completed
             ? `<button class="btn-ghost-sm archive-g" data-id="${g.id}">Archivar</button><button class="btn-ghost-sm discard-g" data-id="${g.id}">Descartar</button>`
-            : `<button class="btn-ghost-sm edit-g" data-id="${g.id}">Editar</button><button class="btn-ghost-sm del-g" data-id="${g.id}">Eliminar</button>`}
+            : `<button class="btn-ghost-sm add-saving-g" data-id="${g.id}" style="color:var(--green); border-color:rgba(16,185,129,0.3); font-weight:600;">+ Ahorrar</button><button class="btn-ghost-sm edit-g" data-id="${g.id}">Editar</button><button class="btn-ghost-sm del-g" data-id="${g.id}">Eliminar</button>`}
         </div>
       </div>`;
     }).join('') + `<button type="button" class="btn-outline" id="newGoalBtn" style="width:100%;margin-top:2px;">+ Nueva meta</button>`;
 
+    area.querySelectorAll('.add-saving-g').forEach(b=>b.addEventListener('click', ()=> openEntryModal({ type: 'saving', goalId: b.dataset.id })));
     area.querySelectorAll('.edit-g').forEach(b=>b.addEventListener('click', ()=> showGoalForm(goals.find(g=>g.id===b.dataset.id))));
     area.querySelectorAll('.del-g').forEach(b=>b.addEventListener('click', ()=>{ goals = goals.filter(g=>g.id!==b.dataset.id); saveGoals(goals); render(); }));
     area.querySelectorAll('.archive-g').forEach(b=>b.addEventListener('click', ()=>{
@@ -5309,13 +5358,51 @@ function drawProjectionChart(){
   });
 }
 
-/* animación de números */
+/* animación de números con interpolación fluida (cubic ease-out) */
+const _activeNumAnims = {};
 function animateNumber(id, target){
   const el = document.getElementById(id);
   if(!el) return;
-  const num = Number.isFinite(Number(target)) ? Number(target) : 0;
-  el.textContent = fmt(num);
-  el.dataset.raw = String(num);
+  const targetNum = Number.isFinite(Number(target)) ? Number(target) : 0;
+  const currentRaw = parseFloat(el.dataset.raw);
+  const hasValidStart = Number.isFinite(currentRaw);
+  
+  if(!hasValidStart){
+    el.textContent = fmt(targetNum);
+    el.dataset.raw = String(targetNum);
+    return;
+  }
+  
+  const startNum = currentRaw;
+  el.dataset.raw = String(targetNum);
+  
+  if(Math.abs(startNum - targetNum) < 0.005){
+    el.textContent = fmt(targetNum);
+    return;
+  }
+  
+  if(_activeNumAnims[id]){
+    cancelAnimationFrame(_activeNumAnims[id]);
+  }
+  
+  const startTime = performance.now();
+  const duration = 380;
+  
+  function step(now){
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const val = startNum + (targetNum - startNum) * ease;
+    el.textContent = fmt(val);
+    
+    if(progress < 1){
+      _activeNumAnims[id] = requestAnimationFrame(step);
+    } else {
+      el.textContent = fmt(targetNum);
+      delete _activeNumAnims[id];
+    }
+  }
+  _activeNumAnims[id] = requestAnimationFrame(step);
 }
 
 /* análisis del mes */
@@ -5584,7 +5671,6 @@ function render(){
   renderGoals();
   renderBalance();
   refreshAnalysisVisibility();
-  scheduleSyncPush();
 }
 
 function refreshAnalysisVisibility(){
