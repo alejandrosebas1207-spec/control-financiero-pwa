@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const source = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+const accountsSource = fs.readFileSync(path.join(__dirname, '../src/modules/finance/accounts.js'), 'utf8');
+const txSource = fs.readFileSync(path.join(__dirname, '../src/modules/finance/transactions.js'), 'utf8');
 
 const context = {
   window: {},
@@ -35,14 +36,15 @@ context.getAccountOptions = includeUnassigned => includeUnassigned ? [...context
 
 vm.createContext(context);
 
-const getAccountTotalsCode = source.slice(
-  source.indexOf('function emptyAccountTotal()'),
-  source.indexOf('function getCurrentAccountTotals()')
-);
-const normalizeTxListCode = source.slice(
-  source.indexOf('function normalizeTxList(raw)'),
-  source.indexOf('const loadTx =')
-);
+const getAccountTotalsCode = accountsSource.slice(
+  accountsSource.indexOf('export function emptyAccountTotal()'),
+  accountsSource.indexOf('export function getCurrentAccountTotals()')
+).replace(/export\s+function/g, 'function');
+
+const normalizeTxListCode = txSource.slice(
+  txSource.indexOf('export function normalizeTxList(raw)'),
+  txSource.indexOf('export function loadTx(')
+).replace(/export\s+function/g, 'function');
 
 vm.runInContext(normalizeTxListCode, context);
 vm.runInContext(getAccountTotalsCode, context);

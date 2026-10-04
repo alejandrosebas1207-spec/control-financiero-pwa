@@ -4,5 +4,5 @@ services:
     env: static
     branch: main
     autoDeploy: true
-    buildCommand: ""
-    staticPublishPath: ./
+    buildCommand: "npm run build"
+    staticPublishPath: ./dist
