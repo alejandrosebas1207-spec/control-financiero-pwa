@@ -1,5 +1,4 @@
 // Alejo OS · Application Entry Point
-import './styles/main.css';
 import { THEME_KEY } from './core/constants.js';
 
 import { runInitialMigrations } from './core/state.js';
