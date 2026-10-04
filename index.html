@@ -4392,13 +4392,14 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
   const usableW = pageW - mx*2;
 
   const C = {
-    text:[28,28,33], textSoft:[122,122,132], line:[228,228,233],
-    gold:[249,115,22], goldDark:[154,52,18], goldSoft:[255,247,237],
-    green:[34,197,94], greenSoft:[240,253,244],
-    red:[239,68,68], redSoft:[254,242,242],
-    blue:[62,123,250], blueSoft:[240,245,255],
-    amber:[176,138,0], amberSoft:[252,248,235],
-    ink:[80,80,90]
+    text:[28,28,33], textSoft:[113,113,122], line:[228,228,233],
+    gold:[244,63,94], goldDark:[190,18,60], goldSoft:[255,241,242],
+    headerBg:[18,6,12],
+    green:[16,185,129], greenSoft:[240,253,244],
+    red:[251,113,133], redSoft:[254,242,242],
+    blue:[59,130,246], blueSoft:[239,246,255],
+    amber:[217,119,6], amberSoft:[254,252,232],
+    ink:[71,85,105]
   };
   let currentY = 0;
   const now = new Date();
@@ -4407,39 +4408,39 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
   function ensureSpace(needed){
     if(currentY + needed > pageH - 15){
       doc.addPage();
-      currentY = 15;
+      currentY = 16;
     }
   }
   function sectionHeader(num, title, subtitle){
-    ensureSpace(18);
-    currentY += 3;
-    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...C.gold);
-    doc.text((num ? num+'  ' : '') + title, mx, currentY);
+    ensureSpace(22);
+    currentY += 4;
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...C.gold);
+    doc.text((num ? num+'.  ' : '') + title.toUpperCase(), mx, currentY);
+    currentY += 4.5;
     if(subtitle){
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.3); doc.setTextColor(...C.textSoft);
-      doc.text(subtitle, mx, currentY + 4);
-      currentY += 4;
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.2); doc.setTextColor(...C.textSoft);
+      doc.text(subtitle, mx, currentY);
+      currentY += 3.5;
     }
     doc.setDrawColor(...C.line); doc.setLineWidth(0.3);
-    doc.line(mx, currentY+1.5, pageW-mx, currentY+1.5);
+    doc.line(mx, currentY, pageW-mx, currentY);
     currentY += 5;
   }
 
-  // ===== PORTADA =====
-  doc.setFillColor(...C.gold); doc.rect(0,0,pageW,36,'F');
-  doc.setFillColor(...C.goldDark); doc.rect(0,36,pageW,1.4,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(255,255,255);
-  doc.text('Mi Control Financiero', mx, 13);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(255,225,230);
-  doc.text('Informe personal de finanzas', mx, 20);
+  // ===== PORTADA CRIMSON PRO (Alejo OS) =====
+  doc.setFillColor(...C.headerBg); doc.rect(0,0,pageW,38,'F');
+  doc.setFillColor(...C.gold); doc.rect(0,38,pageW,1.5,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+  doc.text('Alejo OS · Informe Financiero', mx, 14);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(255,225,230);
+  doc.text('Centro de Control Personal & Gestión Patrimonial', mx, 21);
   const allMk = tx.map(t=>monthKey(t.date)).sort();
-  const firstMk = allMk[0];
-  const lastMk = allMk[allMk.length-1];
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
-  doc.text('Periodo: ' + fmtMk(firstMk) + ' → ' + fmtMk(lastMk), mx, 28);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(255,240,243);
-  doc.text('Generado el ' + now.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}) + ' a las ' + now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}), pageW-mx, 28, {align:'right'});
-  currentY = 46;
+  const firstMk = allMk[0] || cursorKey();
+  const lastMk = allMk[allMk.length-1] || cursorKey();
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(255,240,243);
+  doc.text('Periodo: ' + fmtMk(firstMk) + '  →  ' + fmtMk(lastMk), mx, 31);
+  doc.text('Emitido: ' + now.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' + now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}), pageW-mx, 31, {align:'right'});
+  currentY = 48;
 
   // ===== 1. RESUMEN HISTORICO =====
   sectionHeader(1, 'Resumen histórico', 'Totales acumulados de todo tu historial');
@@ -4454,8 +4455,8 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
     doc.setFillColor(...color); doc.roundedRect(x,y,w,1.1,0.5,0.5,'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...C.textSoft);
     doc.text(label.toUpperCase(), x+w/2, y+6.5, {align:'center'});
-    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...C.text);
-    doc.text(fmt(value), x+w/2, y+13.5, {align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...C.text);
+    doc.text(fmt(value), x+w/2, y+14, {align:'center'});
     doc.setFillColor(...soft);
     doc.roundedRect(x, y+h-4.5, w, 4.5, 0,0,'F');
     doc.setFont('helvetica','italic'); doc.setFontSize(6.3); doc.setTextColor(...color);
@@ -4487,30 +4488,39 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
   });
   currentY = doc.lastAutoTable.finalY + 8;
 
-  // ===== 2. SALUD FINANCIERA =====
+  // ===== 2. SALUD FINANCIERA (Sin colisión de textos) =====
   const mk = cursorKey();
   const monthTx = tx.filter(t=>monthKey(t.date)===mk);
   const mInc = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amt,0);
   const mExp = monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amt,0);
   const healthScore = mInc>0 ? Math.max(0,Math.min(100,Math.round(((mInc-mExp)/mInc)*100))) : (mExp>0?0:100);
   sectionHeader(2, 'Salud financiera', 'Mes de ' + cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
-  const barW = usableW*0.55, barH = 5;
-  doc.setFillColor(235,235,237); doc.roundedRect(mx,currentY,barW,barH,barH/2,barH/2,'F');
-  if(healthScore>0){
-    const grad = healthScore>=70?C.green:(healthScore>=40?C.amber:C.red);
+  
+  ensureSpace(24);
+  const barW = usableW * 0.65, barH = 5;
+  doc.setFillColor(235,235,237); doc.roundedRect(mx, currentY, barW, barH, barH/2, barH/2, 'F');
+  if(healthScore > 0){
+    const grad = healthScore>=70 ? C.green : (healthScore>=40 ? C.amber : C.red);
     doc.setFillColor(...grad);
-    doc.roundedRect(mx,currentY,barW*(healthScore/100),barH,barH/2,barH/2,'F');
+    doc.roundedRect(mx, currentY, barW*(healthScore/100), barH, barH/2, barH/2, 'F');
   }
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...C.text);
-  doc.text(healthScore+'%', mx+barW+3, currentY+3.6);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.textSoft);
-  doc.text(healthScore>=70 ? 'Buen control: gastas menos de lo que ingresas.' : (healthScore>=40 ? 'Vas bien, sigue así y vigila las categorías grandes.' : 'Cuidado: gastas cerca (o más) de lo que ingresas.'), mx+barW+3, currentY+7);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.ink);
-  doc.text('Ingresos del mes: '+fmt(mInc)+'        Gastos del mes: '+fmt(mExp), mx, currentY+barH+4);
-  currentY += barH + 14;
+  doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...C.text);
+  doc.text(healthScore + '%', mx + barW + 5, currentY + 4);
+  
+  currentY += barH + 4;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...C.textSoft);
+  const healthMsg = healthScore>=70 
+    ? 'Excelente control: estás gastando menos de lo que ingresas y generando ahorro.' 
+    : (healthScore>=40 ? 'Rango equilibrado: vigila los gastos imprevistos y mantén tus presupuestos.' : 'Alerta: tus gastos superan o están muy cerca de tus ingresos.');
+  doc.text(healthMsg, mx, currentY);
+  
+  currentY += 4.5;
+  doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...C.ink);
+  doc.text('Ingresos de ' + cursor.toLocaleDateString('es-ES',{month:'short'}) + ': ' + fmt(mInc) + '    |    Gastos: ' + fmt(mExp) + '    |    Balance neto: ' + (mInc-mExp>=0?'+':'') + fmt(mInc-mExp), mx, currentY);
+  currentY += 8;
 
-  // ===== 3. RANKING DE CATEGORIAS =====
-  sectionHeader(3, 'Ranking de categorías', 'Las categorías que más te costaron durante ' + cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
+  // ===== 3. RANKING DE CATEGORIAS (Sin colisión de barras ni texto) =====
+  sectionHeader(3, 'Ranking de categorías', 'Categorías con mayor consumo durante ' + cursor.toLocaleDateString('es-ES',{month:'long', year:'numeric'}));
   const catT = {};
   monthTx.filter(t=>t.type==='expense').forEach(t=>{ catT[t.cat]=(catT[t.cat]||0)+t.amt; });
   const catSorted = Object.keys(catT).sort((a,b)=>catT[b]-catT[a]);
@@ -4520,25 +4530,30 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
     doc.text('Sin gastos registrados este mes.', mx, currentY+5);
     currentY += 10;
   } else {
-    const maxRank = catT[catSorted[0]];
-    const barFull = usableW*0.56;
-    let rY = currentY + 3;
+    const maxRank = catT[catSorted[0]] || 1;
+    const barFull = usableW * 0.75;
     catSorted.slice(0,6).forEach(c=>{
-      ensureSpace(8);
+      ensureSpace(12);
       const val = catT[c], pct = Math.round((val/totalCat)*100);
-      const pct2 = maxRank>0?Math.max(8,(val/maxRank)*100):0;
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...C.text);
-      doc.text(c, mx, rY);
-      doc.setFont('helvetica','bold'); doc.setTextColor(...C.text);
-      doc.text(fmt(val) + '  ('+pct+'%)', mx+barFull, rY, {align:'right'});
-      doc.setFillColor(232,232,236);
-      doc.roundedRect(mx, rY+1.2, barFull, 3.4, 1.4,1.4,'F');
-      const rgb = hexToRgb(CAT_COLOR[c]||'#F97316');
-      doc.setFillColor(rgb.r,rgb.g,rgb.b);
-      doc.roundedRect(mx, rY+1.2, barFull*(pct2/100), 3.4, 1.4,1.4,'F');
-      rY += 9.5;
+      const pct2 = Math.max(6, (val/maxRank)*100);
+      
+      // Fila 1: Nombre de categoría a la izquierda, Monto y % a la derecha
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.8); doc.setTextColor(...C.text);
+      doc.text(c, mx, currentY + 3.5);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...C.ink);
+      doc.text(fmt(val) + '  (' + pct + '%)', mx + barFull, currentY + 3.5, {align:'right'});
+      
+      // Fila 2: Barra de progreso situada debajo del texto
+      currentY += 5;
+      doc.setFillColor(236,236,240);
+      doc.roundedRect(mx, currentY, barFull, 2.8, 1, 1, 'F');
+      const rgb = hexToRgb(CAT_COLOR[c]||'#F43F5E');
+      doc.setFillColor(rgb.r, rgb.g, rgb.b);
+      doc.roundedRect(mx, currentY, barFull*(pct2/100), 2.8, 1, 1, 'F');
+      
+      currentY += 5.5;
     });
-    currentY = rY;
+    currentY += 3;
   }
 
   // ===== 4. GASTOS FIJOS =====
@@ -4645,7 +4660,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
   sectionHeader(7, 'Balance general', 'Evolución del saldo acumulado, mes a mes');
   if(series.length>0){
     const labels = series.map(s=>new Date(s.mk+'-01T00:00:00').toLocaleDateString('es-ES',{month:'short',year:'2-digit'}));
-    const chartImg = drawLineChartCanvas(labels, series.map(s=>s.acc), 400, 190, '#F97316').toDataURL('image/png');
+    const chartImg = drawLineChartCanvas(labels, series.map(s=>s.acc), 400, 190, '#F43F5E').toDataURL('image/png');
     const chartW = usableW*0.5, chartH = 42;
     doc.addImage(chartImg,'PNG',mx,currentY,chartW,chartH);
     doc.autoTable({
@@ -4710,26 +4725,32 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
     currentY = doc.lastAutoTable.finalY + 8;
   }
 
-  // ===== 9. METAS DE AHORRO =====
+  // ===== 9. METAS DE AHORRO (Limpio y escalonado) =====
   if(goals.length>0 || goalHistory.length>0){
     sectionHeader(9, 'Metas de ahorro', 'Progreso de ahorro hacia tus objetivos');
     if(goals.length>0){
-      const barFull = usableW*0.44;
+      const barFull = usableW * 0.72;
       goals.forEach(g=>{
-        const { progress, pct, completed, byAccount } = goalProgress(g);
-        ensureSpace(14);
-        doc.setFont('helvetica','bold'); doc.setFontSize(9.3); doc.setTextColor(...C.text);
-        doc.text(g.name, mx, currentY);
-        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.textSoft);
-        doc.text(fmt(progress)+' de '+fmt(g.target)+' ('+pct+'%)', mx+barFull+2, currentY);
-        currentY += 3.6;
-        doc.setFillColor(235,235,237);
-        doc.roundedRect(mx,currentY,barFull,4,2,2,'F');
-        if(pct>0){
-          doc.setFillColor(...(completed?C.green:C.gold));
-          doc.roundedRect(mx,currentY,barFull*(pct/100),4,2,2,'F');
-        }
+        const { progress, pct, completed } = goalProgress(g);
+        ensureSpace(16);
+        
+        // Fila 1: Nombre de la meta a la izquierda, estado a la derecha
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...C.text);
+        doc.text(g.name, mx, currentY + 3.5);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.2); doc.setTextColor(...C.textSoft);
+        doc.text(fmt(progress) + ' de ' + fmt(g.target) + ' (' + pct + '%)', mx + barFull, currentY + 3.5, {align:'right'});
+        
+        // Fila 2: Barra de progreso
         currentY += 5;
+        doc.setFillColor(236,236,240);
+        doc.roundedRect(mx, currentY, barFull, 3.2, 1.2, 1.2, 'F');
+        if(pct > 0){
+          doc.setFillColor(...(completed ? C.green : C.gold));
+          doc.roundedRect(mx, currentY, barFull * (Math.min(100, pct)/100), 3.2, 1.2, 1.2, 'F');
+        }
+        currentY += 4.5;
+
+        // Fila 3: Estimación proyectada
         if(!completed){
           const gtx = tx.filter(t=>t.type==='saving'&&t.goalId===g.id);
           const mt={}; gtx.forEach(t=>{ const k=monthKey(t.date); mt[k]=(mt[k]||0)+t.amt; });
@@ -4738,12 +4759,12 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
           if(avg>0){
             const monthsLeft=Math.ceil((g.target-progress)/avg);
             const d=new Date(); d.setMonth(d.getMonth()+monthsLeft);
-            doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(...C.amber);
-            doc.text('Estimado: a tu ritmo actual ('+fmt(avg)+'/mes) la completarías hacia '+d.toLocaleDateString('es-ES',{month:'long',year:'numeric'})+'.', mx, currentY+2);
-            currentY += 3;
+            doc.setFont('helvetica','italic'); doc.setFontSize(7.5); doc.setTextColor(...C.amber);
+            doc.text('Estimado: a tu ritmo ('+fmt(avg)+'/mes) la completarías en '+d.toLocaleDateString('es-ES',{month:'long',year:'numeric'})+'.', mx, currentY + 1.5);
+            currentY += 3.5;
           }
         }
-        currentY += 1.5;
+        currentY += 3;
       });
     }
     if(goalHistory.length>0){
@@ -4763,7 +4784,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
     }
   }
 
-  // ===== 10. DETALLE DE MOVIMIENTOS (agrupado por mes) =====
+  // ===== 10. DETALLE DE MOVIMIENTOS (con soporte de Transferencias) =====
   sectionHeader(10, 'Detalle de movimientos', tx.length+' registros · agrupados por mes con saldo acumulado');
   const sorted = [...tx].sort((a,b)=> a.date.localeCompare(b.date) || a.id-b.id);
   const monthGroups = {};
@@ -4777,6 +4798,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
     bodyMeta.push({type:'band'});
     let monthNet = 0;
     monthGroups[k].forEach(function(t){
+      const isTrf = t.type==='withdrawal'||t.type==='transfer';
       const delta = t.type==='income' ? t.amt : ((t.type==='expense'||t.type==='saving') ? -t.amt : 0);
       runningSaldo += delta;
       monthNet += delta;
@@ -4784,16 +4806,21 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
       if(t.type==='income'){ cat='Ingreso'; desc=t.note||''; tipoCol='Ingreso'; }
       else if(t.type==='expense'){ cat=t.cat||''; desc=(t.cat==='Otros'&&t.note)?t.note:''; tipoCol='Gasto'; }
       else if(t.type==='saving'){ cat='Ahorro'; desc=goalNameById(t.goalId)||'Sin meta específica'; tipoCol='Ahorro'; }
-      else { cat='Retiro'; desc='Efectivo'; tipoCol='Retiro'; }
-      const valueText = t.type==='withdrawal'
-        ? '↔$'+Math.abs(t.amt).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
-        : (delta>=0?'+':'-')+'$'+Math.abs(t.amt).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+      else {
+        cat='Transferencia';
+        const toAcc = getAccountMeta(t.toAccount||'cash');
+        desc = (t.note ? t.note + ' ' : '') + '→ ' + toAcc.name;
+        tipoCol='Traspaso';
+      }
+      const valueText = isTrf
+        ? '↔$' + Math.abs(t.amt).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
+        : (delta>=0?'+':'-') + '$' + Math.abs(t.amt).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
       bodyArr.push([
         t.date, accountNameById(t.account), cat, desc, tipoCol,
         valueText,
         '$'+runningSaldo.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
       ]);
-      bodyMeta.push({type:'row', t, delta});
+      bodyMeta.push({type:'row', t, delta, isTrf});
     });
     bodyArr.push(['','','','Subtotal '+k,'',(monthNet>=0?'+':'')+'$'+Math.abs(monthNet).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}), '']);
     bodyMeta.push({type:'total', monthNet});
@@ -4804,9 +4831,17 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
     margin:{left:mx,right:mx},
     head:[['Fecha','Cuenta','Categoría','Descripción','Tipo','Valor','Saldo']],
     body: bodyArr,
-    columnStyles:{1:{halign:'left'},2:{halign:'left'},3:{halign:'left'}},
-    styles:{font:'helvetica',fontSize:7.5,halign:'center',valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1},
-    headStyles:{fillColor:[242,242,247],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.6},lineColor:C.textSoft},
+    columnStyles:{
+      0:{cellWidth:20, halign:'center'},
+      1:{cellWidth:26, halign:'left'},
+      2:{cellWidth:26, halign:'left'},
+      3:{cellWidth:46, halign:'left'},
+      4:{cellWidth:20, halign:'center'},
+      5:{cellWidth:22, halign:'right'},
+      6:{cellWidth:22, halign:'right'}
+    },
+    styles:{font:'helvetica',fontSize:7.5,valign:'middle',textColor:C.text,lineColor:C.line,lineWidth:0.1,overflow:'linebreak'},
+    headStyles:{fillColor:[242,242,247],textColor:C.text,fontStyle:'bold',lineWidth:{bottom:0.6},lineColor:C.textSoft,halign:'center'},
     didParseCell:function(data){
       const m = bodyMeta[data.row.index];
       if(!m) return;
@@ -4826,7 +4861,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
         if(data.column.index===5){ data.row.cells['5'].styles.textColor = m.monthNet>=0?C.green:C.red; }
       } else if(m.type==='row'){
         if(data.column.index===5){
-          data.cell.styles.textColor = m.t.type==='withdrawal' ? C.gold : (m.delta>=0?C.green:C.red);
+          data.cell.styles.textColor = m.isTrf ? C.gold : (m.delta>=0?C.green:C.red);
           data.cell.styles.fontStyle='bold';
         }
         if(data.column.index===6){ data.cell.styles.textColor=C.text; }
@@ -4835,18 +4870,18 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async ()=>{
   });
   currentY = doc.lastAutoTable.finalY + 8;
 
-  // ===== PIE DE PAGINA =====
+  // ===== PIE DE PAGINA (Alejo OS) =====
   const allPages = doc.internal.getNumberOfPages();
   for(let i=1;i<=allPages;i++){
     doc.setPage(i);
     doc.setDrawColor(...C.line); doc.setLineWidth(0.3);
     doc.line(mx, pageH-10, pageW-mx, pageH-10);
     doc.setFont('helvetica','normal'); doc.setFontSize(7.8); doc.setTextColor(...C.textSoft);
-    doc.text('Mi Control Financiero · ' + now.toLocaleDateString('es-ES'), mx, pageH-6);
+    doc.text('Alejo OS · Centro Personal · ' + now.toLocaleDateString('es-ES'), mx, pageH-6);
     doc.text('Página '+i+' de '+allPages, pageW-mx, pageH-6, {align:'right'});
   }
 
-  doc.save('informe-financiero-' + dateKey(now) + '.pdf');
+  doc.save('alejo-os-informe-financiero-' + dateKey(now) + '.pdf');
 });
 
 function hexToRgb(hex){
