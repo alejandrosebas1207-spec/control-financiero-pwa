@@ -107,6 +107,7 @@ export const SEED_DATA = {
   }
 };
 
+export const THEME_KEY = 'alejo_os_theme_v1';
 export const TX_KEY = 'mcf_tx_v2';
 export const BUDGETS_KEY = 'mcf_budgets_v1';
 export const GOALS_KEY = 'mcf_goals_v2';

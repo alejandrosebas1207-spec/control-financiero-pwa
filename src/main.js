@@ -1,5 +1,6 @@
 // Alejo OS · Application Entry Point
 import './styles/main.css';
+import { THEME_KEY } from './core/constants.js';
 
 import { runInitialMigrations } from './core/state.js';
 import {
@@ -380,6 +381,58 @@ window.openTaskModal = openTaskModal;
 window.toggleExamComplete = toggleExamComplete;
 window.toggleTaskDone = toggleTaskDone;
 
+// Theme Management Engine
+const THEMES = [
+  { id: 'slate', name: 'Slate Midnight', icon: '🌌' },
+  { id: 'oled', name: 'OLED Pure Black', icon: '🌑' },
+  { id: 'crimson', name: 'Crimson Velvet', icon: '🍷' }
+];
+
+export function getStoredTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) || 'slate';
+  } catch (e) {
+    return 'slate';
+  }
+}
+
+export function applyTheme(themeId, notify = false) {
+  const selected = THEMES.some(t => t.id === themeId) ? themeId : 'slate';
+  document.documentElement.setAttribute('data-theme', selected);
+  try {
+    localStorage.setItem(THEME_KEY, selected);
+  } catch (e) {}
+
+  document.querySelectorAll('#themePickerGrid .theme-option').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme-val') === selected);
+  });
+
+  const found = THEMES.find(t => t.id === selected) || THEMES[0];
+  if (notify) {
+    showToast(`${found.icon} Tema: ${found.name}`);
+  }
+}
+
+export function cycleTheme() {
+  const current = getStoredTheme();
+  const currentIndex = THEMES.findIndex(t => t.id === current);
+  const nextIndex = (currentIndex + 1) % THEMES.length;
+  applyTheme(THEMES[nextIndex].id, true);
+}
+
+function setupTheme() {
+  applyTheme(getStoredTheme(), false);
+
+  document.getElementById('themeToggleBtn')?.addEventListener('click', cycleTheme);
+
+  document.querySelectorAll('#themePickerGrid .theme-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-theme-val');
+      if (val) applyTheme(val, true);
+    });
+  });
+}
+
 // Setup Profile Avatar
 function setupAvatar() {
   const AVATAR_KEY = 'mcf_avatar_v1';
@@ -714,6 +767,7 @@ function registerPwa() {
 // Master Initialization
 async function init() {
   runInitialMigrations();
+  setupTheme();
   loadLifeOsData();
   setupAvatar();
   setupSettingsAndBackups();

@@ -53,6 +53,12 @@
       <span class="month-label" id="monthLabel" aria-live="polite">-</span>
       <button id="nextMonth" title="Mes siguiente" aria-label="Mes siguiente">&#8594;</button>
       <button class="today-btn" id="todayBtn" title="Volver al mes actual">Hoy</button>
+      <button id="themeToggleBtn" title="Cambiar tema visual" aria-label="Cambiar tema visual" style="display:inline-flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </button>
       <button id="gearBtn" title="Ajustes" aria-label="Ajustes">&#9881;</button>
     </div>
   </header>
@@ -117,6 +123,25 @@
         <input type="text" id="newCatName" placeholder="Nueva categoría...">
         <input type="color" id="newCatColor" value="#F97316" title="Color de la categoría">
         <button class="btn-outline" id="addCatBtn">Añadir</button>
+      </div>
+    </div>
+
+    <div class="theme-settings-block">
+      <p class="sync-title">🎨 Tema Visual</p>
+      <p class="sync-desc">Personaliza la estética de Alejo OS con paletas cromáticas calibradas.</p>
+      <div class="theme-picker-grid" id="themePickerGrid">
+        <button type="button" class="theme-option active" data-theme-val="slate">
+          <span class="theme-preview slate"></span>
+          <span class="theme-label">Slate Midnight</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-val="oled">
+          <span class="theme-preview oled"></span>
+          <span class="theme-label">OLED Pure Black</span>
+        </button>
+        <button type="button" class="theme-option" data-theme-val="crimson">
+          <span class="theme-preview crimson"></span>
+          <span class="theme-label">Crimson Velvet</span>
+        </button>
       </div>
     </div>
 
