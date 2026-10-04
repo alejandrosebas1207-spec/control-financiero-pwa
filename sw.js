@@ -1,8 +1,9 @@
-const CACHE_NAME = 'lifeos-pwa-v64';
+const CACHE_NAME = 'lifeos-pwa-v68';
 const CORE_ASSETS = [
   './',
   './index.html',
-  './refresh.css',
+  './assets/app.js',
+  './assets/app.css',
   './icons/brands/guayaquil.svg',
   './icons/brands/deuna.svg',
   './icons/brands/mastercard.svg',
@@ -12,9 +13,6 @@ const CORE_ASSETS = [
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
   './icons/favicon.png',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js',
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap'
 ];
 

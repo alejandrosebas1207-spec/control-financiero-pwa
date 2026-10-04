@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: mi-control-financiero
+    name: control-financiero-pwa
     env: static
     branch: main
     autoDeploy: true

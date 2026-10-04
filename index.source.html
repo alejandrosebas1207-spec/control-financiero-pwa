@@ -8,10 +8,10 @@
 <meta name="apple-mobile-web-app-title" content="Alejo OS">
 <meta name="theme-color" content="#101413">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="/assets/manifest.json">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=4">
-<link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png?v=4">
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png?v=4">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=4">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=4">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png?v=4">
 <title>Alejo OS · Centro Personal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,8 +20,8 @@
 
 
 
-  <script type="module" crossorigin src="/assets/app.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/app.css">
+<link rel="stylesheet" href="refresh.css">
+  <link rel="stylesheet" href="/src/styles/main.css">
 </head>
 <body>
 <nav aria-label="Secciones principales" class="nav-tabs" id="navTabs">
@@ -180,7 +180,7 @@
       <div class="balance-heading"><span class="tag">Balance disponible</span><span class="balance-currency">USD</span></div>
       <div class="hero-val" id="heroBalance">$0</div>
       <div class="hero-change" id="heroChange"></div>
-      <div class="balance-footer"><span class="balance-avatars" aria-hidden="true"><span><img src="/assets/guayaquil.svg" alt=""></span><span><img src="data:image/svg+xml,%3csvg%20width='25'%20height='24'%20viewBox='0%200%2025%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M13.6801%2016.8874C13.6801%2016.7388%2013.7095%2016.5922%2013.7409%2016.4455L17.0439%201H12.1335L10.8598%206.94089C10.4712%205.88353%209.35842%204.85125%207.9689%204.85125C3.7925%204.84932%200.0439453%2010.5085%200.0439453%2016.8584C0.0439453%2020.785%201.81617%2023%204.66978%2023C6.77172%2023%208.06311%2021.7902%208.87562%2020.372H8.92076C9.643%2022.0874%2011.3485%2022.8746%2013.527%2022.9865L14.6221%2017.8811C14.0412%2017.7788%2013.6801%2017.474%2013.6801%2016.8874ZM6.29089%2019.28C5.29978%2019.28%204.87978%2018.3924%204.87978%2017.0051C4.87978%2014.4659%206.35173%208.64848%208.66563%208.64848C9.65477%208.64848%2010.2436%209.81775%209.8844%2011.4733L8.89329%2016.1387C8.47329%2018.0875%207.5234%2019.28%206.29285%2019.28'%20fill='%234C1D80'/%3e%3cpath%20d='M19.9728%201C19.7307%201.42198%2019.3303%201.82477%2018.8135%202.12591C18.3616%202.38868%2017.8907%202.53254%2017.4559%202.56706L16.8801%205.37512H18.2377L15.6025%2017.8234H20.5391L24.0743%201H19.9728Z'%20fill='%234C1D80'/%3e%3cpath%20d='M17.7205%2018.563C16.551%2018.563%2015.6025%2019.5565%2015.6025%2020.7815C15.6025%2022.0065%2016.551%2023%2017.7205%2023C18.89%2023%2019.8384%2022.0065%2019.8384%2020.7815C19.8384%2019.5565%2018.89%2018.563%2017.7205%2018.563Z'%20fill='%234C1D80'/%3e%3c/svg%3e" alt=""></span><span>$</span></span><span>En tus cuentas y efectivo</span></div>
+      <div class="balance-footer"><span class="balance-avatars" aria-hidden="true"><span><img src="icons/brands/guayaquil.svg" alt=""></span><span><img src="icons/brands/deuna.svg" alt=""></span><span>$</span></span><span>En tus cuentas y efectivo</span></div>
     </div>
     <div class="hero-chips">
       <div class="chip income"><span class="tag">Ingresos</span><div class="val" id="chipIncome">$0</div><div class="sub" id="chipIncomeSub"></div></div>
@@ -766,5 +766,6 @@
       </form>
     </div>
   </div>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>
