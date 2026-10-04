@@ -178,7 +178,7 @@ export async function setupAuthListener() {
     if (session && session.user) {
       const synced = await pullFromSupabase();
       subscribeToRealtime();
-      if (!synced) queueSupabaseRefresh(1200, 2);
+      if (!synced || !synced.ok) queueSupabaseRefresh(1200, 2);
     }
   } catch (e) {
     console.warn('Error en auth listener:', e);
@@ -193,7 +193,7 @@ export function queueSupabaseRefresh(delay, retriesLeft) {
     if (!sbClient || !sbUser) return;
     const synced = await pullFromSupabase();
     subscribeToRealtime();
-    if (!synced && retriesLeft > 0 && typeof document !== 'undefined' && document.visibilityState === 'visible') {
+    if ((!synced || !synced.ok) && retriesLeft > 0 && typeof document !== 'undefined' && document.visibilityState === 'visible') {
       queueSupabaseRefresh(1200, retriesLeft - 1);
     }
   }, delay || 0);
@@ -342,44 +342,48 @@ export function applyState(data) {
   _updateBadgesFn();
 }
 
-export async function pullFromSupabase() {
-  if (!sbClient || !sbUser || _getGoalFormOpenFn()) return false;
+export async function pullFromSupabase(force = false) {
+  if (!sbClient || !sbUser || _getGoalFormOpenFn()) return { ok: false, reason: 'no_auth_or_open' };
   if (supabasePullPromise) return supabasePullPromise;
   const targetClient = sbClient;
   const targetUserId = sbUser.id;
-  if (Date.now() - lastLocalMutationTime < 2500) return false;
+  if (!force && Date.now() - lastLocalMutationTime < 2500) return { ok: false, reason: 'debounce' };
 
   const currentPull = (async function() {
-    const { data, error } = await targetClient
-      .from('user_finance')
-      .select('data, updated_at')
-      .eq('user_id', targetUserId)
-      .maybeSingle();
+    try {
+      const { data, error } = await targetClient
+        .from('user_finance')
+        .select('data, updated_at')
+        .eq('user_id', targetUserId)
+        .maybeSingle();
 
-    if (error) {
-      console.warn('Error al obtener datos de Supabase:', error);
-      return false;
-    }
+      if (error) {
+        console.error('Error al obtener datos de Supabase:', error);
+        return { ok: false, error };
+      }
 
-    if (
-      targetClient !== sbClient ||
-      !sbUser ||
-      sbUser.id !== targetUserId ||
-      _getGoalFormOpenFn() ||
-      Date.now() - lastLocalMutationTime < 2500
-    ) return false;
+      if (
+        targetClient !== sbClient ||
+        !sbUser ||
+        sbUser.id !== targetUserId ||
+        _getGoalFormOpenFn() ||
+        (!force && Date.now() - lastLocalMutationTime < 2500)
+      ) return { ok: false, reason: 'aborted' };
 
-    if (data && data.data && Object.keys(data.data).length > 0) {
-      const localState = collectState();
-      const isUnchanged = JSON.stringify(data.data) === JSON.stringify(localState);
-      if (!isUnchanged) {
+      if (data && data.data && Object.keys(data.data).length > 0) {
         applyState(data.data);
         _renderFn();
+        return { ok: true, data: data.data, updated_at: data.updated_at };
+      } else {
+        if (!force) {
+          await pushToSupabase();
+        }
+        return { ok: true, empty: true };
       }
-    } else {
-      await pushToSupabase();
+    } catch (err) {
+      console.error('Excepción en pullFromSupabase:', err);
+      return { ok: false, error: err };
     }
-    return true;
   })();
 
   supabasePullPromise = currentPull;
@@ -387,7 +391,7 @@ export async function pullFromSupabase() {
     return await currentPull;
   } catch (e) {
     console.warn('Fallo en pullFromSupabase:', e);
-    return false;
+    return { ok: false, error: e };
   } finally {
     if (supabasePullPromise === currentPull) supabasePullPromise = null;
   }
@@ -541,9 +545,15 @@ export function setupSupabaseUi() {
 
   if (settingsSyncNowBtn) {
     settingsSyncNowBtn.addEventListener('click', async () => {
-      await pushToSupabase();
-      await pullFromSupabase();
-      showToast('Sincronización completada ✓');
+      const res = await pullFromSupabase(true);
+      if (res && res.ok) {
+        if (res.empty) showToast('Conectado a la nube (sin datos guardados)');
+        else showToast('Sincronización completada ✓');
+      } else if (res && res.error) {
+        showToast('Error de Supabase: ' + (res.error.message || ''));
+      } else {
+        showToast('No se pudo conectar con la nube');
+      }
     });
   }
   if (settingsAccountBtn) {
@@ -611,9 +621,26 @@ export function setupSupabaseUi() {
   });
 
   if (forceSyncBtn) forceSyncBtn.addEventListener('click', async () => {
-    await pushToSupabase();
-    await pullFromSupabase();
-    showToast('Sincronización manual completada ✓');
+    forceSyncBtn.disabled = true;
+    forceSyncBtn.textContent = 'Descargando...';
+    try {
+      const res = await pullFromSupabase(true);
+      if (res && res.ok) {
+        if (res.empty) {
+          showToast(`Conectado como ${sbUser?.email || ''} (sin datos guardados en la nube)`);
+        } else {
+          const txCount = res.data && res.data.tx ? res.data.tx.length : 0;
+          showToast(`Sincronizado: ${txCount} movimientos cargados ✓`);
+        }
+      } else if (res && res.error) {
+        showToast('Error: ' + (res.error.message || JSON.stringify(res.error)));
+      } else {
+        showToast('No se pudo descargar datos de la nube');
+      }
+    } finally {
+      forceSyncBtn.disabled = false;
+      forceSyncBtn.textContent = 'Sincronizar ahora';
+    }
   });
 
   if (typeof window !== 'undefined') {
