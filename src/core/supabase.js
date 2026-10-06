@@ -114,6 +114,12 @@ export let supabasePullPromise = null;
 export let pendingAuthSyncTimer = null;
 export let lastLocalMutationTime = 0;
 
+const DIRTY_KEY = 'mcf_sync_dirty_v1';
+let suppressSync = false;
+function isDirty() { try { return localStorage.getItem(DIRTY_KEY) === '1'; } catch (e) { return false; } }
+function setDirty(v) { try { if (v) localStorage.setItem(DIRTY_KEY, '1'); else localStorage.removeItem(DIRTY_KEY); } catch (e) {} }
+function hasPendingLocalWork() { return isDirty() || isPushingToRemote || !!supabaseDebounceTimer; }
+
 export const SB_URL_KEY = 'mcf_sb_url_v2';
 export const SB_KEY_KEY = 'mcf_sb_key_v2';
 
@@ -266,8 +272,14 @@ export function collectState() {
   };
 }
 
-export function applyState(data) {
+export function applyState(data, opts) {
+  suppressSync = true;
+  try { applyStateInner(data, opts || {}); } finally { suppressSync = false; }
+}
+
+function applyStateInner(data, opts) {
   if (!data || typeof data !== 'object') return;
+  const localWins = !!opts.localWins;
   const deletedTxIds = _getDeletedTxIdsFn();
   if (data.deletedTxIds && Array.isArray(data.deletedTxIds)) {
     data.deletedTxIds.forEach(id => deletedTxIds.add(id));
@@ -279,14 +291,15 @@ export function applyState(data) {
       if (!deletedTxIds.has(t.id)) txMap.set(t.id, t);
     });
     (_getTxFn() || []).forEach(t => {
-      if (!deletedTxIds.has(t.id) && !txMap.has(t.id)) {
-        txMap.set(t.id, t);
-      }
+      if (deletedTxIds.has(t.id)) return;
+      // Si hay cambios locales sin subir, la versión local gana (ediciones incluidas).
+      if (localWins || !txMap.has(t.id)) txMap.set(t.id, t);
     });
     const mergedTx = Array.from(txMap.values());
     _setTxFn(mergedTx);
     localStorage.setItem(TX_KEY, JSON.stringify(mergedTx));
   }
+  if (localWins) { _updateBadgesFn(); return; }
   if (data.goals && Array.isArray(data.goals)) {
     _setGoalsFn(data.goals);
     localStorage.setItem(GOALS_KEY, JSON.stringify(data.goals));
@@ -371,14 +384,19 @@ export async function pullFromSupabase(force = false) {
       ) return { ok: false, reason: 'aborted' };
 
       if (data && data.data && Object.keys(data.data).length > 0) {
-        applyState(data.data);
+        const pending = hasPendingLocalWork();
+        applyState(data.data, { localWins: pending });
         _renderFn();
-        return { ok: true, data: data.data, updated_at: data.updated_at };
+        // Auto-reparación: si el dispositivo tiene movimientos que la nube no conoce, subirlos.
+        const remoteIds = new Set((data.data.tx || []).map(t => t.id));
+        const dels = _getDeletedTxIdsFn();
+        const hasExtraLocal = (_getTxFn() || []).some(t => !remoteIds.has(t.id) && !dels.has(t.id));
+        let pushed = null;
+        if (pending || hasExtraLocal) pushed = await pushToSupabase();
+        return { ok: true, data: data.data, updated_at: data.updated_at, pushed };
       } else {
-        if (!force) {
-          await pushToSupabase();
-        }
-        return { ok: true, empty: true };
+        const pushed = await pushToSupabase();
+        return { ok: true, empty: true, pushed };
       }
     } catch (err) {
       console.error('Excepción en pullFromSupabase:', err);
@@ -398,14 +416,36 @@ export async function pullFromSupabase(force = false) {
 }
 
 export async function pushToSupabase() {
-  if (!sbClient || !sbUser) return;
+  if (!sbClient || !sbUser) return { ok: false, reason: 'no_auth' };
   if (isPushingToRemote) {
     needsAnotherPush = true;
-    return;
+    return { ok: false, reason: 'busy' };
   }
   const targetUserId = sbUser.id;
+  const mutationSnapshot = lastLocalMutationTime;
   isPushingToRemote = true;
+  let result = { ok: false };
   try {
+    // Fusionar con lo que ya existe en la nube para no borrar movimientos de otros dispositivos.
+    let remoteData = null;
+    try {
+      const { data: remote } = await sbClient.from('user_finance').select('data').eq('user_id', targetUserId).maybeSingle();
+      remoteData = remote && remote.data ? remote.data : null;
+    } catch (e) {}
+    if (remoteData) {
+      const dels = _getDeletedTxIdsFn();
+      if (Array.isArray(remoteData.deletedTxIds)) remoteData.deletedTxIds.forEach(id => dels.add(id));
+      try { localStorage.setItem(DELETED_TX_KEY, JSON.stringify(Array.from(dels))); } catch (e) {}
+      if (Array.isArray(remoteData.tx)) {
+        const localIds = new Set((_getTxFn() || []).map(t => t.id));
+        const missing = _normalizeTxListFn(remoteData.tx).filter(t => !localIds.has(t.id) && !dels.has(t.id));
+        if (missing.length) {
+          const merged = (_getTxFn() || []).concat(missing).filter(t => !dels.has(t.id));
+          suppressSync = true;
+          try { _setTxFn(merged); localStorage.setItem(TX_KEY, JSON.stringify(_getTxFn())); } finally { suppressSync = false; }
+        }
+      }
+    }
     const currentState = collectState();
     const { error } = await sbClient
       .from('user_finance')
@@ -417,9 +457,16 @@ export async function pushToSupabase() {
 
     if (error) {
       console.warn('Error al guardar en Supabase:', error);
+      showToast('No se pudo guardar en la nube: ' + (error.message || 'error'));
+      result = { ok: false, error };
+    } else {
+      if (lastLocalMutationTime === mutationSnapshot) setDirty(false);
+      result = { ok: true, count: currentState.tx.length };
     }
   } catch (e) {
     console.warn('Fallo en pushToSupabase:', e);
+    showToast('Sin conexión: se guardará en la nube más tarde');
+    result = { ok: false, error: e };
   } finally {
     isPushingToRemote = false;
     if (needsAnotherPush) {
@@ -427,13 +474,16 @@ export async function pushToSupabase() {
       scheduleSyncPush();
     }
   }
+  return result;
 }
 
 export function scheduleSyncPush() {
+  if (suppressSync) return;
   lastLocalMutationTime = Date.now();
+  setDirty(true);
   if (!sbClient) return;
   clearTimeout(supabaseDebounceTimer);
-  supabaseDebounceTimer = setTimeout(pushToSupabase, 250);
+  supabaseDebounceTimer = setTimeout(() => { supabaseDebounceTimer = null; pushToSupabase(); }, 250);
 }
 
 export function subscribeToRealtime() {
@@ -449,7 +499,7 @@ export function subscribeToRealtime() {
       filter: `user_id=eq.${targetUserId}`
     }, payload => {
       if (payload.new && payload.new.data && !isPushingToRemote && !_getGoalFormOpenFn()) {
-        applyState(payload.new.data);
+        applyState(payload.new.data, { localWins: hasPendingLocalWork() });
         _renderFn();
         const tab = _getCurrentActiveTabFn();
         if (tab === 'moto') _renderMotoDashboardFn();
@@ -548,7 +598,8 @@ export function setupSupabaseUi() {
       const res = await pullFromSupabase(true);
       if (res && res.ok) {
         if (res.empty) showToast('Conectado a la nube (sin datos guardados)');
-        else showToast('Sincronización completada ✓');
+        else if (res.pushed && res.pushed.ok === false) showToast('Descargado, pero no se pudo subir tus cambios');
+        else showToast('Sincronización completada ✓ (' + (res.data && res.data.tx ? res.data.tx.length : 0) + ' movimientos)');
       } else if (res && res.error) {
         showToast('Error de Supabase: ' + (res.error.message || ''));
       } else {
